@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+
+# Build
+dist/
+
+# Test artifacts
+test-results/
+playwright-report/
+allure-results/
+allure-report/
+
+# Auth state (contains session cookies — NEVER commit)
+auth/*.json
+!auth/.gitkeep
+
+# BDD generated files (playwright-bdd)
+.features-gen/
+
+# Environment
+.env
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Videos / screenshots from test runs
+videos/
+screenshots/

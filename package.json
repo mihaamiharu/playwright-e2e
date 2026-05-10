@@ -1,0 +1,32 @@
+{
+  "name": "playwright-e2e",
+  "version": "0.1.0",
+  "description": "Production-grade Playwright E2E testing against real public websites — demonstrating QA best practices.",
+  "private": true,
+  "scripts": {
+    "test": "npx playwright test",
+    "test:headed": "npx playwright test --headed",
+    "test:ui": "npx playwright test --ui",
+    "test:smoke": "npx playwright test --grep @smoke",
+    "report": "npx playwright show-report",
+    "report:allure": "npx allure generate allure-results --clean && npx allure open allure-report",
+    "lint": "eslint 'src/**/*.ts' 'tests/**/*.ts'",
+    "lint:fix": "eslint 'src/**/*.ts' 'tests/**/*.ts' --fix",
+    "format": "prettier --write '**/*.{ts,js,json,md}'",
+    "format:check": "prettier --check '**/*.{ts,js,json,md}'",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.10.0",
+    "@playwright/test": "^1.52.0",
+    "@types/node": "^22.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "allure-playwright": "^3.2.0",
+    "dotenv": "^16.4.0",
+    "eslint": "^8.57.0",
+    "prettier": "^3.5.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}
