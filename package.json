@@ -20,13 +20,13 @@
     "bddgen": "npx bddgen -c playwright.bdd.config.ts"
   },
   "devDependencies": {
-    "@axe-core/playwright": "^4.10.0",
-    "@playwright/test": "^1.52.0",
+    "@axe-core/playwright": "^4.11.0",
+    "@playwright/test": "^1.59.0",
     "@types/node": "^22.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
-    "allure-playwright": "^3.2.0",
-    "dotenv": "^16.4.0",
+    "allure-playwright": "^3.7.0",
+    "dotenv": "^16.6.0",
     "eslint": "^8.57.0",
     "playwright-bdd": "^8.5.0",
     "prettier": "^3.5.0",
