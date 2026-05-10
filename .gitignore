@@ -7,6 +7,7 @@ dist/
 # Test artifacts
 test-results/
 playwright-report/
+playwright-report-bdd/
 allure-results/
 allure-report/
 
