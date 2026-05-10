@@ -20,7 +20,7 @@ export class LoginPage {
     this.usernameInput = page.getByLabel('Username or email address');
     this.passwordInput = page.getByLabel('Password');
     this.signInButton = page.getByRole('button', { name: 'Sign in' });
-    this.errorMessage = page.locator('[role="alert"], .flash-error, #js-flash-container');
+    this.errorMessage = page.getByRole('alert');
   }
 
   // ── Actions ───────────────────────────────────────────

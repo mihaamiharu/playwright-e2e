@@ -65,3 +65,9 @@ Then('I should be redirected to the dashboard', async ({ page }) => {
 Then('I should see an error message {string}', async ({ loginPage }, expectedMessage: string) => {
   await expect(loginPage.errorMessage).toContainText(expectedMessage);
 });
+
+Then('the form should not submit', async ({ page }) => {
+  // Browser HTML5 validation intercepts empty required fields.
+  // The page URL stays on /login — the form was never sent to the server.
+  await expect(page).toHaveURL(/login/);
+});

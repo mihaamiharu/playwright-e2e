@@ -21,6 +21,6 @@ Feature: GitHub Login
     Then I should see an error message "Incorrect username or password"
 
   @P1
-  Scenario: Login with empty fields shows validation
+  Scenario: Login fails with empty credentials
     When I submit the form without entering credentials
-    Then I should see an error message "Incorrect username or password"
+    Then the form should not submit
