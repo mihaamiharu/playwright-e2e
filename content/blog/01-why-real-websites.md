@@ -9,7 +9,7 @@
 ## The Demo App Trap
 
 Most Playwright tutorials do the same thing: point you at TodoMVC or SauceDemo and say
-"look, E2E testing is easy." And it *is* easy — when every button has a `data-testid`, every
+"look, E2E testing is easy." And it _is_ easy — when every button has a `data-testid`, every
 page loads in 200ms, and nobody changes the DOM on a Friday afternoon.
 
 The problem isn't that demo apps are bad. The problem is they give you **false confidence**.
@@ -35,10 +35,13 @@ These constraints aren't obstacles. **They're the curriculum.**
 Open GitHub's login page and inspect the Sign In button. Here's what you see:
 
 ```html
-<input type="submit" value="Sign in"
+<input
+  type="submit"
+  value="Sign in"
   class="Button--primary Button--medium Button
          Button--fullWidth flex-1
-         btn-primary btn-block">
+         btn-primary btn-block"
+/>
 ```
 
 Looks straightforward, right? Except those class names — `Button--primary`,
@@ -67,7 +70,7 @@ this.signInButton = page.locator('.btn-primary');
 
 **The lesson:** If you're writing CSS selectors against a website you don't control,
 you're writing throwaway code. Role-based locators force you to think about what the
-element *is*, not what it *looks like*. That's a transferable skill that works on
+element _is_, not what it _looks like_. That's a transferable skill that works on
 every project you'll ever touch.
 
 ### 2. Content loads when it wants to
@@ -98,10 +101,10 @@ handle the rest.
 Run 30 tests against GitHub in parallel and you'll hit this faster than you expect.
 Our solution? **Two test modes:**
 
-| Mode | What it does | Where it runs |
-|------|-------------|---------------|
-| `read-only` | No credentials, public pages only, safe at any scale | CI on every PR |
-| `full` | Authenticated, creates/deletes data, respects rate limits | Local development, manual CI trigger |
+| Mode        | What it does                                              | Where it runs                        |
+| ----------- | --------------------------------------------------------- | ------------------------------------ |
+| `read-only` | No credentials, public pages only, safe at any scale      | CI on every PR                       |
+| `full`      | Authenticated, creates/deletes data, respects rate limits | Local development, manual CI trigger |
 
 This isn't just a GitHub thing. Every API you test against will have limits.
 Building this separation into your test architecture from day one prevents the
@@ -190,11 +193,9 @@ When('I submit the form without entering credentials', async ({ loginPage }) => 
   await loginPage.submit();
 });
 
-Then('I should see an error message {string}',
-  async ({ loginPage }, expectedMessage: string) => {
-    await expect(loginPage.errorMessage).toContainText(expectedMessage);
-  }
-);
+Then('I should see an error message {string}', async ({ loginPage }, expectedMessage: string) => {
+  await expect(loginPage.errorMessage).toContainText(expectedMessage);
+});
 ```
 
 We use **[playwright-bdd](https://github.com/vitalets/playwright-bdd)** instead of
@@ -205,16 +206,16 @@ fixtures, tracing, sharding, and reporters all work without extra configuration.
 
 ## What's Coming in This Series
 
-| Part | Topic | Key Skill |
-|------|-------|-----------|
-| 1 | **You are here** — real websites over demo apps | Mindset shift |
-| 2 | Project setup: TypeScript, Playwright, ESLint from zero | Scaffolding |
-| 3 | The selector war: why roles win and CSS loses | Locator strategy |
-| 4 | Authentication without the 2FA nightmare | `storageState`, headed fallback |
-| 5 | Testing APIs and UI in the same test | Hybrid E2E pattern |
-| 6 | Visual regression for sites you don't control | Dynamic content masking |
-| 7 | Flaky tests aren't a Playwright problem | Retry patterns that work |
-| 8 | CI/CD for real-world E2E at scale | Sharding, scheduled runs |
+| Part | Topic                                                   | Key Skill                       |
+| ---- | ------------------------------------------------------- | ------------------------------- |
+| 1    | **You are here** — real websites over demo apps         | Mindset shift                   |
+| 2    | Project setup: TypeScript, Playwright, ESLint from zero | Scaffolding                     |
+| 3    | The selector war: why roles win and CSS loses           | Locator strategy                |
+| 4    | Authentication without the 2FA nightmare                | `storageState`, headed fallback |
+| 5    | Testing APIs and UI in the same test                    | Hybrid E2E pattern              |
+| 6    | Visual regression for sites you don't control           | Dynamic content masking         |
+| 7    | Flaky tests aren't a Playwright problem                 | Retry patterns that work        |
+| 8    | CI/CD for real-world E2E at scale                       | Sharding, scheduled runs        |
 
 ---
 
@@ -233,6 +234,6 @@ lessons that transfer directly to your day job.
 
 ---
 
-*Part 1 of an 8-part series. [Follow the repo](https://github.com/mihaamiharu/playwright-e2e)
+_Part 1 of an 8-part series. [Follow the repo](https://github.com/mihaamiharu/playwright-e2e)
 for updates, or read the full [architecture document](https://github.com/mihaamiharu/playwright-e2e/blob/main/docs/ARCHITECTURE.md)
-for the design decisions behind every pattern.*
+for the design decisions behind every pattern._

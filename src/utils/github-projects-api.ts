@@ -61,9 +61,7 @@ export class GitHubProjectsAPI {
     });
 
     if (!response.ok()) {
-      throw new Error(
-        `GraphQL request failed: ${response.status()} ${await response.text()}`,
-      );
+      throw new Error(`GraphQL request failed: ${response.status()} ${await response.text()}`);
     }
 
     const body: GraphQLResponse<T> = await response.json();
@@ -151,9 +149,7 @@ export class GitHubProjectsAPI {
       };
     }>(query, { projectId });
 
-    const statusField = data.node.fields.nodes.find(
-      (f) => f.name === 'Status',
-    );
+    const statusField = data.node.fields.nodes.find((f) => f.name === 'Status');
 
     if (!statusField || !statusField.options) {
       throw new Error('Status field not found in project');

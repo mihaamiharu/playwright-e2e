@@ -83,7 +83,11 @@ export class GitHubAPI {
   }
 
   /** Update an issue's title, body, state, labels, or assignees. */
-  async updateIssue(repo: string, issueNumber: number, params: UpdateIssueParams): Promise<GitHubIssue> {
+  async updateIssue(
+    repo: string,
+    issueNumber: number,
+    params: UpdateIssueParams,
+  ): Promise<GitHubIssue> {
     const response = await this.request.patch(
       `${this.baseUrl}/repos/${repo}/issues/${issueNumber}`,
       {
@@ -121,10 +125,9 @@ export class GitHubAPI {
 
   /** Get an issue by number. */
   async getIssue(repo: string, issueNumber: number): Promise<GitHubIssue> {
-    const response = await this.request.get(
-      `${this.baseUrl}/repos/${repo}/issues/${issueNumber}`,
-      { headers: this.authHeaders() },
-    );
+    const response = await this.request.get(`${this.baseUrl}/repos/${repo}/issues/${issueNumber}`, {
+      headers: this.authHeaders(),
+    });
 
     if (!response.ok()) {
       throw new Error(
@@ -207,11 +210,7 @@ export class GitHubAPI {
   }
 
   /** Update an existing comment. */
-  async updateComment(
-    repo: string,
-    commentId: number,
-    body: string,
-  ): Promise<GitHubComment> {
+  async updateComment(repo: string, commentId: number, body: string): Promise<GitHubComment> {
     const response = await this.request.patch(
       `${this.baseUrl}/repos/${repo}/issues/comments/${commentId}`,
       {

@@ -109,10 +109,7 @@ export const test = base.extend<ProjectFixtures>({
     });
 
     // 2. Add to sandbox project via GraphQL
-    const projectItemId = await projectsAPI.addIssueToProject(
-      sandbox.projectId,
-      issue.node_id,
-    );
+    const projectItemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
 
     // 3. Enqueue cleanup (LIFO: project removal first, then close)
     dataManager.enqueue(async () => {

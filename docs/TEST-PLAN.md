@@ -22,16 +22,16 @@ A single pre-created project (`e2e-sandbox`) lives permanently. Tests share it �
 
 GitHub Projects mirrors the patterns QA engineers test in Jira, Linear, Asana, and Monday.com:
 
-| Jira Concept | GitHub Projects Equivalent |
-|---|---|
-| Issue | Issue |
-| Board | Board view (Kanban) |
-| Labels / Components | Labels |
-| Sprints / Fix Versions | Iterations / Milestones |
-| Custom Fields | Custom Fields (Text, Number, Date, Single Select, Iteration) |
-| JQL Filters | Saved Views with filters |
-| Bulk Change | Bulk operations |
-| Workflow Post-Functions | Auto-workflows |
+| Jira Concept            | GitHub Projects Equivalent                                   |
+| ----------------------- | ------------------------------------------------------------ |
+| Issue                   | Issue                                                        |
+| Board                   | Board view (Kanban)                                          |
+| Labels / Components     | Labels                                                       |
+| Sprints / Fix Versions  | Iterations / Milestones                                      |
+| Custom Fields           | Custom Fields (Text, Number, Date, Single Select, Iteration) |
+| JQL Filters             | Saved Views with filters                                     |
+| Bulk Change             | Bulk operations                                              |
+| Workflow Post-Functions | Auto-workflows                                               |
 
 ---
 
@@ -45,19 +45,19 @@ GitHub Projects mirrors the patterns QA engineers test in Jira, Linear, Asana, a
 
 ## Priority
 
-| Level | Criteria |
-|---|---|
+| Level  | Criteria                                      |
+| ------ | --------------------------------------------- |
 | **P0** | Core flow — must work before any PR can merge |
-| **P1** | Important feature — runs on every PR |
-| **P2** | Edge case / polish — runs nightly |
+| **P1** | Important feature — runs on every PR          |
+| **P2** | Edge case / polish — runs nightly             |
 
 ## Type
 
-| Tag | Description |
-|---|---|
+| Tag       | Description                                      |
+| --------- | ------------------------------------------------ |
 | `E2E+API` | API seed/cleanup + UI verification (most common) |
-| `E2E` | Pure UI test — no API, no auth required |
-| `@setup` | One-off validation — skipped in CI |
+| `E2E`     | Pure UI test — no API, no auth required          |
+| `@setup`  | One-off validation — skipped in CI               |
 
 ---
 
@@ -67,12 +67,12 @@ GitHub Projects mirrors the patterns QA engineers test in Jira, Linear, Asana, a
 
 Core create/read/update/delete operations — the foundation.
 
-| ID | Scenario | Priority | Type |
-|---|---|---|---|
-| ISS-01 | Create issue via API → verify title, body, and metadata render in list + detail view | P0 | E2E+API |
-| ISS-02 | Update issue description → verify changes reflect in detail view | P1 | E2E+API |
-| ISS-03 | Close issue → verify status badge changes to "Closed" | P1 | E2E+API |
-| ISS-04 | Reopen closed issue → verify status restored to "Open" | P1 | E2E+API |
+| ID     | Scenario                                                                             | Priority | Type    |
+| ------ | ------------------------------------------------------------------------------------ | -------- | ------- |
+| ISS-01 | Create issue via API → verify title, body, and metadata render in list + detail view | P0       | E2E+API |
+| ISS-02 | Update issue description → verify changes reflect in detail view                     | P1       | E2E+API |
+| ISS-03 | Close issue → verify status badge changes to "Closed"                                | P1       | E2E+API |
+| ISS-04 | Reopen closed issue → verify status restored to "Open"                               | P1       | E2E+API |
 
 ---
 
@@ -80,12 +80,12 @@ Core create/read/update/delete operations — the foundation.
 
 Label lifecycle — Jira's Components/Labels equivalent.
 
-| ID | Scenario | Priority | Type |
-|---|---|---|---|
-| LBL-01 | Add label to issue → verify label chip visible in list + detail view | P1 | E2E+API |
-| LBL-02 | Add multiple labels to issue → verify all render | P1 | E2E+API |
-| LBL-03 | Remove label → verify chip disappears from issue | P1 | E2E+API |
-| LBL-04 | Filter board by label → verify only matching issues shown | P1 | E2E+API |
+| ID     | Scenario                                                             | Priority | Type    |
+| ------ | -------------------------------------------------------------------- | -------- | ------- |
+| LBL-01 | Add label to issue → verify label chip visible in list + detail view | P1       | E2E+API |
+| LBL-02 | Add multiple labels to issue → verify all render                     | P1       | E2E+API |
+| LBL-03 | Remove label → verify chip disappears from issue                     | P1       | E2E+API |
+| LBL-04 | Filter board by label → verify only matching issues shown            | P1       | E2E+API |
 
 ---
 
@@ -93,11 +93,11 @@ Label lifecycle — Jira's Components/Labels equivalent.
 
 Group issues by milestone, track progress — Jira's Fix Versions equivalent.
 
-| ID | Scenario | Priority | Type |
-|---|---|---|---|
-| MIL-01 | Create milestone with due date → verify appears in issue sidebar | P1 | E2E+API |
-| MIL-02 | Link issues to milestone → verify milestone progress bar updates | P1 | E2E+API |
-| MIL-03 | Close milestone → verify "Completed" status and progress at 100% | P2 | E2E+API |
+| ID     | Scenario                                                         | Priority | Type    |
+| ------ | ---------------------------------------------------------------- | -------- | ------- |
+| MIL-01 | Create milestone with due date → verify appears in issue sidebar | P1       | E2E+API |
+| MIL-02 | Link issues to milestone → verify milestone progress bar updates | P1       | E2E+API |
+| MIL-03 | Close milestone → verify "Completed" status and progress at 100% | P2       | E2E+API |
 
 ---
 
@@ -105,11 +105,11 @@ Group issues by milestone, track progress — Jira's Fix Versions equivalent.
 
 Ownership and filtering by assignee.
 
-| ID | Scenario | Priority | Type |
-|---|---|---|---|
-| ASN-01 | Assign issue to user → verify avatar/name appears on card | P1 | E2E+API |
-| ASN-02 | Unassign issue → verify assignee cleared from card | P2 | E2E+API |
-| ASN-03 | Filter board by assignee → verify only assigned issues shown | P1 | E2E+API |
+| ID     | Scenario                                                     | Priority | Type    |
+| ------ | ------------------------------------------------------------ | -------- | ------- |
+| ASN-01 | Assign issue to user → verify avatar/name appears on card    | P1       | E2E+API |
+| ASN-02 | Unassign issue → verify assignee cleared from card           | P2       | E2E+API |
+| ASN-03 | Filter board by assignee → verify only assigned issues shown | P1       | E2E+API |
 
 ---
 
@@ -117,12 +117,12 @@ Ownership and filtering by assignee.
 
 Items moving through status columns — the core project management flow.
 
-| ID | Scenario | Priority | Type |
-|---|---|---|---|
-| BRD-01 | Move issue Todo → In Progress → Done via API, verify column position at each step | P0 | E2E+API |
-| BRD-02 | Move issue backwards (Done → In Progress) → verify it returns to In Progress column | P1 | E2E+API |
-| BRD-03 | Verify issue appears in correct column after status change | P1 | E2E+API |
-| BRD-04 | Drag-and-drop issue between columns → verify status updated (via API read-back) | P2 | E2E+API |
+| ID     | Scenario                                                                            | Priority | Type    |
+| ------ | ----------------------------------------------------------------------------------- | -------- | ------- |
+| BRD-01 | Move issue Todo → In Progress → Done via API, verify column position at each step   | P0       | E2E+API |
+| BRD-02 | Move issue backwards (Done → In Progress) → verify it returns to In Progress column | P1       | E2E+API |
+| BRD-03 | Verify issue appears in correct column after status change                          | P1       | E2E+API |
+| BRD-04 | Drag-and-drop issue between columns → verify status updated (via API read-back)     | P2       | E2E+API |
 
 ---
 
@@ -130,11 +130,11 @@ Items moving through status columns — the core project management flow.
 
 Alternative view and data sorting/filtering — Jira's List view equivalent.
 
-| ID | Scenario | Priority | Type |
-|---|---|---|---|
-| TBL-01 | Switch to table view → verify columns render (title, status, assignee, labels) | P1 | E2E |
-| TBL-02 | Sort table by a column → verify order changes correctly | P1 | E2E |
-| TBL-03 | Filter table by multiple fields (status + label) → verify intersection works | P1 | E2E |
+| ID     | Scenario                                                                       | Priority | Type |
+| ------ | ------------------------------------------------------------------------------ | -------- | ---- |
+| TBL-01 | Switch to table view → verify columns render (title, status, assignee, labels) | P1       | E2E  |
+| TBL-02 | Sort table by a column → verify order changes correctly                        | P1       | E2E  |
+| TBL-03 | Filter table by multiple fields (status + label) → verify intersection works   | P1       | E2E  |
 
 ---
 
@@ -142,10 +142,10 @@ Alternative view and data sorting/filtering — Jira's List view equivalent.
 
 Collaboration on issues — the most-used Jira collaboration feature.
 
-| ID | Scenario | Priority | Type |
-|---|---|---|---|
-| CMT-01 | Add comment to issue → verify appears in timeline with correct author and text | P1 | E2E+API |
-| CMT-02 | Edit comment → verify updated text appears | P2 | E2E+API |
+| ID     | Scenario                                                                       | Priority | Type    |
+| ------ | ------------------------------------------------------------------------------ | -------- | ------- |
+| CMT-01 | Add comment to issue → verify appears in timeline with correct author and text | P1       | E2E+API |
+| CMT-02 | Edit comment → verify updated text appears                                     | P2       | E2E+API |
 
 ---
 
@@ -153,9 +153,9 @@ Collaboration on issues — the most-used Jira collaboration feature.
 
 Multi-select and batch update — sprint planning power feature.
 
-| ID | Scenario | Priority | Type |
-|---|---|---|---|
-| BULK-01 | Select multiple issues → bulk update status → verify all changed | P1 | E2E+API |
+| ID      | Scenario                                                         | Priority | Type    |
+| ------- | ---------------------------------------------------------------- | -------- | ------- |
+| BULK-01 | Select multiple issues → bulk update status → verify all changed | P1       | E2E+API |
 
 ---
 
@@ -163,10 +163,10 @@ Multi-select and batch update — sprint planning power feature.
 
 User-defined metadata — Jira's custom fields are the #1 reason orgs configure projects.
 
-| ID | Scenario | Priority | Type |
-|---|---|---|---|
-| FLD-01 | Create custom field (Text / Number / Single Select) → set value on issue → verify in table view | P1 | E2E+API |
-| FLD-02 | Filter/sort board by custom field value → verify correct results | P2 | E2E+API |
+| ID     | Scenario                                                                                        | Priority | Type    |
+| ------ | ----------------------------------------------------------------------------------------------- | -------- | ------- |
+| FLD-01 | Create custom field (Text / Number / Single Select) → set value on issue → verify in table view | P1       | E2E+API |
+| FLD-02 | Filter/sort board by custom field value → verify correct results                                | P2       | E2E+API |
 
 ---
 
@@ -174,10 +174,10 @@ User-defined metadata — Jira's custom fields are the #1 reason orgs configure 
 
 Quick-add cards without creating full issues — Jira's "create" shortcut.
 
-| ID | Scenario | Priority | Type |
-|---|---|---|---|
-| DRFT-01 | Create draft item on board → verify appears in column without issue number | P2 | E2E |
-| DRFT-02 | Convert draft to issue → verify gets issue number and full detail view | P2 | E2E+API |
+| ID      | Scenario                                                                   | Priority | Type    |
+| ------- | -------------------------------------------------------------------------- | -------- | ------- |
+| DRFT-01 | Create draft item on board → verify appears in column without issue number | P2       | E2E     |
+| DRFT-02 | Convert draft to issue → verify gets issue number and full detail view     | P2       | E2E+API |
 
 ---
 
@@ -185,10 +185,10 @@ Quick-add cards without creating full issues — Jira's "create" shortcut.
 
 Lifecycle beyond open/closed — different from delete.
 
-| ID | Scenario | Priority | Type |
-|---|---|---|---|
-| ARC-01 | Archive issue from board → verify hidden from active views | P2 | E2E+API |
-| ARC-02 | Restore archived item → verify reappears in board | P2 | E2E+API |
+| ID     | Scenario                                                   | Priority | Type    |
+| ------ | ---------------------------------------------------------- | -------- | ------- |
+| ARC-01 | Archive issue from board → verify hidden from active views | P2       | E2E+API |
+| ARC-02 | Restore archived item → verify reappears in board          | P2       | E2E+API |
 
 ---
 
@@ -196,10 +196,10 @@ Lifecycle beyond open/closed — different from delete.
 
 Time-based fields — due dates, sprint assignment.
 
-| ID | Scenario | Priority | Type |
-|---|---|---|---|
-| TDATE-01 | Set custom Date field → verify rendered in table + board card | P2 | E2E+API |
-| ITER-01 | Set Iteration field → verify appears on card | P2 | E2E+API |
+| ID       | Scenario                                                      | Priority | Type    |
+| -------- | ------------------------------------------------------------- | -------- | ------- |
+| TDATE-01 | Set custom Date field → verify rendered in table + board card | P2       | E2E+API |
+| ITER-01  | Set Iteration field → verify appears on card                  | P2       | E2E+API |
 
 ---
 
@@ -207,10 +207,10 @@ Time-based fields — due dates, sprint assignment.
 
 Persistent filter configurations — Jira's saved boards/queries.
 
-| ID | Scenario | Priority | Type |
-|---|---|---|---|
-| VIEW-01 | Create saved view with filter + sort → verify configuration persists after reload | P2 | E2E+API |
-| VIEW-02 | Switch between saved views → verify correct filtered data shown | P2 | E2E |
+| ID      | Scenario                                                                          | Priority | Type    |
+| ------- | --------------------------------------------------------------------------------- | -------- | ------- |
+| VIEW-01 | Create saved view with filter + sort → verify configuration persists after reload | P2       | E2E+API |
+| VIEW-02 | Switch between saved views → verify correct filtered data shown                   | P2       | E2E     |
 
 ---
 
@@ -218,9 +218,9 @@ Persistent filter configurations — Jira's saved boards/queries.
 
 Backlog prioritization — order matters.
 
-| ID | Scenario | Priority | Type |
-|---|---|---|---|
-| RANK-01 | Reorder items within a column → verify order persists after page reload | P2 | E2E+API |
+| ID      | Scenario                                                                | Priority | Type    |
+| ------- | ----------------------------------------------------------------------- | -------- | ------- |
+| RANK-01 | Reorder items within a column → verify order persists after page reload | P2       | E2E+API |
 
 ---
 
@@ -228,9 +228,9 @@ Backlog prioritization — order matters.
 
 Rule-based automation — Jira's "when X, do Y" post-functions.
 
-| ID | Scenario | Priority | Type |
-|---|---|---|---|
-| WFLOW-01 | Configure auto-workflow (on close → move to Done) → close issue via API → verify it auto-moves | P2 | E2E+API |
+| ID       | Scenario                                                                                       | Priority | Type    |
+| -------- | ---------------------------------------------------------------------------------------------- | -------- | ------- |
+| WFLOW-01 | Configure auto-workflow (on close → move to Done) → close issue via API → verify it auto-moves | P2       | E2E+API |
 
 ---
 
@@ -238,33 +238,33 @@ Rule-based automation — Jira's "when X, do Y" post-functions.
 
 Find issues within the project scope.
 
-| ID | Scenario | Priority | Type |
-|---|---|---|---|
-| SRCH-01 | Search issues within project by keyword → verify matching results shown | P1 | E2E+API |
+| ID      | Scenario                                                                | Priority | Type    |
+| ------- | ----------------------------------------------------------------------- | -------- | ------- |
+| SRCH-01 | Search issues within project by keyword → verify matching results shown | P1       | E2E+API |
 
 ---
 
 ## Coverage Summary
 
-| Area | Scenarios | P0 | P1 | P2 |
-|---|---|---|---|---|
-| Issue CRUD | 4 | 1 | 3 | 0 |
-| Labels & Metadata | 4 | 0 | 4 | 0 |
-| Milestones | 3 | 0 | 2 | 1 |
-| Assignees | 3 | 0 | 2 | 1 |
-| Board Workflow | 4 | 1 | 2 | 1 |
-| Table & Views | 3 | 0 | 3 | 0 |
-| Comments | 2 | 0 | 1 | 1 |
-| Bulk Operations | 1 | 0 | 1 | 0 |
-| Custom Fields | 2 | 0 | 1 | 1 |
-| Draft Items | 2 | 0 | 0 | 2 |
-| Archive | 2 | 0 | 0 | 2 |
-| Date & Iteration | 2 | 0 | 0 | 2 |
-| Saved Views | 2 | 0 | 0 | 2 |
-| Ranking | 1 | 0 | 0 | 1 |
-| Auto-Workflows | 1 | 0 | 0 | 1 |
-| In-Project Search | 1 | 0 | 1 | 0 |
-| **Total** | **37** | **2** | **20** | **15** |
+| Area              | Scenarios | P0    | P1     | P2     |
+| ----------------- | --------- | ----- | ------ | ------ |
+| Issue CRUD        | 4         | 1     | 3      | 0      |
+| Labels & Metadata | 4         | 0     | 4      | 0      |
+| Milestones        | 3         | 0     | 2      | 1      |
+| Assignees         | 3         | 0     | 2      | 1      |
+| Board Workflow    | 4         | 1     | 2      | 1      |
+| Table & Views     | 3         | 0     | 3      | 0      |
+| Comments          | 2         | 0     | 1      | 1      |
+| Bulk Operations   | 1         | 0     | 1      | 0      |
+| Custom Fields     | 2         | 0     | 1      | 1      |
+| Draft Items       | 2         | 0     | 0      | 2      |
+| Archive           | 2         | 0     | 0      | 2      |
+| Date & Iteration  | 2         | 0     | 0      | 2      |
+| Saved Views       | 2         | 0     | 0      | 2      |
+| Ranking           | 1         | 0     | 0      | 1      |
+| Auto-Workflows    | 1         | 0     | 0      | 1      |
+| In-Project Search | 1         | 0     | 1      | 0      |
+| **Total**         | **37**    | **2** | **20** | **15** |
 
 **Full lifecycle covered:** Create → Label → Assign → Estimate (milestone/iteration) → Prioritize (rank) → Track (board) → Collaborate (comments) → Report (views/table) → Complete (archive/auto-workflow).
 
