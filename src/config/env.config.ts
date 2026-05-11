@@ -7,8 +7,18 @@ export const env = {
   github: {
     username: process.env.GITHUB_USERNAME || '',
     password: process.env.GITHUB_PASSWORD || '',
+    /** Personal access token for REST + GraphQL API calls */
     token: process.env.GITHUB_API_TOKEN || '',
+    /** Repo where test issues are created, e.g. 'mihaamiharu/playwright-e2e' */
     testRepo: process.env.GITHUB_TEST_REPO || '',
+    /** Owner of the test repo (org or username) */
+    testRepoOwner: process.env.GITHUB_TEST_REPO_OWNER || '',
+    /** Name of the test repo (without owner/) */
+    testRepoName: process.env.GITHUB_TEST_REPO_NAME || '',
+    /** Persistent sandbox project for all tests */
+    sandboxProject: process.env.GITHUB_PROJECT_SANDBOX || 'e2e-sandbox',
+    /** Sandbox project number (URL slug, e.g. '1' from /projects/1) */
+    sandboxProjectNumber: parseInt(process.env.GITHUB_PROJECT_SANDBOX_NUMBER || '1', 10),
   },
 
   /** True when running in CI */
@@ -31,5 +41,10 @@ export const env = {
   /** True when GitHub API token is available */
   get hasGitHubToken(): boolean {
     return !!this.github.token;
+  },
+
+  /** True when sandbox project is fully configured */
+  get hasSandboxProject(): boolean {
+    return this.hasGitHubToken && !!(this.github.testRepo && this.github.sandboxProject);
   },
 };
