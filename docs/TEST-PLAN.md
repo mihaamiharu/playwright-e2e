@@ -1,204 +1,313 @@
-# Test Plan — Playwright E2E (Real-World Targets)
+# Test Plan — GitHub Project Management (Jira-like Workflows)
 
-> **Primary target:** GitHub (github.com)  
-> **Secondary targets:** Wikipedia, Hacker News  
-> **Test modes:** `read-only` (CI-safe) | `full` (authenticated, local-only)  
-> **Last updated:** 2026-05-10
+> **Target:** GitHub Projects on a persistent sandbox project  
+> **Pattern:** API seeds data → Playwright verifies UI → DataManager auto-cleans up  
+> **Auth:** Required for E2E+API tests (test GitHub account)  
+> **Last updated:** 2026-05-11
+
+---
+
+## Strategy
+
+### Approach A: Persistent Sandbox Project
+
+A single pre-created project (`e2e-sandbox`) lives permanently. Tests share it — no create/destroy overhead, no rate-limit noise.
+
+- **Each test** seeds issues/labels/milestones into the sandbox, verifies in UI, cleans up its own data
+- **Cleanup is per-issue** — labels removed, issues deleted or archived, comments deleted
+- **Tests use unique names** (`e2e-${Date.now()}-${testName}`) so parallel execution doesn't collide
+- **The project itself** is never touched by tests (one-off `@setup` test validates create once)
+
+### Real-World Relevance
+
+GitHub Projects mirrors the patterns QA engineers test in Jira, Linear, Asana, and Monday.com:
+
+| Jira Concept | GitHub Projects Equivalent |
+|---|---|
+| Issue | Issue |
+| Board | Board view (Kanban) |
+| Labels / Components | Labels |
+| Sprints / Fix Versions | Iterations / Milestones |
+| Custom Fields | Custom Fields (Text, Number, Date, Single Select, Iteration) |
+| JQL Filters | Saved Views with filters |
+| Bulk Change | Bulk operations |
+| Workflow Post-Functions | Auto-workflows |
 
 ---
 
 ## Status Legend
 
-| Icon | Meaning     |
-| ---- | ----------- |
-| 📝   | Planned     |
-| 🔧   | In Progress |
-| ✅   | Automated   |
-| ❌   | Blocked     |
-| ⏸️   | Deferred    |
+- 📝 Planned
+- 🔧 In Progress
+- ✅ Automated
+- ❌ Blocked
+- ⏸️ Deferred
 
 ## Priority
 
-| Level  | Criteria                                             |
-| ------ | ---------------------------------------------------- |
-| **P0** | Critical path — must pass before any release/ship    |
-| **P1** | Core functionality — run on every PR                 |
-| **P2** | Edge cases / nice-to-have — run nightly or on-demand |
+| Level | Criteria |
+|---|---|
+| **P0** | Core flow — must work before any PR can merge |
+| **P1** | Important feature — runs on every PR |
+| **P2** | Edge case / polish — runs nightly |
 
 ## Type
 
-| Tag       | Description                                 |
-| --------- | ------------------------------------------- |
-| `E2E`     | Browser-driven end-to-end test (UI only)    |
-| `E2E+API` | Hybrid — API seed/cleanup + UI verification |
-| `Visual`  | Screenshot comparison                       |
-| `A11y`    | Accessibility audit (axe-core)              |
-| `API`     | Pure API test (no browser)                  |
+| Tag | Description |
+|---|---|
+| `E2E+API` | API seed/cleanup + UI verification (most common) |
+| `E2E` | Pure UI test — no API, no auth required |
+| `@setup` | One-off validation — skipped in CI |
 
 ---
 
-## 1. Authentication (GitHub)
+## Test Scenarios
 
-| ID      | Scenario                                        | Priority | Type | Mode      | Status      |
-| ------- | ----------------------------------------------- | -------- | ---- | --------- | ----------- |
-| AUTH-01 | Login with valid credentials                    | P0       | E2E  | full      | 📝 Planned  |
-| AUTH-02 | Login fails with wrong password                 | P1       | E2E  | full      | 📝 Planned  |
-| AUTH-03 | Login with empty fields shows validation        | P1       | E2E  | read-only | 📝 Planned  |
-| AUTH-04 | 2FA prompt appears after valid password         | P2       | E2E  | full      | 📝 Planned  |
-| AUTH-05 | Session persists across page navigation         | P1       | E2E  | full      | 📝 Planned  |
-| AUTH-06 | Logout clears session                           | P2       | E2E  | full      | 📝 Planned  |
-| AUTH-07 | Rate-limit page appears after too many attempts | P2       | E2E  | full      | ⏸️ Deferred |
+### 1. Issue CRUD
 
-**Notes:**
+Core create/read/update/delete operations — the foundation.
 
-- AUTH-03 is read-only (no credentials needed — just validates form behavior)
-- AUTH-04 cannot be fully automated (2FA code); test asserts the prompt appears, then skips
-- AUTH-07 is deferred — testing rate limits risks account lockout
+| ID | Scenario | Priority | Type |
+|---|---|---|---|
+| ISS-01 | Create issue via API → verify title, body, and metadata render in list + detail view | P0 | E2E+API |
+| ISS-02 | Update issue description → verify changes reflect in detail view | P1 | E2E+API |
+| ISS-03 | Close issue → verify status badge changes to "Closed" | P1 | E2E+API |
+| ISS-04 | Reopen closed issue → verify status restored to "Open" | P1 | E2E+API |
 
 ---
 
-## 2. Dashboard (GitHub — Authenticated)
+### 2. Labels & Metadata
 
-| ID      | Scenario                               | Priority | Type | Mode      | Status     |
-| ------- | -------------------------------------- | -------- | ---- | --------- | ---------- |
-| DASH-01 | Dashboard loads after login            | P0       | E2E  | full      | 📝 Planned |
-| DASH-02 | Repository list is visible             | P1       | E2E  | full      | 📝 Planned |
-| DASH-03 | "Explore repositories" section renders | P1       | E2E  | read-only | 📝 Planned |
-| DASH-04 | Navigation bar links are functional    | P1       | E2E  | read-only | 📝 Planned |
-| DASH-05 | User avatar and dropdown menu work     | P2       | E2E  | full      | 📝 Planned |
+Label lifecycle — Jira's Components/Labels equivalent.
 
----
-
-## 3. Repository (GitHub)
-
-| ID      | Scenario                                        | Priority | Type | Mode      | Status     |
-| ------- | ----------------------------------------------- | -------- | ---- | --------- | ---------- |
-| REPO-01 | Public repository page loads                    | P0       | E2E  | read-only | 📝 Planned |
-| REPO-02 | README renders correctly                        | P1       | E2E  | read-only | 📝 Planned |
-| REPO-03 | File tree navigation works                      | P1       | E2E  | read-only | 📝 Planned |
-| REPO-04 | Tabs (Code, Issues, PRs, Actions) are clickable | P1       | E2E  | read-only | 📝 Planned |
-| REPO-05 | Commit history loads                            | P2       | E2E  | read-only | 📝 Planned |
-| REPO-06 | "About" section displays repo description       | P2       | E2E  | read-only | 📝 Planned |
-| REPO-07 | Star count is visible                           | P2       | E2E  | read-only | 📝 Planned |
-
-**Target repos:**
-
-- `microsoft/playwright` (large, active, stable layout)
-- `facebook/react` (large, has wiki, discussions)
+| ID | Scenario | Priority | Type |
+|---|---|---|---|
+| LBL-01 | Add label to issue → verify label chip visible in list + detail view | P1 | E2E+API |
+| LBL-02 | Add multiple labels to issue → verify all render | P1 | E2E+API |
+| LBL-03 | Remove label → verify chip disappears from issue | P1 | E2E+API |
+| LBL-04 | Filter board by label → verify only matching issues shown | P1 | E2E+API |
 
 ---
 
-## 4. Search (GitHub)
+### 3. Milestones
 
-| ID      | Scenario                                         | Priority | Type | Mode      | Status     |
-| ------- | ------------------------------------------------ | -------- | ---- | --------- | ---------- |
-| SRCH-01 | Search repositories by keyword returns results   | P0       | E2E  | read-only | 📝 Planned |
-| SRCH-02 | Empty search shows guidance                      | P2       | E2E  | read-only | 📝 Planned |
-| SRCH-03 | Search with no-matching query shows "no results" | P2       | E2E  | read-only | 📝 Planned |
-| SRCH-04 | Search suggestions appear while typing           | P2       | E2E  | read-only | 📝 Planned |
+Group issues by milestone, track progress — Jira's Fix Versions equivalent.
 
----
-
-## 5. Issues (GitHub — Authenticated)
-
-| ID     | Scenario                               | Priority | Type    | Mode      | Status     |
-| ------ | -------------------------------------- | -------- | ------- | --------- | ---------- |
-| ISS-01 | Create issue via API, verify via UI    | P1       | E2E+API | full      | 📝 Planned |
-| ISS-02 | Issue list displays correctly          | P1       | E2E     | full      | 📝 Planned |
-| ISS-03 | Issue labels are visible               | P2       | E2E     | read-only | 📝 Planned |
-| ISS-04 | Close issue via API, cleanup auto-runs | P1       | E2E+API | full      | 📝 Planned |
-
-**Notes:**
-
-- ISS-01 and ISS-04 use the DataManager pattern — seed → verify → auto-cleanup
-- `E2E+API` type means the test uses Playwright's `request` fixture alongside `page`
+| ID | Scenario | Priority | Type |
+|---|---|---|---|
+| MIL-01 | Create milestone with due date → verify appears in issue sidebar | P1 | E2E+API |
+| MIL-02 | Link issues to milestone → verify milestone progress bar updates | P1 | E2E+API |
+| MIL-03 | Close milestone → verify "Completed" status and progress at 100% | P2 | E2E+API |
 
 ---
 
-## 6. Wikipedia (Secondary Target)
+### 4. Assignees
 
-| ID      | Scenario                                | Priority | Type | Mode      | Status     |
-| ------- | --------------------------------------- | -------- | ---- | --------- | ---------- |
-| WIKI-01 | Search for an article by title          | P1       | E2E  | read-only | 📝 Planned |
-| WIKI-02 | Article page displays title and content | P1       | E2E  | read-only | 📝 Planned |
-| WIKI-03 | Language switcher shows options         | P2       | E2E  | read-only | 📝 Planned |
-| WIKI-04 | Page loads in mobile viewport           | P2       | E2E  | read-only | 📝 Planned |
+Ownership and filtering by assignee.
 
-**Why Wikipedia:**
-
-- Semantic HTML — ideal for role-based locators
-- No auth required — always CI-safe
-- Demonstrates multi-target testing with same framework
+| ID | Scenario | Priority | Type |
+|---|---|---|---|
+| ASN-01 | Assign issue to user → verify avatar/name appears on card | P1 | E2E+API |
+| ASN-02 | Unassign issue → verify assignee cleared from card | P2 | E2E+API |
+| ASN-03 | Filter board by assignee → verify only assigned issues shown | P1 | E2E+API |
 
 ---
 
-## 7. Hacker News (Secondary Target)
+### 5. Board Workflow (Kanban)
 
-| ID    | Scenario                              | Priority | Type | Mode      | Status     |
-| ----- | ------------------------------------- | -------- | ---- | --------- | ---------- |
-| HN-01 | Front page loads with stories         | P2       | E2E  | read-only | 📝 Planned |
-| HN-02 | Story link navigates to external site | P2       | E2E  | read-only | 📝 Planned |
-| HN-03 | "New" and "Show" tabs work            | P2       | E2E  | read-only | 📝 Planned |
+Items moving through status columns — the core project management flow.
 
-**Why Hacker News:**
-
-- Minimal, old-school HTML — tests resilience against non-semantic markup
-- Zero auth, zero JavaScript dependency for core content
+| ID | Scenario | Priority | Type |
+|---|---|---|---|
+| BRD-01 | Move issue Todo → In Progress → Done via API, verify column position at each step | P0 | E2E+API |
+| BRD-02 | Move issue backwards (Done → In Progress) → verify it returns to In Progress column | P1 | E2E+API |
+| BRD-03 | Verify issue appears in correct column after status change | P1 | E2E+API |
+| BRD-04 | Drag-and-drop issue between columns → verify status updated (via API read-back) | P2 | E2E+API |
 
 ---
 
-## 8. Visual Regression (GitHub)
+### 6. Table & Views
 
-| ID     | Scenario                                  | Priority | Type   | Mode      | Status     |
-| ------ | ----------------------------------------- | -------- | ------ | --------- | ---------- |
-| VIS-01 | Login page layout snapshot                | P2       | Visual | read-only | 📝 Planned |
-| VIS-02 | Repository page layout snapshot (desktop) | P2       | Visual | read-only | 📝 Planned |
-| VIS-03 | Repository page layout snapshot (mobile)  | P2       | Visual | read-only | 📝 Planned |
+Alternative view and data sorting/filtering — Jira's List view equivalent.
 
-**Notes:**
-
-- Dynamic content (timestamps, avatars, repo names) is masked
-- Visual tests are sensitive to GitHub deploys — run on schedule, not every PR
+| ID | Scenario | Priority | Type |
+|---|---|---|---|
+| TBL-01 | Switch to table view → verify columns render (title, status, assignee, labels) | P1 | E2E |
+| TBL-02 | Sort table by a column → verify order changes correctly | P1 | E2E |
+| TBL-03 | Filter table by multiple fields (status + label) → verify intersection works | P1 | E2E |
 
 ---
 
-## 9. Accessibility (GitHub)
+### 7. Comments
 
-| ID      | Scenario                                           | Priority | Type | Mode      | Status     |
-| ------- | -------------------------------------------------- | -------- | ---- | --------- | ---------- |
-| A11Y-01 | Login page passes WCAG AA (no critical violations) | P2       | A11y | read-only | 📝 Planned |
-| A11Y-02 | Public repository page passes WCAG AA              | P2       | A11y | read-only | 📝 Planned |
+Collaboration on issues — the most-used Jira collaboration feature.
 
-**Notes:**
+| ID | Scenario | Priority | Type |
+|---|---|---|---|
+| CMT-01 | Add comment to issue → verify appears in timeline with correct author and text | P1 | E2E+API |
+| CMT-02 | Edit comment → verify updated text appears | P2 | E2E+API |
 
-- Production sites will have some violations — we assert zero **critical** violations only
-- Axe-core results are logged, not just pass/fail
+---
+
+### 8. Bulk Operations
+
+Multi-select and batch update — sprint planning power feature.
+
+| ID | Scenario | Priority | Type |
+|---|---|---|---|
+| BULK-01 | Select multiple issues → bulk update status → verify all changed | P1 | E2E+API |
+
+---
+
+### 9. Custom Fields
+
+User-defined metadata — Jira's custom fields are the #1 reason orgs configure projects.
+
+| ID | Scenario | Priority | Type |
+|---|---|---|---|
+| FLD-01 | Create custom field (Text / Number / Single Select) → set value on issue → verify in table view | P1 | E2E+API |
+| FLD-02 | Filter/sort board by custom field value → verify correct results | P2 | E2E+API |
+
+---
+
+### 10. Draft Items
+
+Quick-add cards without creating full issues — Jira's "create" shortcut.
+
+| ID | Scenario | Priority | Type |
+|---|---|---|---|
+| DRFT-01 | Create draft item on board → verify appears in column without issue number | P2 | E2E |
+| DRFT-02 | Convert draft to issue → verify gets issue number and full detail view | P2 | E2E+API |
+
+---
+
+### 11. Archive
+
+Lifecycle beyond open/closed — different from delete.
+
+| ID | Scenario | Priority | Type |
+|---|---|---|---|
+| ARC-01 | Archive issue from board → verify hidden from active views | P2 | E2E+API |
+| ARC-02 | Restore archived item → verify reappears in board | P2 | E2E+API |
+
+---
+
+### 12. Date & Iteration Fields
+
+Time-based fields — due dates, sprint assignment.
+
+| ID | Scenario | Priority | Type |
+|---|---|---|---|
+| TDATE-01 | Set custom Date field → verify rendered in table + board card | P2 | E2E+API |
+| ITER-01 | Set Iteration field → verify appears on card | P2 | E2E+API |
+
+---
+
+### 13. Saved Views
+
+Persistent filter configurations — Jira's saved boards/queries.
+
+| ID | Scenario | Priority | Type |
+|---|---|---|---|
+| VIEW-01 | Create saved view with filter + sort → verify configuration persists after reload | P2 | E2E+API |
+| VIEW-02 | Switch between saved views → verify correct filtered data shown | P2 | E2E |
+
+---
+
+### 14. Ranking
+
+Backlog prioritization — order matters.
+
+| ID | Scenario | Priority | Type |
+|---|---|---|---|
+| RANK-01 | Reorder items within a column → verify order persists after page reload | P2 | E2E+API |
+
+---
+
+### 15. Auto-Workflows
+
+Rule-based automation — Jira's "when X, do Y" post-functions.
+
+| ID | Scenario | Priority | Type |
+|---|---|---|---|
+| WFLOW-01 | Configure auto-workflow (on close → move to Done) → close issue via API → verify it auto-moves | P2 | E2E+API |
+
+---
+
+### 16. In-Project Search
+
+Find issues within the project scope.
+
+| ID | Scenario | Priority | Type |
+|---|---|---|---|
+| SRCH-01 | Search issues within project by keyword → verify matching results shown | P1 | E2E+API |
 
 ---
 
 ## Coverage Summary
 
-| Feature Area   | Scenarios | P0    | P1     | P2     | Read-Only | Full Auth |
-| -------------- | --------- | ----- | ------ | ------ | --------- | --------- |
-| Authentication | 6         | 1     | 3      | 2      | 1         | 5         |
-| Dashboard      | 5         | 1     | 3      | 1      | 2         | 3         |
-| Repository     | 7         | 1     | 3      | 3      | 7         | 0         |
-| Search         | 4         | 1     | 0      | 3      | 4         | 0         |
-| Issues         | 4         | 0     | 3      | 1      | 0         | 4         |
-| Wikipedia      | 4         | 0     | 2      | 2      | 4         | 0         |
-| Hacker News    | 3         | 0     | 0      | 3      | 3         | 0         |
-| Visual         | 3         | 0     | 0      | 3      | 3         | 0         |
-| Accessibility  | 2         | 0     | 0      | 2      | 2         | 0         |
-| **Total**      | **38**    | **4** | **14** | **20** | **26**    | **12**    |
+| Area | Scenarios | P0 | P1 | P2 |
+|---|---|---|---|---|
+| Issue CRUD | 4 | 1 | 3 | 0 |
+| Labels & Metadata | 4 | 0 | 4 | 0 |
+| Milestones | 3 | 0 | 2 | 1 |
+| Assignees | 3 | 0 | 2 | 1 |
+| Board Workflow | 4 | 1 | 2 | 1 |
+| Table & Views | 3 | 0 | 3 | 0 |
+| Comments | 2 | 0 | 1 | 1 |
+| Bulk Operations | 1 | 0 | 1 | 0 |
+| Custom Fields | 2 | 0 | 1 | 1 |
+| Draft Items | 2 | 0 | 0 | 2 |
+| Archive | 2 | 0 | 0 | 2 |
+| Date & Iteration | 2 | 0 | 0 | 2 |
+| Saved Views | 2 | 0 | 0 | 2 |
+| Ranking | 1 | 0 | 0 | 1 |
+| Auto-Workflows | 1 | 0 | 0 | 1 |
+| In-Project Search | 1 | 0 | 1 | 0 |
+| **Total** | **37** | **2** | **20** | **15** |
 
-**Key insight:** 26 of 38 scenarios (68%) are read-only — safe for CI without credentials.
-The 12 full-auth scenarios require a test GitHub account and run locally or in a manual CI workflow.
+**Full lifecycle covered:** Create → Label → Assign → Estimate (milestone/iteration) → Prioritize (rank) → Track (board) → Collaborate (comments) → Report (views/table) → Complete (archive/auto-workflow).
+
+---
+
+## Prerequisites
+
+### Sandbox Project
+
+A GitHub project named `e2e-sandbox` must exist before any tests run. The project should have:
+
+- **Board layout:** Kanban with Todo / In Progress / Done columns
+- **Label group:** Pre-configured with test labels (`bug`, `enhancement`, `documentation`)
+- **Custom fields:** `Priority` (Single Select: High/Medium/Low), `Effort` (Number), `Target Date` (Date)
+
+### Authentication
+
+Create a `.env` file:
+
+```
+GITHUB_USERNAME=your-test-account
+GITHUB_PASSWORD=your-test-password
+GITHUB_PROJECT_SANDBOX=e2e-sandbox
+```
+
+**Security:** `.env` is gitignored. The test account should be dedicated (not your personal account) and have access only to the sandbox project.
 
 ---
 
 ## Implementation Sequence
 
-1. **Phase 1 (Commits 3-4):** AUTH-01, AUTH-03, REPO-01, SRCH-01 — core P0 + P1 read-only
-2. **Phase 2 (Commits 5-6):** WIKI-01, HN-01 — multi-target patterns
-3. **Phase 3 (Commits 7-8):** ISS-01, VIS-01, A11Y-01 — advanced capabilities
-4. **Phase 4:** CI pipeline, scheduled runs for visual + a11y
+1. **Phase 1 — Core (PR #5-6):** ISS-01, BRD-01 — the two P0s. Proves the data lifecycle pattern works.
+2. **Phase 2 — CRUD + Metadata (PR #7-8):** ISS-02/03/04, LBL-01/02/03/04, ASN-01/02/03, MIL-01/02 — rounds out the P1s.
+3. **Phase 3 — Views & Collaboration (PR #9-10):** TBL-01/02/03, CMT-01/02, BULK-01, SRCH-01 — table mode, comments, bulk ops.
+4. **Phase 4 — Advanced (PR #11-12):** FLD-01/02, DRFT-01/02, ARC-01/02, TDATE-01, ITER-01, VIEW-01/02, RANK-01, WFLOW-01, BRD-02/03/04, MIL-03 — P2s and edge cases.
+5. **Phase 5 — CI:** GitHub Actions for read-only + authenticated suite on schedule.
+
+---
+
+## Intentionally Excluded
+
+- **Attachments in comments** — file upload automation is unreliable across GitHub's UI
+- **Notifications** — GitHub uses email; not in-app testable
+- **Issue linking** (`#123` references) — hard to verify in UI without brittle selectors
+- **Roadmap/Timeline view** — covered by milestones (MIL-01/02)
+- **Wiki pages** — not a project management feature
