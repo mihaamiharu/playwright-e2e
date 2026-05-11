@@ -17,10 +17,12 @@
     "format": "prettier --write '**/*.{ts,js,json,md}'",
     "format:check": "prettier --check '**/*.{ts,js,json,md}'",
     "typecheck": "tsc --noEmit",
-    "bddgen": "npx bddgen -c playwright.bdd.config.ts"
+    "bddgen": "npx bddgen -c playwright.bdd.config.ts",
+    "pw:cli": "npx playwright-cli"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.0",
+    "@playwright/cli": "^0.1.9",
     "@playwright/test": "^1.59.0",
     "@types/node": "^22.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",

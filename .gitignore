@@ -18,6 +18,9 @@ auth/*.json
 # BDD generated files (playwright-bdd)
 .features-gen/
 
+# Playwright CLI artifacts (session snapshots)
+.playwright-cli/
+
 # Environment
 .env
 
