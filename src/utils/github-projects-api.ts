@@ -80,47 +80,25 @@ export class GitHubProjectsAPI {
   // ── Project queries ─────────────────────────────────
 
   /**
-   * Get the project node ID by owner (user or org) and project number.
-   * Tries user first, then org as fallback.
+   * Get the project node ID for a personal user account.
    */
   async getProjectId(owner: string, projectNumber: number): Promise<string> {
-    // Try as user first (personal account), then as organization
-    const userQuery = `
-      query($owner: String!, $projectNumber: Int!) {
+    const data = await this.graphql<{
+      user: { projectV2: { id: string } | null } | null;
+    }>(
+      `query($owner: String!, $projectNumber: Int!) {
         user(login: $owner) {
           projectV2(number: $projectNumber) { id }
         }
-      }
-    `;
+      }`,
+      { owner, projectNumber },
+    );
 
-    try {
-      const userData = await this.graphql<{
-        user: { projectV2: { id: string } | null } | null;
-      }>(userQuery, { owner, projectNumber });
-      if (userData.user?.projectV2?.id) {
-        return userData.user.projectV2.id;
-      }
-    } catch {
-      // user(login:) failed — likely an organization, try below
-    }
-
-    const orgQuery = `
-      query($owner: String!, $projectNumber: Int!) {
-        organization(login: $owner) {
-          projectV2(number: $projectNumber) { id }
-        }
-      }
-    `;
-
-    const orgData = await this.graphql<{
-      organization: { projectV2: { id: string } | null } | null;
-    }>(orgQuery, { owner, projectNumber });
-
-    const projectId = orgData.organization?.projectV2?.id;
+    const projectId = data.user?.projectV2?.id;
 
     if (!projectId) {
       throw new Error(
-        `Project #${projectNumber} not found for owner "${owner}" (tried user and org)`,
+        `Project #${projectNumber} not found for user "${owner}"`,
       );
     }
 
