@@ -80,31 +80,25 @@ export class GitHubProjectsAPI {
   // ── Project queries ─────────────────────────────────
 
   /**
-   * Get the project node ID by owner (user or org) and project number.
-   * Tries user first, then org as fallback.
+   * Get the project node ID for a personal user account.
    */
   async getProjectId(owner: string, projectNumber: number): Promise<string> {
-    const query = `
-      query($owner: String!, $projectNumber: Int!) {
+    const data = await this.graphql<{
+      user: { projectV2: { id: string } | null } | null;
+    }>(
+      `query($owner: String!, $projectNumber: Int!) {
         user(login: $owner) {
           projectV2(number: $projectNumber) { id }
         }
-        organization(login: $owner) {
-          projectV2(number: $projectNumber) { id }
-        }
-      }
-    `;
+      }`,
+      { owner, projectNumber },
+    );
 
-    const data = await this.graphql<{
-      user: { projectV2: { id: string } | null } | null;
-      organization: { projectV2: { id: string } | null } | null;
-    }>(query, { owner, projectNumber });
-
-    const projectId = data.user?.projectV2?.id ?? data.organization?.projectV2?.id;
+    const projectId = data.user?.projectV2?.id;
 
     if (!projectId) {
       throw new Error(
-        `Project #${projectNumber} not found for owner "${owner}" (tried user and org)`,
+        `Project #${projectNumber} not found for user "${owner}"`,
       );
     }
 

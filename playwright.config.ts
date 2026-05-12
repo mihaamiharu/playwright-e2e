@@ -30,5 +30,5 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
   ],
-  // globalSetup: './src/config/global-setup.ts',  // ← Phase 1.5: auth
+  // globalSetup: './src/config/global-setup.ts',  // ← enable after manual auth setup
 });

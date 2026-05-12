@@ -16,7 +16,7 @@ export const env = {
     /** Name of the test repo (without owner/) */
     testRepoName: process.env.GITHUB_TEST_REPO_NAME || '',
     /** Persistent sandbox project for all tests */
-    sandboxProject: process.env.GITHUB_PROJECT_SANDBOX || 'e2e-sandbox',
+    sandboxProject: process.env.GITHUB_PROJECT_SANDBOX || 'kanban-board',
     /** Sandbox project number (URL slug, e.g. '1' from /projects/1) */
     sandboxProjectNumber: parseInt(process.env.GITHUB_PROJECT_SANDBOX_NUMBER || '1', 10),
   },
