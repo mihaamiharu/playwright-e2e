@@ -55,7 +55,7 @@ function requireSandbox() {
 export const test = base.extend<ProjectFixtures>({
   // ── DataManager ─────────────────────────────────────
 
-  dataManager: async (_params, use) => {
+  dataManager: async ({}, use) => {
     const dm = new DataManager();
     await use(dm);
     // Runs AFTER the test — always, even if test throws

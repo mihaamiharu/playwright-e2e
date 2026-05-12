@@ -84,23 +84,39 @@ export class GitHubProjectsAPI {
    * Tries user first, then org as fallback.
    */
   async getProjectId(owner: string, projectNumber: number): Promise<string> {
-    const query = `
+    // Try as user first (personal account), then as organization
+    const userQuery = `
       query($owner: String!, $projectNumber: Int!) {
         user(login: $owner) {
           projectV2(number: $projectNumber) { id }
         }
+      }
+    `;
+
+    try {
+      const userData = await this.graphql<{
+        user: { projectV2: { id: string } | null } | null;
+      }>(userQuery, { owner, projectNumber });
+      if (userData.user?.projectV2?.id) {
+        return userData.user.projectV2.id;
+      }
+    } catch {
+      // user(login:) failed — likely an organization, try below
+    }
+
+    const orgQuery = `
+      query($owner: String!, $projectNumber: Int!) {
         organization(login: $owner) {
           projectV2(number: $projectNumber) { id }
         }
       }
     `;
 
-    const data = await this.graphql<{
-      user: { projectV2: { id: string } | null } | null;
+    const orgData = await this.graphql<{
       organization: { projectV2: { id: string } | null } | null;
-    }>(query, { owner, projectNumber });
+    }>(orgQuery, { owner, projectNumber });
 
-    const projectId = data.user?.projectV2?.id ?? data.organization?.projectV2?.id;
+    const projectId = orgData.organization?.projectV2?.id;
 
     if (!projectId) {
       throw new Error(
