@@ -1,268 +1,195 @@
-# Inside a Production-Grade Playwright E2E Repo — Architecture Tour
+# I Needed a Real Site to Test. Demo Apps Weren't Cutting It. So I Chose GitHub.
 
-A guided walkthrough of how we structure real-website E2E testing with Playwright + TypeScript, testing GitHub's project management features as a Jira-like target.
+I wanted to build a production-grade E2E testing framework. Not against a TodoMVC. Not against a demo app that returns perfect JSON. Against something real — a live production site with rate limits, authentication traps, DOM that changes on every deploy, and APIs that don't always do what the docs say.
 
----
-
-## Why This Exists
-
-Most Playwright tutorials test against demo apps — TodoMVC, a local React app, or some `the-internet.herokuapp.com` page. These are fine for learning the API, but they hide the real problems QA engineers face daily:
-
-- CSS classes that change on every deploy
-- Shadow DOM in web components
-- Rate limits and auth tokens that expire
-- Duplicate DOM elements with identical ARIA roles
-- Headless vs headed rendering differences
-
-This repo tests **real GitHub** — login, issues, kanban boards, labels, milestones, the whole project management surface. It's the same patterns you'd use to test Jira, Linear, or Asana.
-
-Here's how it's built.
+Turns out, finding a good target is harder than building the tests.
 
 ---
 
-## Directory Map
+## The search for a real testing target
 
-```
-playwright-e2e/
-├── docs/                     # TEST-PLAN.md, ARCHITECTURE.md
-├── features/                 # Gherkin .feature files (BDD)
-│   └── github/
-│       └── login.feature
-├── steps/                    # Step definitions
-│   └── github/
-│       └── login.steps.ts
-├── tests/                    # Pure Playwright tests
-│   ├── e2e/
-│   ├── api/
-│   └── visual/
-├── src/
-│   ├── pages/                # Page Object Models
-│   │   └── github/
-│   │       └── LoginPage.ts
-│   ├── fixtures/             # Custom test fixtures (the heart)
-│   │   └── github-project.fixture.ts
-│   ├── utils/                # API clients, DataManager
-│   │   ├── api-client.ts            # REST (issues, labels, comments)
-│   │   ├── github-projects-api.ts   # GraphQL (boards, fields, items)
-│   │   └── data-manager.ts          # Guaranteed cleanup queue
-│   ├── data/                 # Static test data
-│   └── config/               # playwright.config, env.config
-├── auth/                     # Storage state — gitignored
-└── .features-gen/            # BDD generated — gitignored
-```
+The internet is full of "test automation demo sites." They're designed to be easy. Predictable selectors. No auth. No rate limits. They're great for learning Playwright's API, but they teach you nothing about what testing actually looks like in production.
+
+I could build my own target app — a Jira clone, a Trello clone, something with tickets and boards. But that's not the point. I'm not here to build apps. I'm here to test them. And the hardest part of testing isn't writing assertions — it's dealing with constraints you didn't choose and can't control:
+
+- Rate limiters that throttle you after 60 requests
+- 2FA device verification on every headless browser session
+- Shadow DOM in web components that hides elements from `document.querySelector()`
+- APIs split across REST and GraphQL with no unified client
+- Duplicate ARIA roles that break strict-mode locators
+
+If my test target never fights back, I'm not testing — I'm just writing scripts.
 
 ---
 
-## The Architecture
+## Why GitHub Projects
 
-### 1. Fixture Layering — Not a BaseTest
+I landed on [GitHub Projects](https://docs.github.com/en/issues/planning-and-tracking-with-projects). It's GitHub's project management surface — kanban boards, issues, labels, milestones, custom fields, the works. And it's close enough to Jira, Linear, and Asana that the testing patterns transfer directly:
 
-Playwright fixtures compose. A `BaseTest` class with a `beforeEach` doesn't — if the `beforeEach` fails, you get no teardown. Fixtures with `use()` guarantee cleanup runs *even on failure*.
+| Jira Concept | GitHub Projects Equivalent |
+|-------------|---------------------------|
+| Issue | Issue |
+| Board | Board view (Kanban) |
+| Labels / Components | Labels |
+| Sprints / Fix Versions | Milestones / Iterations |
+| Custom Fields | Custom Fields (Text, Number, Date, Single Select) |
+| JQL Filters | Saved Views with filters |
+| Bulk Change | Bulk operations |
+| Post-Functions | Auto-workflows |
 
-Here's our fixture tree:
+But here's the real reason: GitHub doesn't make it easy.
+
+- **CSS classes are hashed** — `.d-sm-flex` becomes `.xpc-8b2` on every deploy.
+- **Projects V2 is GraphQL-only** — there is no REST endpoint for boards, columns, or item moves.
+- **The kanban board uses web components** — items render inside shadow DOM.
+- **Login triggers device verification** — every headless Chromium session is an "unrecognized device."
+- **Rate limits are real** — 5,000 requests/hour sounds generous until you're seeding and cleaning up 50 tests.
+
+Those aren't bugs. Those are the curriculum.
+
+---
+
+## The stack
+
+- **Playwright** — browser automation, API testing, and visual comparisons in one tool.
+- **TypeScript** — typed API clients, typed fixtures, no guessing what a response shape is.
+- **playwright-bdd** — Gherkin syntax without Cucumber.js's baggage. Fixtures flow into step definitions natively.
+- **No Axios, no node-fetch** — Playwright's built-in `request` fixture handles all API calls. Same context as the browser.
+
+---
+
+## The architecture
+
+### The sandbox pattern
+
+Creating and destroying a project per test run is slow, rate-limited, and flaky. Instead:
+
+- **One kanban board** lives permanently (created once in GitHub UI).
+- **Each test seeds** its own issues with unique timestamped names (`e2e-1715000000-a7f2`).
+- **Each test cleans up** what it created — remove from board, close the issue.
+- **Parallel tests never collide** because every seeded resource has a unique ID.
+
+This is the persistent sandbox pattern. It's not flashy, but it eliminates the #1 source of flakiness in API-dependent tests: shared mutable state.
+
+### Two API clients (no extra deps)
+
+GitHub splits its API surface. Issues, labels, comments, milestones? **REST**. Project boards, kanban columns, custom fields, item status? **GraphQL only.**
+
+So we have two clients, both using Playwright's built-in `request` fixture:
+
+**REST** — `GitHubAPI`:
+```typescript
+async createIssue(repo: string, params: CreateIssueParams): Promise<GitHubIssue> {
+  const response = await this.request.post(
+    `${this.baseUrl}/repos/${repo}/issues`,
+    { headers: this.authHeaders(), data: params }
+  );
+  return response.json();
+}
+```
+
+**GraphQL** — `GitHubProjectsAPI`:
+```typescript
+async addIssueToProject(projectId: string, contentId: string): Promise<string> {
+  const data = await this.graphql<{ addProjectV2ItemById: { item: { id: string } } }>(`
+    mutation($projectId: ID!, $contentId: ID!) {
+      addProjectV2ItemById(input: { projectId: $projectId, contentId: $contentId }) {
+        item { id }
+      }
+    }
+  `, { projectId, contentId });
+  return data.addProjectV2ItemById.item.id;
+}
+```
+
+Same `request` context. Same auth header. Zero extra dependencies. If you can make a REST call in Playwright, you can make a GraphQL call — it's just a POST with a different body shape.
+
+### Fixture layering (no BaseTest class)
+
+Instead of a `BaseTest` with `beforeEach/afterEach`, fixtures compose from the bottom up:
 
 ```
-dataManager          ← cleanup queue, always at the bottom
+dataManager          ← cleanup queue, always the bottom layer
   ├── githubAPI      ← REST client (issues, labels, comments)
   ├── projectsAPI    ← GraphQL client (boards, items, fields)
-  │     └── sandbox           ← resolved project context (projectId, statusFieldId, options)
-  │           └── seededProjectIssue  ← creates issue + adds to board + auto-cleans
+  │     └── sandbox           ← resolved project context (projectId, status field IDs)
+  │           └── seededProjectIssue  ← creates issue → adds to board → enqueues cleanup
 ```
 
-Each fixture depends only on the ones above it. Stateless fixtures (API clients) resolve once per worker. Stateful ones (seeded data) run per test.
+Each fixture declares what it depends on. TypeScript enforces it. And — critically — **teardown runs even if the test fails.**
 
 ```typescript
-export const test = base.extend<ProjectFixtures>({
-  dataManager: async ({}, use) => {
-    const dm = new DataManager();
-    await use(dm);
-    await dm.cleanupAll();  // ← ALWAYS runs, even if the test throws
-  },
-
-  githubAPI: async ({ request }, use) => {
-    const api = new GitHubAPI(request, env.github.token);
-    await use(api);
-  },
-
-  projectsAPI: async ({ request }, use) => {
-    const api = new GitHubProjectsAPI(request, env.github.token);
-    await use(api);
-  },
-
-  sandbox: async ({ projectsAPI }, use) => {
-    const { projectId, statusFieldId, statusOptions } =
-      await projectsAPI.resolveProject(owner, projectNumber);
-    await use({ projectId, statusFieldId, statusOptions });
-  },
-
-  seededProjectIssue: async ({ githubAPI, projectsAPI, sandbox, dataManager }, use) => {
-    const issue = await githubAPI.createIssue(repo, { title: `e2e-${Date.now()}` });
-    const itemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
-    // Enqueue cleanup (LIFO — project removal runs first, then close)
-    dataManager.enqueue(() => projectsAPI.removeItemFromProject(sandbox.projectId, itemId));
-    dataManager.enqueue(() => githubAPI.closeIssue(repo, issue.number));
-    await use({ ...issue, projectItemId: itemId });
-  },
-});
+dataManager: async ({}, use) => {
+  const dm = new DataManager();
+  await use(dm);           // ← test runs here (or fails here)
+  await dm.cleanupAll();   // ← ALWAYS executes. Guaranteed.
+},
 ```
 
-### 2. Two API Clients — REST and GraphQL
+No try/catch. No `afterEach` that might be skipped. The `use()` boundary is the contract — everything after it is teardown, and Playwright guarantees it runs regardless of what happened above.
 
-GitHub splits its API surface. Issues, labels, comments, milestones? **REST**. Project boards, kanban columns, custom fields, item status? **GraphQL only.** There is no REST endpoint for GitHub Projects V2.
+### DataManager — LIFO cleanup queue
 
-**REST client** (`GitHubAPI`) wraps Playwright's built-in `request` fixture:
+Every test that creates resources enqueues a cleanup function. The DataManager runs them in reverse order (last created = first cleaned), and one failed cleanup doesn't block the rest:
 
 ```typescript
-export class GitHubAPI {
-  async createIssue(repo: string, params: CreateIssueParams): Promise<GitHubIssue> {
-    const response = await this.request.post(
-      `${this.baseUrl}/repos/${repo}/issues`,
-      { headers: this.authHeaders(), data: params }
-    );
-    return response.json();
+async cleanupAll(): Promise<void> {
+  const errors: Error[] = [];
+  for (const fn of this.cleanupQueue.reverse()) {
+    try { await fn(); } catch (error) { errors.push(error as Error); }
+  }
+  if (errors.length > 0) {
+    console.warn(`DataManager: ${errors.length} cleanup task(s) failed`);
   }
 }
 ```
 
-**GraphQL client** (`GitHubProjectsAPI`) uses the same `request` fixture to POST to `/graphql`:
+No test pollution. No orphaned issues. No "why is the board showing 50 stale cards?"
+
+### Page objects — no CSS selectors
+
+GitHub hashes its class names. `.d-sm-flex` today is `.xpc-8b2` tomorrow. So every locator is semantic:
 
 ```typescript
-export class GitHubProjectsAPI {
-  async addIssueToProject(projectId: string, contentId: string): Promise<string> {
-    const data = await this.graphql<{ addProjectV2ItemById: { item: { id: string } } }>(`
-      mutation($projectId: ID!, $contentId: ID!) {
-        addProjectV2ItemById(input: { projectId: $projectId, contentId: $contentId }) {
-          item { id }
-        }
-      }
-    `, { projectId, contentId });
-    return data.addProjectV2ItemById.item.id;
-  }
-}
-```
-
-No extra HTTP library. Playwright's `APIRequestContext` handles auth, retries, and cookies — same context as the browser.
-
-### 3. DataManager — Guaranteed Cleanup
-
-Every test that creates resources enqueues a cleanup function. The DataManager runs them all in **reverse order** (LIFO — child resources cleaned before parents), even if the test fails:
-
-```typescript
-export class DataManager {
-  private cleanupQueue: Array<() => Promise<void>> = [];
-
-  enqueue(fn: () => Promise<void>): void {
-    this.cleanupQueue.push(fn);
-  }
-
-  async cleanupAll(): Promise<void> {
-    const errors: Error[] = [];
-    for (const fn of this.cleanupQueue.reverse()) {
-      try { await fn(); } catch (error) { errors.push(error as Error); }
-    }
-    if (errors.length > 0) {
-      console.warn(`DataManager: ${errors.length} cleanup task(s) failed`);
-    }
-  }
-}
-```
-
-One failed cleanup doesn't block the rest. If 3 out of 4 cleanups succeed, you get a warning — not a cascade of test pollution.
-
-### 4. The Persistent Sandbox Pattern
-
-We don't create/destroy a project per test run. That's slow, hits rate limits, and adds flakiness. Instead:
-
-- **One kanban board** is created once manually in GitHub (`kanban-board`, project #8)
-- **Each test seeds** its own issues with unique names (`e2e-${Date.now()}-${random4chars}`)
-- **Each test cleans up** what it created — removes from board, closes the issue
-- **The board itself** lives forever
-
-This is "Approach A" in the test plan. Parallel tests never collide because every seeded issue has a unique timestamped name.
-
----
-
-## Page Objects — Role-Based, Not CSS
-
-GitHub hashes its CSS class names. `.d-sm-flex` today is `.xpc-8b2` tomorrow. So we use **only** ARIA role, label, and text locators:
-
-```typescript
-export class LoginPage {
-  constructor(public readonly page: Page) {
-    this.usernameInput = page.getByLabel('Username or email address');
-    this.passwordInput = page.getByLabel('Password');
-    this.signInButton = page.getByRole('button', { name: 'Sign in', exact: true });
-    this.errorMessage = page.getByRole('alert');
-  }
-}
-```
-
-The `exact: true` on the sign-in button is not optional. GitHub's login page has two "Sign in" buttons:
-1. The submit input (`<input type="submit" value="Sign in">`)
-2. A passkey prompt (`<button>Sign in with a passkey</button>`)
-
-Without `exact: true`, Playwright throws a strict mode violation — two elements match `getByRole('button', { name: 'Sign in' })`.
-
----
-
-## BDD Layer — playwright-bdd
-
-We use `playwright-bdd` (not Cucumber.js) — it's lighter, type-safe, and integrates directly with Playwright fixtures:
-
-```gherkin
-Feature: GitHub Login
-  Scenario: Login with invalid credentials shows error
-    Given I am on the GitHub login page
-    When I login with username "test-user" and password "wrong-password"
-    Then I should see an error message "Incorrect username or password"
-```
-
-The step definitions receive the full fixture context — no global state, no `this.world`:
-
-```typescript
-import { createBdd } from 'playwright-bdd';
-import { test } from '../../src/fixtures/github-project.fixture';
-
-const { Given, When, Then } = createBdd(test);
-
-Given('I am on the GitHub login page', async ({ page }) => {
-  const loginPage = new LoginPage(page);
-  await loginPage.navigate();
-});
+this.usernameInput = page.getByLabel('Username or email address');
+this.passwordInput = page.getByLabel('Password');
+this.signInButton = page.getByRole('button', { name: 'Sign in', exact: true });
+this.errorMessage = page.getByRole('alert');
 ```
 
 ---
 
-## Config — Chromium-First, Video on Failure
+## What the site taught us (so far)
 
-Start with one browser. Add Firefox and WebKit when the suite is stable — multi-browser runs cost more CI minutes:
+GitHub didn't roll over. Here's what broke during setup:
 
-```typescript
-export default defineConfig({
-  fullyParallel: true,
-  retries: process.env.CI ? 2 : 0,
-  use: {
-    baseURL: 'https://github.com',
-    trace: 'on-first-retry',
-    screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
-  },
-  projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
-  ],
-});
-```
+### Duplicate `role="alert"` elements
+GitHub's login page has two elements with `role="alert"` — an empty WebAuthn span, then the real error `<div>`. `getByRole('alert')` fixed it — the accessibility tree filters out invisible elements that raw CSS selectors would match.
 
-`video: 'retain-on-failure'` means every failed test leaves a `.webm` in `test-results/` — you can watch exactly what the browser saw.
+### Two "Sign in" buttons
+`getByRole('button', { name: 'Sign in' })` matches both the submit input AND a passkey prompt button. `{ exact: true }` resolves it — the passkey button has a longer accessible name ("Sign in with a passkey").
+
+### Shadow DOM in the kanban board
+Project board items render inside web components. `document.querySelectorAll('button')` finds nothing. But `getByRole('button')` traverses shadow DOM via the accessibility tree — so it works.
+
+### Headless Backlog view is broken
+The Backlog tab renders column headings but **not the item cards** in headless Chromium. The Priority board tab does. Finding this took hours of debugging. A demo app would never have this problem — because demo apps don't use shadow DOM.
 
 ---
 
-## What's Next
+## What's next
 
-The test plan covers 37 scenarios across 16 areas — Issue CRUD, Labels, Milestones, Assignees, Board Workflow, Table Views, Comments, Bulk Operations, Custom Fields, Draft Items, Archive, and more.
+The foundation is built: architecture, API clients, data lifecycle, login flow. The real work — automating 37 scenarios across 16 areas — starts now.
 
-Only the foundation is built: the architecture, the API clients, the data lifecycle, and the login flow. The real work — automating all 37 scenarios — starts now.
+- Issue CRUD (create, update, close, reopen)
+- Labels & metadata (add, remove, filter)
+- Milestones, assignees, board workflow
+- Table views, comments, bulk operations
+- Custom fields, draft items, archive
+- Auto-workflows, saved views, ranking
+
+Each one will surface new constraints. Rate limits will trigger. Auth will expire. APIs will return errors the docs don't mention. And every constraint is a lesson in testing real systems — not toy ones.
 
 ---
 
-*This is part 1 of a series on real-website E2E testing with Playwright. Follow for part 2: "What Testing GitHub's Kanban Board Taught Me About Shadow DOM, Duplicate Locators, and Headless Rendering."*
+*Part 1 of a series on real-website E2E testing with Playwright. Part 2: ["Why I Dropped BaseTest for Fixtures"](/fixtures-over-basetest).*
