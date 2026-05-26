@@ -11,6 +11,9 @@ This repo is both a **reference architecture** and a **QA blog series**. Every p
 
 ## ✨ What's Inside
 
+- **Issue CRUD** — create, update, close, reopen issues via API + UI verification
+- **Board Workflow (Kanban)** — move items between columns, backward moves, drag-and-drop
+- **Labels & Metadata** — add/remove labels via UI, multi-label, board filtering
 - **Page Object Model** with role-based locators — resilient against DOM changes on 3rd-party sites
 - **BDD with Gherkin** via `playwright-bdd` — executable specs for business-readable test flows
 - **Data lifecycle** — auto-seed before tests, guaranteed auto-cleanup after (even on failure)
@@ -89,12 +92,16 @@ playwright-e2e/
 ├── docs/                    # TEST-PLAN.md, ARCHITECTURE.md — read these first
 ├── features/                # Gherkin .feature files
 │   └── github/
-│       └── login.feature
+│       ├── login.feature
+│       ├── issue-crud.feature
+│       ├── board-workflow.feature
+│       └── labels.feature
 ├── steps/                   # Step definitions (BDD)
 │   └── github/
-│       └── login.steps.ts
-├── tests/                   # Pure Playwright tests
-│   └── e2e/
+│       ├── login.steps.ts
+│       ├── issue-crud.steps.ts
+│       ├── board-workflow.steps.ts
+│       └── labels.steps.ts
 ├── src/
 │   ├── pages/               # Page Object Models
 │   │   └── github/
@@ -103,22 +110,23 @@ playwright-e2e/
 │   │   ├── github.fixture.ts
 │   │   ├── github-project.fixture.ts
 │   │   └── data-lifecycle.fixture.ts
-│   ├── utils/               # DataManager, REST client, GraphQL client
+│   ├── utils/               # DataManager, REST client, GraphQL client, Auth helper
 │   │   ├── data-manager.ts
 │   │   ├── api-client.ts
-│   │   └── github-projects-api.ts
-│   ├── data/                # Static test data
-│   └── config/              # playwright.config, env config
+│   │   ├── github-projects-api.ts
+│   │   └── github-auth.ts
+│   └── config/              # playwright config, env config, global setup
+│       ├── global-setup.ts
+│       └── env.config.ts
 ├── auth/                    # Storage state — gitignored
 ├── content/                 # Blog posts, diagrams, video scripts
 │   └── blog/
-│       └── 01-why-real-websites.md
 └── .features-gen/           # BDD generated code — gitignored
 ```
 
 ## 📖 Documentation
 
-- **[TEST-PLAN.md](./docs/TEST-PLAN.md)** — Full test strategy: 50+ scenarios across Issue CRUD, Labels, Milestones, Kanban, Custom Fields, Bulk Operations, and Workflows
+- **[TEST-PLAN.md](./docs/TEST-PLAN.md)** — Full test strategy: 37 scenarios across Issue CRUD, Labels, Milestones, Kanban, Custom Fields, Bulk Operations, and Workflows. 12 currently automated.
 - **[ARCHITECTURE.md](./docs/ARCHITECTURE.md)** — Design decisions: why fixtures over BaseTest, why persistent sandbox, data lifecycle guarantees, dependency version policy
 
 ## 📝 Blog Series
@@ -126,8 +134,10 @@ playwright-e2e/
 This repository is part of a QA engineering blog series:
 
 1. **[Why Your Playwright Tests Need Real Websites (Not Demo Apps)](./content/blog/01-why-real-websites.md)** — The demo app trap, hashed CSS classes, and why production targets make better testers
-
-*More posts coming — covering BDD, fixtures, GraphQL API testing, and CI strategy.*
+2. **[Architecture Tour](./content/architecture-tour.md)** — How this repo is built: fixtures, POMs, data lifecycle
+3. **[Fixtures Over BaseTest](./content/fixtures-over-basetest.md)** — Playwright's fixture system vs traditional OOP test patterns
+4. **[Authentication Without the 2FA Nightmare](./content/blog/04-authentication-without-2fa.md)** — Device verification, IMAP polling, and the two-credential pattern
+5. **[Building E2E Label Tests: From Gherkin to Green](./content/blog/05-building-label-tests-with-ui-discovery.md)** — Discovering GitHub's label picker UI with playwright-cli, auth refactor, and 4 bugs caught in implementation
 
 ## 🛠️ Tech Stack
 
@@ -148,10 +158,13 @@ This repository is part of a QA engineering blog series:
 - [x] REST + GraphQL API clients
 - [x] Persistent sandbox fixture
 - [x] Project management test plan
+- [x] Issue CRUD lifecycle (ISS-01–04)
+- [x] Board workflow kanban tests (BRD-01–04)
+- [x] Labels & metadata (LBL-01–04)
+- [ ] Assignees, Milestones, Comments, Table views
 - [ ] GitHub Actions CI/CD pipeline
 - [ ] Visual regression tests
 - [ ] Accessibility checks (WCAG)
-- [ ] Full project management test suite per TEST-PLAN.md
 - [ ] Multi-browser (firefox, webkit)
 
 ## 🤝 Contributing
