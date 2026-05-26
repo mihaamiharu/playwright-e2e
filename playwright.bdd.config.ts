@@ -27,7 +27,7 @@ export default defineConfig({
     timeout: 10_000,
   },
   reporter: [
-    ['html', { outputFolder: 'playwright-report-bdd' }],
+    ['html', { outputFolder: 'playwright-report' }],
     ['allure-playwright', { outputFolder: 'allure-results' }],
     ['list'],
   ],
@@ -43,4 +43,5 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
   ],
+  globalSetup: './src/config/global-setup.ts',
 });
