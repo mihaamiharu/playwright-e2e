@@ -19,7 +19,7 @@ export class LoginPage {
   constructor(public readonly page: Page) {
     this.usernameInput = page.getByLabel('Username or email address');
     this.passwordInput = page.getByLabel('Password');
-    this.signInButton = page.getByRole('button', { name: 'Sign in' });
+    this.signInButton = page.getByRole('button', { name: 'Sign in', exact: true });
     this.errorMessage = page.getByRole('alert');
   }
 

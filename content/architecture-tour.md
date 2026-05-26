@@ -192,4 +192,4 @@ Each one will surface new constraints. Rate limits will trigger. Auth will expir
 
 ---
 
-*Part 1 of a series on real-website E2E testing with Playwright. Part 2: ["Why I Dropped BaseTest for Fixtures"](/fixtures-over-basetest).*
+*Part 1 of a series on real-website E2E testing with Playwright. Part 2: ["Why I Dropped BaseTest for Fixtures"](/fixtures-over-basetest). Part 4: ["Authentication Without the 2FA Nightmare"](/blog/04-authentication-without-2fa).*

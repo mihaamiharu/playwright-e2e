@@ -15,6 +15,11 @@ export class DataManager {
 
   /** Run all enqueued cleanup tasks in reverse order (LIFO). */
   async cleanupAll(): Promise<void> {
+    if (this.cleanupQueue.length === 0) return;
+
+    // eslint-disable-next-line no-console
+    console.log(`[cleanup] Running ${this.cleanupQueue.length} task(s)...`);
+
     const errors: Error[] = [];
 
     // Reverse — cleanup in opposite order of creation (child resources first)
@@ -35,6 +40,9 @@ export class DataManager {
         `DataManager: ${errors.length} cleanup task(s) failed:\n` +
           errors.map((e) => `  - ${e.message}`).join('\n'),
       );
+    } else {
+      // eslint-disable-next-line no-console
+      console.log('[cleanup] Done');
     }
   }
 }

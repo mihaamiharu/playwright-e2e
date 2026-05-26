@@ -211,7 +211,7 @@ fixtures, tracing, sharding, and reporters all work without extra configuration.
 | 1    | **You are here** — real websites over demo apps         | Mindset shift                   |
 | 2    | Project setup: TypeScript, Playwright, ESLint from zero | Scaffolding                     |
 | 3    | The selector war: why roles win and CSS loses           | Locator strategy                |
-| 4    | Authentication without the 2FA nightmare                | `storageState`, headed fallback |
+| 4    | [Authentication without the 2FA nightmare](/blog/04-authentication-without-2fa) | `storageState`, IMAP auto-fetch |
 | 5    | Testing APIs and UI in the same test                    | Hybrid E2E pattern              |
 | 6    | Visual regression for sites you don't control           | Dynamic content masking         |
 | 7    | Flaky tests aren't a Playwright problem                 | Retry patterns that work        |

@@ -248,4 +248,4 @@ And when someone on your team asks "why not just use a base class?", you can poi
 
 ---
 
-*Part 2 of the Playwright E2E architecture series. Part 1: [Inside a Production-Grade Playwright E2E Repo](/architecture-tour).*
+*Part 2 of the Playwright E2E architecture series. Part 1: [Inside a Production-Grade Playwright E2E Repo](/architecture-tour). Part 4: ["Authentication Without the 2FA Nightmare"](/blog/04-authentication-without-2fa).*
