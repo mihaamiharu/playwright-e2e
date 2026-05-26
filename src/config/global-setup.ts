@@ -137,7 +137,7 @@ async function fetchVerificationCode(): Promise<string> {
   }
 }
 
-async function globalSetup(config: FullConfig) {
+async function globalSetup(_config: FullConfig) {
   // Skip login if storage state already exists
   if (fs.existsSync(AUTH_FILE)) {
     console.log('✅ Auth state found — skipping login');

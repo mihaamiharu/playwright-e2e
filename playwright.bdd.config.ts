@@ -12,7 +12,7 @@ dotenv.config();
 
 const testDir = defineBddConfig({
   features: 'features/**/*.feature',
-  steps: ['steps/**/*.ts', 'src/fixtures/github.fixture.ts'],
+  steps: ['steps/**/*.ts', 'src/fixtures/github.fixture.ts', 'src/fixtures/github-project.fixture.ts'],
   outputDir: '.features-gen',
 });
 
