@@ -145,7 +145,7 @@ With the email accessible via IMAP, the global setup script becomes:
 
 ```typescript
 import { chromium } from '@playwright/test';
-import { execSync } from 'child_process';
+import { ImapFlow } from 'imapflow';
 import dotenv from 'dotenv';
 import * as fs from 'fs';
 
@@ -172,7 +172,7 @@ async function globalSetup() {
 
   // Handle device verification if triggered
   if (page.url().includes('/sessions/verified-device')) {
-    const code = fetchVerificationCode();  // reads Gmail via IMAP
+    const code = await fetchVerificationCode();  // reads Gmail via IMAP
     await page.getByLabel('Device Verification Code').fill(code);
     await page.getByRole('button', { name: 'Verify' }).click({ noWaitAfter: true });
     await page.waitForURL('https://github.com/');
@@ -184,53 +184,71 @@ async function globalSetup() {
 }
 ```
 
-The `fetchVerificationCode()` function uses the **himalaya** CLI — a Rust-based IMAP email client that can read Gmail from the command line.
-
-### How the email polling works
+The `fetchVerificationCode()` function uses **imapflow** — a Node.js IMAP client that integrates directly into the script with no external dependencies:
 
 ```typescript
-function fetchVerificationCode(): string {
-  // List recent emails, find the GitHub verification message
-  const output = execSync('himalaya envelope list --page 1 --page-size 10');
-  const match = output.match(/(\d+).*\[GitHub\] Please verify your device/);
+import { ImapFlow } from 'imapflow';
 
-  // Read the email body
-  const emailBody = execSync(`himalaya message read ${match[1]}`);
+async function fetchVerificationCode(): Promise<string> {
+  const client = new ImapFlow({
+    host: 'imap.gmail.com',
+    port: 993,
+    secure: true,
+    auth: {
+      user: process.env.GMAIL_ADDRESS!,
+      pass: process.env.GMAIL_APP_PASSWORD!,
+    },
+    logger: false,
+  });
 
-  // Extract the 6-digit code
-  const codeMatch = emailBody.match(/Verification code:\s*(\d{6})/);
-  return codeMatch[1];
+  await client.connect();
+
+  try {
+    const lock = await client.getMailboxLock('INBOX');
+    try {
+      // Gmail raw search — precise FROM matching
+      const uids = await client.search({
+        gmraw: 'from:(noreply@github.com)',
+      });
+
+      if (!uids || uids.length === 0) {
+        throw new Error('GitHub verification email not found');
+      }
+
+      // Check the most recent email
+      const latest = uids[uids.length - 1];
+      const msg = await client.fetchOne(
+        latest,
+        { source: { maxLength: 100_000 } },
+        { uid: true },
+      );
+
+      if (!msg?.source) throw new Error('Could not read email');
+
+      const src = msg.source.toString();
+      // Decode quoted-printable (GitHub uses =XX encoding)
+      const decoded = src.replace(
+        /=([0-9A-F]{2})/g,
+        (_, hex) => String.fromCharCode(parseInt(hex, 16)),
+      );
+
+      const codeMatch = decoded.match(/Verification code:\s*(\d{6})/);
+      if (!codeMatch) throw new Error('Code not found in email');
+      return codeMatch[1];
+    } finally {
+      lock.release();
+    }
+  } finally {
+    await client.logout();
+  }
 }
 ```
 
-If the email hasn't arrived yet (GitHub can take a few seconds), it polls every 5 seconds for up to 45 seconds before giving up.
+If the email hasn't arrived yet (GitHub can take a few seconds), the script polls every 5 seconds for up to 60 seconds before giving up. This is handled by a simple retry loop around the search logic.
 
-### himalaya configuration
+### One dependency, zero configuration
 
-Himalaya connects to Gmail via IMAP over TLS on port 993. The config file (`~/.config/himalaya/config.toml`) reads the App Password from `.env` using a shell command — never storing it in the config:
-
-```toml
-[accounts.gmail]
-default = true
-email = "kikkawa23@gmail.com"
-display-name = "Playwright E2E"
-
-backend.type = "imap"
-backend.host = "imap.gmail.com"
-backend.port = 993
-backend.encryption.type = "tls"
-backend.login = "kikkawa23@gmail.com"
-backend.auth.type = "password"
-backend.auth.cmd = "sed -n 's/^GMAIL_APP_PASSWORD=//p' /root/playwright-e2e/.env"
-
-[accounts.gmail.folder]
-aliases.inbox = "INBOX"
-aliases.sent = "[Gmail]/Sent Mail"
-aliases.drafts = "[Gmail]/Drafts"
-aliases.trash = "[Gmail]/Trash"
-```
-
-The `backend.auth.cmd` command extracts the password from `.env` at runtime. This way, the password exists in exactly one place: the gitignored `.env` file.
+No CLI to install, no config file to set up, no shell commands to source the password. Just `npm install --save-dev imapflow` and the Gmail App Password in `.env`:
 
 ---
 

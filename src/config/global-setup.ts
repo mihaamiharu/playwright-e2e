@@ -1,64 +1,97 @@
 import { chromium, type FullConfig } from '@playwright/test';
-import { execSync } from 'child_process';
+import { ImapFlow } from 'imapflow';
 import dotenv from 'dotenv';
 import * as fs from 'fs';
 
 dotenv.config();
 
 const AUTH_FILE = 'auth/github.json';
+const POLL_INTERVAL_MS = 5000;
+const MAX_POLLS = 12; // ~60 seconds total
 
 /**
- * Fetch the latest GitHub device verification code from Gmail via IMAP (himalaya).
- * Polls up to ~45s, waiting for the email to arrive.
+ * Fetch the latest GitHub device verification code from Gmail via IMAP.
+ * Polls up to ~60s, waiting for the email to arrive.
  */
-function fetchVerificationCode(): string {
-  const maxAttempts = 9;
-  const delayMs = 5000;
+async function fetchVerificationCode(): Promise<string> {
+  const client = new ImapFlow({
+    host: 'imap.gmail.com',
+    port: 993,
+    secure: true,
+    auth: {
+      user: process.env.GMAIL_ADDRESS!,
+      pass: process.env.GMAIL_APP_PASSWORD!,
+    },
+    logger: false,
+  });
 
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    // Get ID of the most recent GitHub verification email
-    const listOutput = execSync(
-      "export PATH=\"$HOME/.local/bin:$PATH\" && himalaya envelope list --page 1 --page-size 10 2>/dev/null",
-      { encoding: 'utf-8', timeout: 15_000 },
-    );
+  await client.connect();
 
-    // Find the latest GitHub verification email ID
-    const lines = listOutput.split('\n');
-    let emailId: string | null = null;
-    for (const line of lines) {
-      const match = line.match(/^\|\s*(\d+)\s*\|.*\[GitHub\] Please verify your device/);
-      if (match) {
-        emailId = match[1];
-        break;
+  try {
+    for (let attempt = 1; attempt <= MAX_POLLS; attempt++) {
+      const lock = await client.getMailboxLock('INBOX');
+      try {
+        // Gmail raw search — precise FROM matching
+        const uidList = await client.search({
+          gmraw: 'from:(noreply@github.com)',
+        });
+
+        if (!uidList || uidList.length === 0) {
+          if (attempt < MAX_POLLS) {
+            console.log(
+              `⏳ Verification email not yet arrived (attempt ${attempt}/${MAX_POLLS}) — waiting ${POLL_INTERVAL_MS / 1000}s...`,
+            );
+            await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+            continue;
+          }
+          throw new Error(
+            'GitHub verification email never arrived — checked 12 times over ~60s',
+          );
+        }
+
+        // Check the most recent emails from GitHub (look back up to 5)
+        const recentUids = uidList.slice(-5).reverse();
+        for (const uid of recentUids) {
+          const msg = await client.fetchOne(
+            uid,
+            { source: { maxLength: 100_000 } },
+            { uid: true },
+          );
+
+          if (!msg || !msg.source) continue;
+
+          const src = msg.source.toString();
+          // Decode quoted-printable encoding (GitHub uses =XX for special chars)
+          const decoded = src.replace(
+            /=([0-9A-F]{2})/g,
+            (_match: string, hex: string) =>
+              String.fromCharCode(parseInt(hex, 16)),
+          );
+
+          const codeMatch = decoded.match(/Verification code:\s*(\d{6})/);
+          if (codeMatch) {
+            return codeMatch[1];
+          }
+        }
+
+        // Found GitHub emails but none had a verification code yet — poll again
+        if (attempt < MAX_POLLS) {
+          console.log(
+            `⏳ GitHub verification email found but code not ready yet (attempt ${attempt}/${MAX_POLLS}) — retrying...`,
+          );
+          await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+        }
+      } finally {
+        lock.release();
       }
     }
 
-    if (!emailId) {
-      if (attempt < maxAttempts) {
-        console.log(`⏳ Verification email not found yet (attempt ${attempt}/${maxAttempts}) — waiting ${delayMs / 1000}s...`);
-        execSync(`sleep ${delayMs / 1000}`);
-        continue;
-      }
-      throw new Error('GitHub verification email never arrived — checked 9 times over ~45s');
-    }
-
-    // Read the email body
-    const emailBody = execSync(
-      `export PATH="$HOME/.local/bin:$PATH" && himalaya message read ${emailId} 2>/dev/null`,
-      { encoding: 'utf-8', timeout: 15_000 },
+    throw new Error(
+      'GitHub verification email never arrived — checked 12 times over ~60s',
     );
-
-    // Extract 6-digit verification code
-    const codeMatch = emailBody.match(/Verification code:\s*(\d{6})/);
-    if (!codeMatch) {
-      throw new Error(`Could not find verification code in email #${emailId}`);
-    }
-
-    console.log(`✅ Found verification email (ID: ${emailId}) — code: ${codeMatch[1]}`);
-    return codeMatch[1];
+  } finally {
+    await client.logout();
   }
-
-  throw new Error('Failed to fetch verification code');
 }
 
 async function globalSetup(config: FullConfig) {
@@ -72,7 +105,9 @@ async function globalSetup(config: FullConfig) {
   const password = process.env.GITHUB_PASSWORD;
 
   if (!username || !password) {
-    console.warn('⚠️  GITHUB_USERNAME or GITHUB_PASSWORD not set — skipping auth setup');
+    console.warn(
+      '⚠️  GITHUB_USERNAME or GITHUB_PASSWORD not set — skipping auth setup',
+    );
     return;
   }
 
@@ -89,7 +124,9 @@ async function globalSetup(config: FullConfig) {
     await page.getByLabel('Password').fill(password);
 
     // Use exact:true to avoid matching the passkey button
-    await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+    await page
+      .getByRole('button', { name: 'Sign in', exact: true })
+      .click();
 
     // Wait to see where we land
     await page.waitForTimeout(3000);
@@ -98,13 +135,17 @@ async function globalSetup(config: FullConfig) {
 
     // ── Handle device verification ─────────────────────────────
     if (currentUrl.includes('/sessions/verified-device')) {
-      console.log('📱 Device verification required — fetching code from Gmail...');
+      console.log(
+        '📱 Device verification required — fetching code from Gmail via IMAP...',
+      );
 
-      const code = fetchVerificationCode();
+      const code = await fetchVerificationCode();
 
       // Enter the code
       await page.getByLabel('Device Verification Code').fill(code);
-      await page.getByRole('button', { name: 'Verify' }).click({ noWaitAfter: true });
+      await page
+        .getByRole('button', { name: 'Verify' })
+        .click({ noWaitAfter: true });
 
       // Wait for redirect to GitHub home
       await page.waitForURL('https://github.com/', { timeout: 15_000 });
@@ -113,9 +154,14 @@ async function globalSetup(config: FullConfig) {
 
     // ── Check login succeeded ──────────────────────────────────
     const finalUrl = page.url();
-    if (!finalUrl.startsWith('https://github.com/') || finalUrl.includes('/login')) {
+    if (
+      !finalUrl.startsWith('https://github.com/') ||
+      finalUrl.includes('/login')
+    ) {
       await page.screenshot({ path: 'test-results/login-debug.png' });
-      console.error('❌ Login still on login page — check test-results/login-debug.png');
+      console.error(
+        '❌ Login still on login page — check test-results/login-debug.png',
+      );
       process.exit(1);
     }
 
