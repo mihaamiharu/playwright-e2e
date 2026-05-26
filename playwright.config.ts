@@ -20,6 +20,7 @@ export default defineConfig({
   ],
   use: {
     baseURL: process.env.BASE_URL || 'https://github.com',
+    storageState: 'auth/github.json',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
@@ -30,5 +31,5 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
   ],
-  // globalSetup: './src/config/global-setup.ts',  // ← enable after manual auth setup
+  globalSetup: './src/config/global-setup.ts',
 });
