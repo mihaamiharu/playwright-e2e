@@ -286,17 +286,17 @@ export class GitHubProjectsAPI {
     await this.graphql(query, { projectId, itemId, fieldId, optionId });
   }
 
-  /** Remove an item from a project. Only `itemId` is required — no projectId needed. */
-  async removeItemFromProject(_projectId: string, itemId: string): Promise<void> {
+  /** Remove an item from a project. Requires both projectId and itemId per GitHub's schema. */
+  async removeItemFromProject(projectId: string, itemId: string): Promise<void> {
     const query = `
-      mutation($itemId: ID!) {
-        deleteProjectV2Item(input: { itemId: $itemId }) {
+      mutation($projectId: ID!, $itemId: ID!) {
+        deleteProjectV2Item(input: { projectId: $projectId, itemId: $itemId }) {
           deletedItemId
         }
       }
     `;
 
-    await this.graphql(query, { itemId });
+    await this.graphql(query, { projectId, itemId });
   }
 
   // ── Convenience ─────────────────────────────────────

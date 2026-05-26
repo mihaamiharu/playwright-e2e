@@ -1,5 +1,5 @@
 import { chromium, type FullConfig } from '@playwright/test';
-import { ImapFlow } from 'imapflow';
+import Imap from 'imap';
 import dotenv from 'dotenv';
 import * as fs from 'fs';
 
@@ -9,80 +9,123 @@ const AUTH_FILE = 'auth/github.json';
 const POLL_INTERVAL_MS = 5000;
 const MAX_POLLS = 12; // ~60 seconds total
 
+function connectImap(user: string, pass: string): Promise<Imap> {
+  return new Promise((resolve, reject) => {
+    const imap = new Imap({
+      user,
+      password: pass,
+      host: 'imap.gmail.com',
+      port: 993,
+      tls: true,
+      tlsOptions: { rejectUnauthorized: true },
+    });
+
+    imap.once('ready', () => resolve(imap));
+    imap.once('error', reject);
+    imap.connect();
+  });
+}
+
+function openInbox(imap: Imap): Promise<Imap> {
+  return new Promise((resolve, reject) => {
+    imap.openBox('INBOX', true, (err) => {
+      if (err) reject(err);
+      else resolve(imap);
+    });
+  });
+}
+
+function searchGitHubEmails(imap: Imap): Promise<number[]> {
+  return new Promise((resolve, reject) => {
+    imap.search([['FROM', 'noreply@github.com']], (err, results) => {
+      if (err) reject(err);
+      else resolve(results);
+    });
+  });
+}
+
+function fetchMessageSource(imap: Imap, seqno: number): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const f = imap.fetch([seqno], { bodies: '' });
+    let body = '';
+    f.on('message', (msg) => {
+      msg.on('body', (stream) => {
+        stream.on('data', (chunk: Buffer) => {
+          body += chunk.toString();
+        });
+      });
+      msg.once('attributes', () => {});
+      msg.once('end', () => {});
+    });
+    f.once('error', reject);
+    f.once('end', () => resolve(body));
+  });
+}
+
 /**
  * Fetch the latest GitHub device verification code from Gmail via IMAP.
  * Polls up to ~60s, waiting for the email to arrive.
  */
 async function fetchVerificationCode(): Promise<string> {
-  const client = new ImapFlow({
-    host: 'imap.gmail.com',
-    port: 993,
-    secure: true,
-    auth: {
-      user: process.env.GMAIL_ADDRESS!,
-      pass: process.env.GMAIL_APP_PASSWORD!,
-    },
-    logger: false,
-  });
+  const user = process.env.GMAIL_ADDRESS;
+  const pass = process.env.GMAIL_APP_PASSWORD;
+  if (!user || !pass) {
+    throw new Error(
+      'GMAIL_ADDRESS and GMAIL_APP_PASSWORD must be set in .env for IMAP device verification',
+    );
+  }
 
-  await client.connect();
+  let imap: Imap;
+  try {
+    imap = await connectImap(user, pass);
+  } catch (err) {
+    throw new Error(
+      `IMAP connection to Gmail failed — check GMAIL_ADDRESS and GMAIL_APP_PASSWORD in .env: ${String(err)}`,
+    );
+  }
 
   try {
+    await openInbox(imap);
+
     for (let attempt = 1; attempt <= MAX_POLLS; attempt++) {
-      const lock = await client.getMailboxLock('INBOX');
-      try {
-        // Gmail raw search — precise FROM matching
-        const uidList = await client.search({
-          gmraw: 'from:(noreply@github.com)',
-        });
+      const results = await searchGitHubEmails(imap);
 
-        if (!uidList || uidList.length === 0) {
-          if (attempt < MAX_POLLS) {
-            console.log(
-              `⏳ Verification email not yet arrived (attempt ${attempt}/${MAX_POLLS}) — waiting ${POLL_INTERVAL_MS / 1000}s...`,
-            );
-            await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
-            continue;
-          }
-          throw new Error(
-            'GitHub verification email never arrived — checked 12 times over ~60s',
-          );
-        }
-
-        // Check the most recent emails from GitHub (look back up to 5)
-        const recentUids = uidList.slice(-5).reverse();
-        for (const uid of recentUids) {
-          const msg = await client.fetchOne(
-            uid,
-            { source: { maxLength: 100_000 } },
-            { uid: true },
-          );
-
-          if (!msg || !msg.source) continue;
-
-          const src = msg.source.toString();
-          // Decode quoted-printable encoding (GitHub uses =XX for special chars)
-          const decoded = src.replace(
-            /=([0-9A-F]{2})/g,
-            (_match: string, hex: string) =>
-              String.fromCharCode(parseInt(hex, 16)),
-          );
-
-          const codeMatch = decoded.match(/Verification code:\s*(\d{6})/);
-          if (codeMatch) {
-            return codeMatch[1];
-          }
-        }
-
-        // Found GitHub emails but none had a verification code yet — poll again
+      if (!results.length) {
         if (attempt < MAX_POLLS) {
           console.log(
-            `⏳ GitHub verification email found but code not ready yet (attempt ${attempt}/${MAX_POLLS}) — retrying...`,
+            `⏳ Verification email not yet arrived (attempt ${attempt}/${MAX_POLLS}) — waiting ${POLL_INTERVAL_MS / 1000}s...`,
           );
           await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+          continue;
         }
-      } finally {
-        lock.release();
+        throw new Error(
+          'GitHub verification email never arrived — checked 12 times over ~60s',
+        );
+      }
+
+      const recent = results.slice(-5).reverse();
+      for (const seqno of recent) {
+        const raw = await fetchMessageSource(imap, seqno);
+        if (!raw) continue;
+
+        // Decode quoted-printable encoding (GitHub uses =XX for special chars)
+        const decoded = raw.replace(
+          /=([0-9A-F]{2})/g,
+          (_match: string, hex: string) =>
+            String.fromCharCode(parseInt(hex, 16)),
+        );
+
+        const codeMatch = decoded.match(/Verification code:\s*(\d{6})/);
+        if (codeMatch) {
+          return codeMatch[1];
+        }
+      }
+
+      if (attempt < MAX_POLLS) {
+        console.log(
+          `⏳ GitHub verification email found but code not ready yet (attempt ${attempt}/${MAX_POLLS}) — retrying...`,
+        );
+        await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
       }
     }
 
@@ -90,7 +133,7 @@ async function fetchVerificationCode(): Promise<string> {
       'GitHub verification email never arrived — checked 12 times over ~60s',
     );
   } finally {
-    await client.logout();
+    imap!.end();
   }
 }
 
