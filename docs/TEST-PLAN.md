@@ -95,8 +95,8 @@ Group issues by milestone, track progress — Jira's Fix Versions equivalent.
 
 | ID     | Scenario                                                         | Priority | Type    | Status |
 | ------ | ---------------------------------------------------------------- | -------- | ------- | ------ |
-| MIL-01 | Create milestone with due date → verify appears in issue sidebar | P1       | E2E+API |
-| MIL-02 | Link issues to milestone → verify milestone progress bar updates | P1       | E2E+API |
+| MIL-01 | Create milestone with due date → verify appears in issue sidebar | P1       | E2E+API | ✅     |
+| MIL-02 | Link issues to milestone → verify milestone progress bar updates | P1       | E2E+API | ✅     |
 | MIL-03 | Close milestone → verify "Completed" status and progress at 100% | P2       | E2E+API |
 
 ---
@@ -107,9 +107,9 @@ Ownership and filtering by assignee.
 
 | ID     | Scenario                                                     | Priority | Type    | Status |
 | ------ | ------------------------------------------------------------ | -------- | ------- | ------ |
-| ASN-01 | Assign issue to user → verify avatar/name appears on card    | P1       | E2E+API |
-| ASN-02 | Unassign issue → verify assignee cleared from card           | P2       | E2E+API |
-| ASN-03 | Filter board by assignee → verify only assigned issues shown | P1       | E2E+API |
+| ASN-01 | Assign issue to user → verify avatar/name appears on card    | P1       | E2E+API | ✅     |
+| ASN-02 | Unassign issue → verify assignee cleared from card           | P2       | E2E+API | ✅     |
+| ASN-03 | Filter board by assignee → verify only assigned issues shown | P1       | E2E+API | ✅     |
 
 ---
 
@@ -250,8 +250,8 @@ Find issues within the project scope.
 | ----------------- | --------- | ----- | ------ | ------ | ---- |
 | Issue CRUD        | 4         | 1     | 3      | 0      | 4    |
 | Labels & Metadata | 4         | 0     | 4      | 0      | 4    |
-| Milestones        | 3         | 0     | 2      | 1      | 0    |
-| Assignees         | 3         | 0     | 2      | 1      | 0    |
+| Milestones        | 3         | 0     | 2      | 1      | 2    |
+| Assignees         | 3         | 0     | 2      | 1      | 3    |
 | Board Workflow    | 4         | 1     | 2      | 1      | 4    |
 | Table & Views     | 3         | 0     | 3      | 0      | 0    |
 | Comments          | 2         | 0     | 1      | 1      | 0    |
@@ -264,7 +264,7 @@ Find issues within the project scope.
 | Ranking           | 1         | 0     | 0      | 1      | 0    |
 | Auto-Workflows    | 1         | 0     | 0      | 1      | 0    |
 | In-Project Search | 1         | 0     | 1      | 0      | 0    |
-| **Total**         | **37**    | **2** | **20** | **15** | **12**|
+| **Total**         | **37**    | **2** | **20** | **15** | **17**|
 
 **Full lifecycle covered:** Create → Label → Assign → Estimate (milestone/iteration) → Prioritize (rank) → Track (board) → Collaborate (comments) → Report (views/table) → Complete (archive/auto-workflow).
 
@@ -298,7 +298,7 @@ GITHUB_PROJECT_SANDBOX=e2e-sandbox
 
 1. **Phase 1 — Core ✅:** ISS-01/02/03/04, BRD-01/02/03/04 — all P0s + P1s for issue CRUD and board workflow. Proves the data lifecycle and UI interaction patterns work.
 2. **Phase 2 — Labels ✅:** LBL-01/02/03/04 — label add, multi-add, remove via UI, board filter. Introduces playwright-cli for UI discovery.
-3. **Phase 3 — Metadata (next):** ASN-01/02/03, MIL-01/02 — assignees and milestones. Rounds out the P1s.
+3. **Phase 3 — Metadata ✅:** ASN-01/02/03, MIL-01/02 — assignees and milestones. Rounds out the P1s.
 4. **Phase 4 — Views & Collaboration:** TBL-01/02/03, CMT-01/02, BULK-01, SRCH-01 — table mode, comments, bulk ops, search.
 5. **Phase 5 — Advanced:** FLD-01/02, DRFT-01/02, ARC-01/02, TDATE-01, ITER-01, VIEW-01/02, RANK-01, WFLOW-01 — P2s and edge cases.
 6. **Phase 6 — CI:** GitHub Actions for read-only + authenticated suite on schedule.

@@ -12,6 +12,7 @@ export interface CreateIssueParams {
   body?: string;
   labels?: string[];
   assignees?: string[];
+  milestone?: number;
 }
 
 export interface UpdateIssueParams {
@@ -46,6 +47,17 @@ export interface GitHubComment {
   html_url: string;
 }
 
+export interface GitHubMilestone {
+  number: number;
+  title: string;
+  description: string;
+  due_on: string | null;
+  open_issues: number;
+  closed_issues: number;
+  state: 'open' | 'closed';
+  html_url: string;
+}
+
 // ── Client ────────────────────────────────────────────────
 
 export class GitHubAPI {
@@ -72,6 +84,7 @@ export class GitHubAPI {
         body: params.body || 'Created by Playwright E2E test',
         labels: params.labels || [],
         assignees: params.assignees || [],
+        ...(params.milestone ? { milestone: params.milestone } : {}),
       },
     });
 
@@ -207,6 +220,56 @@ export class GitHubAPI {
     }
 
     return response.json();
+  }
+
+  // ── Milestones ──────────────────────────────────────
+
+  /** Create a milestone in the given repo. */
+  async createMilestone(
+    repo: string,
+    params: { title: string; description?: string; due_on?: string },
+  ): Promise<GitHubMilestone> {
+    const response = await this.request.post(`${this.baseUrl}/repos/${repo}/milestones`, {
+      headers: this.authHeaders(),
+      data: params,
+    });
+
+    if (!response.ok()) {
+      throw new Error(`Failed to create milestone: ${response.status()} ${await response.text()}`);
+    }
+
+    return response.json();
+  }
+
+  /** Get a milestone by number. */
+  async getMilestone(repo: string, milestoneNumber: number): Promise<GitHubMilestone> {
+    const response = await this.request.get(
+      `${this.baseUrl}/repos/${repo}/milestones/${milestoneNumber}`,
+      { headers: this.authHeaders() },
+    );
+
+    if (!response.ok()) {
+      throw new Error(
+        `Failed to get milestone #${milestoneNumber}: ${response.status()} ${await response.text()}`,
+      );
+    }
+
+    return response.json();
+  }
+
+  /** Delete a milestone by number. */
+  async deleteMilestone(repo: string, milestoneNumber: number): Promise<void> {
+    const response = await this.request.delete(
+      `${this.baseUrl}/repos/${repo}/milestones/${milestoneNumber}`,
+      { headers: this.authHeaders() },
+    );
+
+    if (!response.ok()) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        `Failed to delete milestone #${milestoneNumber}: ${response.status()} ${await response.text()}`,
+      );
+    }
   }
 
   /** Update an existing comment. */
