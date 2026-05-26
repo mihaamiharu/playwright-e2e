@@ -1,5 +1,3 @@
-import fs from 'fs';
-import path from 'path';
 import { createBdd } from 'playwright-bdd';
 import { expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
@@ -8,14 +6,13 @@ import { env } from '../../src/config/env.config';
 
 const { When, Then } = createBdd(test);
 
-const AUTH_PATH = path.resolve('auth/github.json');
 const KANBAN_VIEW_PATH = `/users/${env.github.testRepoOwner}/projects/${env.github.sandboxProjectNumber}/views/1`;
 
 function draggableCard(page: Page, title: string) {
   return page.locator('[aria-roledescription="draggable"]').filter({ hasText: new RegExp(title) });
 }
 
-When('I move the issue to {string} via the project API', async ({ sandbox, seededProjectIssue, projectsAPI }, statusName: string) => {
+When('I move the issue to {string} via the project API', async ({ sandbox, seededProjectIssue, projectsAPI, page }, statusName: string) => {
   const optionId = sandbox.statusOptions.get(statusName);
   if (!optionId) {
     const available = [...sandbox.statusOptions.keys()].join(', ');
@@ -32,19 +29,13 @@ When('I move the issue to {string} via the project API', async ({ sandbox, seede
     const items = await projectsAPI.getItems(sandbox.projectId);
     const item = items.find(i => i.id === seededProjectIssue.projectItemId);
     expect(item?.status).toBe(statusName);
-  }).toPass({ timeout: 5000 });
+  }).toPass({ timeout: 15000 });
+
+  // Let the GraphQL mutation fully propagate before sending the next one
+  await page.waitForTimeout(1000);
 });
 
 When('I navigate to the kanban view', async ({ page }) => {
-  try {
-    const raw = fs.readFileSync(AUTH_PATH, 'utf-8');
-    const { cookies } = JSON.parse(raw);
-    if (cookies?.length) {
-      await page.context().addCookies(cookies);
-    }
-  } catch {
-    // Auth file may not exist on first run without global-setup
-  }
   await page.goto(KANBAN_VIEW_PATH);
   await page.getByRole('heading', { level: 2 }).first().waitFor({ state: 'visible', timeout: 15000 });
 });
