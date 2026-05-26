@@ -3,6 +3,7 @@ import { DataManager } from '../utils/data-manager';
 import { GitHubAPI, type GitHubIssue } from '../utils/api-client';
 import { GitHubProjectsAPI } from '../utils/github-projects-api';
 import { env } from '../config/env.config';
+import { ensureAuthCookies } from '../utils/github-auth';
 
 /**
  * GitHub Project Management fixtures.
@@ -53,6 +54,13 @@ function requireSandbox() {
 }
 
 export const test = base.extend<ProjectFixtures>({
+  // ── Auth ───────────────────────────────────────────
+
+  page: async ({ page }, use) => {
+    await ensureAuthCookies(page.context());
+    await use(page);
+  },
+
   // ── DataManager ─────────────────────────────────────
 
   // eslint-disable-next-line no-empty-pattern

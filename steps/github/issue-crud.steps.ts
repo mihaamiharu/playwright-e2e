@@ -58,6 +58,7 @@ When('I reopen the issue via API', async ({ githubAPI, seededProjectIssue }) => 
 });
 
 Then('I should see a {string} status badge', async ({ page }, expectedStatus: string) => {
+  await page.reload();
   const stateLabel = page.getByTestId('issue-metadata-fixed').getByTestId('header-state');
   await expect(stateLabel).toBeVisible();
   await expect(stateLabel).toHaveText(expectedStatus);
