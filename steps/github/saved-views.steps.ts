@@ -12,7 +12,10 @@ When('I create a new board view named {string}', async ({ page }, baseName: stri
   await page.getByRole('tab', { name: 'New view' }).click();
   await page.getByRole('menuitem', { name: 'Board' }).click();
   await page.waitForURL(/\/views\/\d+/);
-  await page.getByRole('heading', { level: 2 }).first().waitFor({ state: 'visible', timeout: 15000 });
+  await page
+    .getByRole('heading', { level: 2 })
+    .first()
+    .waitFor({ state: 'visible', timeout: 15000 });
 
   await page.getByRole('button', { name: /View options for/ }).click();
   await page.getByRole('menuitem', { name: 'Rename view' }).click();
@@ -28,27 +31,33 @@ When('I create a new board view named {string}', async ({ page }, baseName: stri
   await page.waitForTimeout(500);
 });
 
-When('I filter the current view by {string} with value {string}', async ({ page }, _fieldName: string, value: string) => {
-  await page.getByRole('combobox', { name: 'Filter' }).click();
+When(
+  'I filter the current view by {string} with value {string}',
+  async ({ page }, _fieldName: string, value: string) => {
+    await page.getByRole('combobox', { name: 'Filter' }).click();
 
-  const statusFilter = page.getByRole('option', { name: /Status, Filter/ });
-  await expect(statusFilter).toBeVisible();
-  await statusFilter.click();
+    const statusFilter = page.getByRole('option', { name: /Status, Filter/ });
+    await expect(statusFilter).toBeVisible();
+    await statusFilter.click();
 
-  await page.waitForURL(/filterQuery=status/);
+    await page.waitForURL(/filterQuery=status/);
 
-  const filterValue = page.getByRole('option', { name: new RegExp(`${value}, Status`) });
-  await expect(filterValue).toBeVisible();
-  await filterValue.click();
+    const filterValue = page.getByRole('option', { name: new RegExp(`${value}, Status`) });
+    await expect(filterValue).toBeVisible();
+    await filterValue.click();
 
-  await page.waitForURL(new RegExp(`filterQuery=status%3A${value}`));
-  await page.waitForTimeout(300);
-});
+    await page.waitForURL(new RegExp(`filterQuery=status%3A${value}`));
+    await page.waitForTimeout(300);
+  },
+);
 
-Then('the current view should show filter {string} with value {string}', async ({ page }, _fieldName: string, value: string) => {
-  await expect(page).toHaveURL(new RegExp(`filterQuery=status%3A${value}`));
-  await expect(page.getByRole('combobox', { name: 'Filter' })).toHaveValue(new RegExp(value));
-});
+Then(
+  'the current view should show filter {string} with value {string}',
+  async ({ page }, _fieldName: string, value: string) => {
+    await expect(page).toHaveURL(new RegExp(`filterQuery=status%3A${value}`));
+    await expect(page.getByRole('combobox', { name: 'Filter' })).toHaveValue(new RegExp(value));
+  },
+);
 
 Then('the created view tab should be visible', async ({ page }) => {
   await expect(page).toHaveTitle(new RegExp(currentViewName));
@@ -66,11 +75,17 @@ Then('the current view tab should be named {string}', async ({ page }, viewName:
 
 When('I reload the page', async ({ page }) => {
   await page.reload();
-  await page.getByRole('heading', { level: 2 }).first().waitFor({ state: 'visible', timeout: 15000 });
+  await page
+    .getByRole('heading', { level: 2 })
+    .first()
+    .waitFor({ state: 'visible', timeout: 15000 });
 });
 
 When('I switch to the {string} view', async ({ page }, viewName: string) => {
   await page.getByRole('tab', { name: viewName }).click();
   await page.waitForURL(/\/views\/\d+/);
-  await page.getByRole('heading', { level: 2 }).first().waitFor({ state: 'visible', timeout: 15000 });
+  await page
+    .getByRole('heading', { level: 2 })
+    .first()
+    .waitFor({ state: 'visible', timeout: 15000 });
 });

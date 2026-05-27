@@ -26,14 +26,15 @@ export default defineConfig({
   expect: {
     timeout: 10_000,
   },
+  outputDir: 'reports/artifacts',
   reporter: [
-    ['html', { outputFolder: 'playwright-report' }],
-    ['allure-playwright', { outputFolder: 'allure-results' }],
-    ['list'],
+    ['html', { outputFolder: 'reports/playwright' }],
+    ['allure-playwright', { resultsDir: 'reports/allure/results' }],
+    ['line'],
   ],
   use: {
     baseURL: process.env.BASE_URL || 'https://github.com',
-    trace: 'on-first-retry',
+    trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
   },

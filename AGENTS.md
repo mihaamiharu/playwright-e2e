@@ -44,11 +44,11 @@ No `tests/` directory — everything is BDD.
 
 ## Fixtures (src/fixtures/)
 
-| File | Extends | Used by |
-|---|---|---|
-| `github.fixture.ts` | `playwright-bdd` | Login BDD steps (unauthenticated) |
-| `data-lifecycle.fixture.ts` | `@playwright/test` | REST-only tests |
-| `github-project.fixture.ts` | `playwright-bdd` | Project management BDD steps |
+| File                        | Extends            | Used by                           |
+| --------------------------- | ------------------ | --------------------------------- |
+| `github.fixture.ts`         | `playwright-bdd`   | Login BDD steps (unauthenticated) |
+| `data-lifecycle.fixture.ts` | `@playwright/test` | REST-only tests                   |
+| `github-project.fixture.ts` | `playwright-bdd`   | Project management BDD steps      |
 
 ## Auth setup (global-setup.ts)
 
@@ -68,6 +68,7 @@ No `tests/` directory — everything is BDD.
 ## API clients
 
 Both use Playwright's built-in `request` fixture (zero extra HTTP deps):
+
 - `GitHubAPI` (`src/utils/api-client.ts`) — REST
 - `GitHubProjectsAPI` (`src/utils/github-projects-api.ts`) — GraphQL (Projects V2)
 

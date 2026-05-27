@@ -28,7 +28,7 @@ abstract class BaseTest {
 
 Looked clean. Then the sandbox project token expired mid-suite.
 
-`before()` threw on test #12. `after()` never ran for tests #1–11 because their teardown was coupled to the same `before/after` pair on a **different** test instance. But the real problem? The 11 tests that *did* pass left their seeded issues on GitHub's kanban board because I was managing cleanup manually in a catch block that I wrote wrong.
+`before()` threw on test #12. `after()` never ran for tests #1–11 because their teardown was coupled to the same `before/after` pair on a **different** test instance. But the real problem? The 11 tests that _did_ pass left their seeded issues on GitHub's kanban board because I was managing cleanup manually in a catch block that I wrote wrong.
 
 That was the moment I ripped it out.
 
@@ -38,11 +38,11 @@ That was the moment I ripped it out.
 
 Before I show the fix, here's what the official Playwright docs say:
 
-> *"We recommend fixtures over beforeAll/afterAll hooks. Fixtures encapsulate setup and teardown in the same place — they are composable, and they are reusable."*
+> _"We recommend fixtures over beforeAll/afterAll hooks. Fixtures encapsulate setup and teardown in the same place — they are composable, and they are reusable."_
 
 And more bluntly:
 
-> *"Don't use BaseTest classes. Use fixtures instead."*
+> _"Don't use BaseTest classes. Use fixtures instead."_
 
 Fixtures aren't a niche pattern. They're **the** recommended way to structure Playwright tests. Here's why — with real code from my suite.
 
@@ -55,15 +55,16 @@ Fixtures aren't a niche pattern. They're **the** recommended way to structure Pl
 ```typescript
 class BaseTest {
   async before() {
-    await seedData();     // ← throws? after() never runs
+    await seedData(); // ← throws? after() never runs
   }
   async after() {
-    await cleanup();      // ← dead code if before() failed
+    await cleanup(); // ← dead code if before() failed
   }
 }
 ```
 
 If `before()` fails, `after()` is skipped. That means:
+
 - The browser page leaks (memory in CI)
 - Any data that was partially seeded stays on the remote system
 - You don't know what state the next test inherits
@@ -121,20 +122,20 @@ With BaseTest, you'd make it a `static` field:
 
 ```typescript
 class BaseTest {
-  static api: GitHubAPI;  // Shared across tests?
+  static api: GitHubAPI; // Shared across tests?
   // What about parallel workers? Threading? Token expiry?
 }
 ```
 
 **Fixture fix:** Playwright auto-scopes for you.
 
-| Fixture | Scope | Why |
-|---------|-------|-----|
-| `dataManager` | Per test | Must be fresh — each test needs its own cleanup queue |
-| `githubAPI` | Per worker | Stateless — one instance serves all tests on that worker |
-| `projectsAPI` | Per worker | Same reason — just wraps `request` |
-| `sandbox` | Per test | Field IDs can change between runs |
-| `seededProjectIssue` | Per test | Must be unique per test |
+| Fixture              | Scope      | Why                                                      |
+| -------------------- | ---------- | -------------------------------------------------------- |
+| `dataManager`        | Per test   | Must be fresh — each test needs its own cleanup queue    |
+| `githubAPI`          | Per worker | Stateless — one instance serves all tests on that worker |
+| `projectsAPI`        | Per worker | Same reason — just wraps `request`                       |
+| `sandbox`            | Per test   | Field IDs can change between runs                        |
+| `seededProjectIssue` | Per test   | Must be unique per test                                  |
 
 No `static` management. No scope annotations. You just declare dependencies in the fixture factory, and Playwright determines the optimal lifetime.
 
@@ -146,10 +147,10 @@ What happens when you need different "shapes" of test?
 
 ```typescript
 // BaseTest flat hierarchy
-class BaseTest {}          // Everything
-class LoginTest extends BaseTest {}    // Gets sandbox (don't want)
-class LabelTest extends BaseTest {}    // Gets comments API (don't need)
-class BoardTest extends BaseTest {}    // Gets login page (irrelevant)
+class BaseTest {} // Everything
+class LoginTest extends BaseTest {} // Gets sandbox (don't want)
+class LabelTest extends BaseTest {} // Gets comments API (don't need)
+class BoardTest extends BaseTest {} // Gets login page (irrelevant)
 ```
 
 You can't opt out of what you inherit. The only fix is multiple abstract base classes — which explodes into a class hierarchy nobody wants to maintain.
@@ -159,22 +160,30 @@ You can't opt out of what you inherit. The only fix is multiple abstract base cl
 ```typescript
 // Start minimal
 const minimal = base.extend<{ dm: DataManager }>({
-  dm: async ({}, use) => { /* ... */ },
+  dm: async ({}, use) => {
+    /* ... */
+  },
 });
 
 // Add REST API
 const withAPI = minimal.extend<{ api: GitHubAPI }>({
-  api: async ({ request }, use) => { /* ... */ },
+  api: async ({ request }, use) => {
+    /* ... */
+  },
 });
 
 // Add GraphQL + sandbox
 const withSandbox = withAPI.extend<{ sandbox: SandboxContext }>({
-  sandbox: async ({ request }, use) => { /* ... */ },
+  sandbox: async ({ request }, use) => {
+    /* ... */
+  },
 });
 
 // Add seeded data
 const full = withSandbox.extend<{ seededIssue: GitHubIssue }>({
-  seededIssue: async ({ api, sandbox, dm }, use) => { /* ... */ },
+  seededIssue: async ({ api, sandbox, dm }, use) => {
+    /* ... */
+  },
 });
 
 export { minimal, withAPI, withSandbox, full };
@@ -215,15 +224,15 @@ The type system becomes your test's contract. You can't use a fixture you didn't
 
 ## Head-to-head
 
-| Concern | BaseTest | Fixtures |
-|---------|----------|----------|
-| Teardown after failure | ❌ Only if `before()` completed | ✅ Guaranteed by `use()` |
-| Lazy loading | ❌ Everything in hooks | ✅ Only declared fixtures |
-| Worker reuse | ❌ Manual `static` management | ✅ Auto-scoped |
-| Composition | ❌ Single inheritance chain | ✅ Multiple `.extend()` chains |
-| Type safety | ❌ `this.property` — possibly undefined | ✅ Parameter types — always defined |
-| Parallel safety | ⚠️ Shared mutable `this` | ✅ Isolated per worker |
-| Official recommendation | ❌ Explicitly discouraged | ✅ Recommended |
+| Concern                 | BaseTest                                | Fixtures                            |
+| ----------------------- | --------------------------------------- | ----------------------------------- |
+| Teardown after failure  | ❌ Only if `before()` completed         | ✅ Guaranteed by `use()`            |
+| Lazy loading            | ❌ Everything in hooks                  | ✅ Only declared fixtures           |
+| Worker reuse            | ❌ Manual `static` management           | ✅ Auto-scoped                      |
+| Composition             | ❌ Single inheritance chain             | ✅ Multiple `.extend()` chains      |
+| Type safety             | ❌ `this.property` — possibly undefined | ✅ Parameter types — always defined |
+| Parallel safety         | ⚠️ Shared mutable `this`                | ✅ Isolated per worker              |
+| Official recommendation | ❌ Explicitly discouraged               | ✅ Recommended                      |
 
 ---
 
@@ -248,4 +257,4 @@ And when someone on your team asks "why not just use a base class?", you can poi
 
 ---
 
-*Part 2 of the Playwright E2E architecture series. Part 1: [Inside a Production-Grade Playwright E2E Repo](/architecture-tour). Part 4: ["Authentication Without the 2FA Nightmare"](/blog/04-authentication-without-2fa).*
+_Part 2 of the Playwright E2E architecture series. Part 1: [Inside a Production-Grade Playwright E2E Repo](/architecture-tour). Part 4: ["Authentication Without the 2FA Nightmare"](/blog/04-authentication-without-2fa)._

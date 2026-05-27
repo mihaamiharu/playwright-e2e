@@ -14,15 +14,15 @@
 
 After shipping labels, assignees, and milestones, Phase 4 of the test plan tackled **Views & Collaboration** — table layouts, comments, bulk operations, and in-project search:
 
-| ID | Scenario |
-|----|----------|
-| TBL-01 | Switch to table view → verify columns render |
-| TBL-02 | Sort table by a column → verify order changes |
-| TBL-03 | Filter table by a field → verify matching rows |
-| CMT-01 | Add comment via API → verify in timeline |
-| CMT-02 | Edit comment via API → verify updated text |
+| ID      | Scenario                                        |
+| ------- | ----------------------------------------------- |
+| TBL-01  | Switch to table view → verify columns render    |
+| TBL-02  | Sort table by a column → verify order changes   |
+| TBL-03  | Filter table by a field → verify matching rows  |
+| CMT-01  | Add comment via API → verify in timeline        |
+| CMT-02  | Edit comment via API → verify updated text      |
 | BULK-01 | Bulk update status via API → verify all changed |
-| SRCH-01 | Search by keyword → verify matching results |
+| SRCH-01 | Search by keyword → verify matching results     |
 
 We had the full data lifecycle (seed → verify → cleanup), the API layer had `addComment()`/`updateComment()` ready, and the sandbox project was well-stocked with pre-existing data. We expected to write a few step definitions and be done in an hour.
 
@@ -69,15 +69,15 @@ Add `exact: true` to constrain matching to the full accessible name:
 + await page.getByRole('button', { name: 'Save', exact: true }).click();
 ```
 
-This was the only change needed, but it cost 30 minutes of debugging across three test retries. The filter kept finding elements, the `click` kept throwing strict-mode violations, and the error message itself was misleading — it showed the second element as `aka getByRole('button', { name: 'Unsaved changes View' })`, which didn't explain *why* it matched `'Save'`.
+This was the only change needed, but it cost 30 minutes of debugging across three test retries. The filter kept finding elements, the `click` kept throwing strict-mode violations, and the error message itself was misleading — it showed the second element as `aka getByRole('button', { name: 'Unsaved changes View' })`, which didn't explain _why_ it matched `'Save'`.
 
 ### The principle
 
-| Problem | `{ name }` matching |
-|---------|---------------------|
+| Problem                                         | `{ name }` matching         |
+| ----------------------------------------------- | --------------------------- |
 | `name: 'Save'` matches `"Unsaved changes View"` | Substring, case-insensitive |
-| `name: 'Status'` could match `"No Status"` | Same |
-| `name: 'Title'` could match `"Sub-title"` | Same |
+| `name: 'Status'` could match `"No Status"`      | Same                        |
+| `name: 'Title'` could match `"Sub-title"`       | Same                        |
 
 **Rule**: whenever a `getByRole` strict-mode error lists an element whose visible text doesn't obviously match your `name`, suspect substring matching. Add `exact: true` and retry.
 
@@ -220,10 +220,10 @@ While debugging TBL-03's filter behavior, we noticed something strange: after ap
 
 These are **two independent filtering systems** that live on the same page:
 
-| System | Trigger | Scope | URL effect |
-|--------|---------|-------|------------|
-| Global filter bar | `combobox "Filter"` in the toolbar | Project-wide | Updates `?filterQuery=` |
-| Column filter | `button "X column options"` → `"Filter by values…"` | Column-local | Updates internal view config |
+| System            | Trigger                                             | Scope        | URL effect                   |
+| ----------------- | --------------------------------------------------- | ------------ | ---------------------------- |
+| Global filter bar | `combobox "Filter"` in the toolbar                  | Project-wide | Updates `?filterQuery=`      |
+| Column filter     | `button "X column options"` → `"Filter by values…"` | Column-local | Updates internal view config |
 
 The global filter bar replaces the URL's `filterQuery` parameter and removes non-matching rows from the grid. The column filter modifies the view's internal configuration but doesn't touch the URL.
 
@@ -282,41 +282,41 @@ Two scenarios, two API calls, zero playwright-cli sessions. The test infrastruct
 
 ## The locator table
 
-| UI Element | Locator | Gotcha |
-|-----------|---------|--------|
-| Open View menu | `getByRole('button', { name: 'View', exact: true })` | #3 |
-| Switch to Table | `getByRole('button', { name: 'Table' })` | #3 |
-| Table grid | `getByRole('grid')` | Wait for render after layout switch |
-| Column header | `getByRole('columnheader', { name: /^Title/ })` | Compound name: "Title Title column options" |
-| Column options | `getByRole('button', { name: 'Title column options' })` | #4 |
-| Sort ascending | `getByRole('menuitem', { name: 'Sort ascending' })` | Wait for `sortedBy` in URL |
-| Sort descending | `getByRole('menuitem', { name: 'Sort descending' })` | Same |
-| Table row by title | `getByRole('row').filter({ hasText: title })` | Pre-existing rows pollute results |
-| Row title link | `getByRole('rowheader').getByRole('link')` | Used for sort order verification |
-| Filter combobox | `getByRole('combobox', { name: 'Filter' })` | #2, #3 |
-| Status filter type | `getByRole('option', { name: 'Status, Filter' })` | Not "Status, Filter, Filter by status" |
-| Status value | `getByRole('option', { name: 'Backlog, Status' })` | Not `exact: true` on status name |
-| Label filter type | `getByRole('option', { name: 'Label, Filter, Filter by label' })` | #2 |
-| Label value | `getByRole('option', { name: 'bug, Label' })` | Same |
-| Title search filter | `getByRole('option', { name: 'Title, Filter' })` | Then `page.keyboard.type(keyword)` |
-| Apply filter | `getByRole('button', { name: 'Save', exact: true })` | #1 |
-| Dismiss overlay | `page.keyboard.press('Escape')` | #3 — add `waitForTimeout(500)` |
-| Comment text | `page.getByText(body)` | Works for both original and edited |
+| UI Element          | Locator                                                           | Gotcha                                      |
+| ------------------- | ----------------------------------------------------------------- | ------------------------------------------- |
+| Open View menu      | `getByRole('button', { name: 'View', exact: true })`              | #3                                          |
+| Switch to Table     | `getByRole('button', { name: 'Table' })`                          | #3                                          |
+| Table grid          | `getByRole('grid')`                                               | Wait for render after layout switch         |
+| Column header       | `getByRole('columnheader', { name: /^Title/ })`                   | Compound name: "Title Title column options" |
+| Column options      | `getByRole('button', { name: 'Title column options' })`           | #4                                          |
+| Sort ascending      | `getByRole('menuitem', { name: 'Sort ascending' })`               | Wait for `sortedBy` in URL                  |
+| Sort descending     | `getByRole('menuitem', { name: 'Sort descending' })`              | Same                                        |
+| Table row by title  | `getByRole('row').filter({ hasText: title })`                     | Pre-existing rows pollute results           |
+| Row title link      | `getByRole('rowheader').getByRole('link')`                        | Used for sort order verification            |
+| Filter combobox     | `getByRole('combobox', { name: 'Filter' })`                       | #2, #3                                      |
+| Status filter type  | `getByRole('option', { name: 'Status, Filter' })`                 | Not "Status, Filter, Filter by status"      |
+| Status value        | `getByRole('option', { name: 'Backlog, Status' })`                | Not `exact: true` on status name            |
+| Label filter type   | `getByRole('option', { name: 'Label, Filter, Filter by label' })` | #2                                          |
+| Label value         | `getByRole('option', { name: 'bug, Label' })`                     | Same                                        |
+| Title search filter | `getByRole('option', { name: 'Title, Filter' })`                  | Then `page.keyboard.type(keyword)`          |
+| Apply filter        | `getByRole('button', { name: 'Save', exact: true })`              | #1                                          |
+| Dismiss overlay     | `page.keyboard.press('Escape')`                                   | #3 — add `waitForTimeout(500)`              |
+| Comment text        | `page.getByText(body)`                                            | Works for both original and edited          |
 
 ---
 
 ## Key takeaways
 
-| Lesson | Why it matters |
-|--------|---------------|
-| **`exact: true` is not optional on short names** | `'Save'` matches `'Unsaved'`, `'Status'` matches `'No Status'`, `'Title'` matches `'Sub-title'`. Any button name shorter than 6 characters risks substring collisions. Default to `exact: true` unless you specifically need partial matching. |
-| **Test the filter composition before designing the test** | GitHub's filter bar is single-filter. You can't `AND` two criteria through the UI. Discover this in playwright-cli, not in the test runner. |
-| **Dialogs leave backdrops — and backdrops block clicks** | After any action that triggers a UI state change (layout switch, view toggle), check for lingering overlays. A single `Escape` + 500ms wait is the cheapest insurance policy. |
-| **Column options and global filters are separate systems** | Don't assume one replaces the other. Read the full ARIA tree. A 30-second snapshot of the column headers would have revealed the column-level filter path two hours earlier. |
-| **The test infrastructure pays compound interest** | Comments (CMT-01/02) took 5 minutes because the API client, fixture, and data lifecycle were already battle-tested. Every domain you add makes the next one faster. |
+| Lesson                                                     | Why it matters                                                                                                                                                                                                                                 |
+| ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`exact: true` is not optional on short names**           | `'Save'` matches `'Unsaved'`, `'Status'` matches `'No Status'`, `'Title'` matches `'Sub-title'`. Any button name shorter than 6 characters risks substring collisions. Default to `exact: true` unless you specifically need partial matching. |
+| **Test the filter composition before designing the test**  | GitHub's filter bar is single-filter. You can't `AND` two criteria through the UI. Discover this in playwright-cli, not in the test runner.                                                                                                    |
+| **Dialogs leave backdrops — and backdrops block clicks**   | After any action that triggers a UI state change (layout switch, view toggle), check for lingering overlays. A single `Escape` + 500ms wait is the cheapest insurance policy.                                                                  |
+| **Column options and global filters are separate systems** | Don't assume one replaces the other. Read the full ARIA tree. A 30-second snapshot of the column headers would have revealed the column-level filter path two hours earlier.                                                                   |
+| **The test infrastructure pays compound interest**         | Comments (CMT-01/02) took 5 minutes because the API client, fixture, and data lifecycle were already battle-tested. Every domain you add makes the next one faster.                                                                            |
 
 ---
 
 Phase 4 delivered 7 scenarios across 4 domains in 3.5 hours. The 4 gotchas above consumed roughly 2 hours of that — and taught us more about GitHub's DOM than the previous 17 passing tests combined. The test plan now stands at 24 scenarios (7 domains) with full create/label/assign/estimate/track/collaborate/search lifecycle coverage.
 
-*Next up: Phase 5 — Custom Fields, Draft Items, Archive, Date/Iteration fields, Saved Views, Ranking, and Auto-Workflows.*
+_Next up: Phase 5 — Custom Fields, Draft Items, Archive, Date/Iteration fields, Saved Views, Ranking, and Auto-Workflows._

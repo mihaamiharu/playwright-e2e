@@ -16,10 +16,17 @@ Then('I should see the comment {string} on the issue', async ({ page }, body) =>
   await expect(page.getByText(body)).toBeVisible();
 });
 
-Given('a comment exists on the issue with text {string}', async ({ githubAPI, seededProjectIssue }, body) => {
-  const comment = await githubAPI.addComment(env.github.testRepo, seededProjectIssue.number, body);
-  commentId = comment.id;
-});
+Given(
+  'a comment exists on the issue with text {string}',
+  async ({ githubAPI, seededProjectIssue }, body) => {
+    const comment = await githubAPI.addComment(
+      env.github.testRepo,
+      seededProjectIssue.number,
+      body,
+    );
+    commentId = comment.id;
+  },
+);
 
 When('I update the comment to {string} via the API', async ({ githubAPI }, newBody) => {
   await githubAPI.updateComment(env.github.testRepo, commentId, newBody);

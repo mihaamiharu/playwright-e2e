@@ -13,12 +13,12 @@
 
 After shipping the labels suite, the next phase in our test plan was **Assignees & Milestones** — five scenarios that cover ownership and release tracking:
 
-| ID | Scenario | Type |
-|----|----------|------|
-| ASN-01 | Assign issue to user → verify avatar/name appears on card | E2E+API |
-| ASN-02 | Unassign issue → verify assignee cleared from card | E2E+API |
-| ASN-03 | Filter kanban board by assignee → verify only assigned issues shown | E2E+API |
-| MIL-01 | Create milestone with due date → verify it appears in issue sidebar | E2E+API |
+| ID     | Scenario                                                                | Type    |
+| ------ | ----------------------------------------------------------------------- | ------- |
+| ASN-01 | Assign issue to user → verify avatar/name appears on card               | E2E+API |
+| ASN-02 | Unassign issue → verify assignee cleared from card                      | E2E+API |
+| ASN-03 | Filter kanban board by assignee → verify only assigned issues shown     | E2E+API |
+| MIL-01 | Create milestone with due date → verify it appears in issue sidebar     | E2E+API |
 | MIL-02 | Link issues to milestone → verify progress bar shows partial completion | E2E+API |
 
 The labels phase taught us something important: **GitHub's sidebar uses the same dialog pattern for every metadata field**. Labels, assignees, milestones, projects — they all share `button "Edit X"` → `dialog "Select X"` → `option { name }` → `Escape`.
@@ -111,20 +111,20 @@ The URL updated to `?filterQuery=assignee%3A` on the first select, then fully re
 
 ### The full locator table
 
-| UI Element | Locator |
-|-----------|---------|
-| Open assignee picker | `getByRole('button', { name: 'Edit Assignees' })` |
-| Assignee dialog | `getByRole('dialog', { name: 'Select assignees' })` |
-| Select assignee | `dialog.getByRole('option', { name: username })` |
-| Verify assignee | `getByTestId('sidebar-assignees-section').getByRole('link', { name: username })` |
-| Verify no assignee | `getByTestId('sidebar-assignees-section').getByText('No one')` |
-| Open milestone picker | `getByRole('button', { name: 'Edit Milestone' })` |
-| Milestone dialog | `getByRole('dialog', { name: 'Set milestone' })` |
+| UI Element                  | Locator                                                                              |
+| --------------------------- | ------------------------------------------------------------------------------------ |
+| Open assignee picker        | `getByRole('button', { name: 'Edit Assignees' })`                                    |
+| Assignee dialog             | `getByRole('dialog', { name: 'Select assignees' })`                                  |
+| Select assignee             | `dialog.getByRole('option', { name: username })`                                     |
+| Verify assignee             | `getByTestId('sidebar-assignees-section').getByRole('link', { name: username })`     |
+| Verify no assignee          | `getByTestId('sidebar-assignees-section').getByText('No one')`                       |
+| Open milestone picker       | `getByRole('button', { name: 'Edit Milestone' })`                                    |
+| Milestone dialog            | `getByRole('dialog', { name: 'Set milestone' })`                                     |
 | Verify milestone in sidebar | `getByTestId('sidebar-milestones-section').getByTestId('issue-milestone-container')` |
-| Board filter input | `getByRole('combobox').first()` |
-| Select "Assignee" filter | `getByRole('option', { name: 'Assignee' })` |
-| Select "Has assignee" | `getByRole('option', { name: 'Has assignee' })` |
-| Milestone progress bar | `locator('[role="progressbar"]')` with `aria-valuenow` |
+| Board filter input          | `getByRole('combobox').first()`                                                      |
+| Select "Assignee" filter    | `getByRole('option', { name: 'Assignee' })`                                          |
+| Select "Has assignee"       | `getByRole('option', { name: 'Has assignee' })`                                      |
+| Milestone progress bar      | `locator('[role="progressbar"]')` with `aria-valuenow`                               |
 
 ---
 
@@ -164,7 +164,7 @@ We also added `milestone` to `CreateIssueParams` so a new issue can be linked to
 ```typescript
 await githubAPI.createIssue(repo, {
   title: 'e2e-mil-issue',
-  milestone: milestoneNumber,  // links on creation
+  milestone: milestoneNumber, // links on creation
 });
 ```
 
@@ -256,13 +256,13 @@ ASN-03 reuses `Then the seeded issue should be visible on the board` from the la
 
 ## What we didn't have to build
 
-| Component | Effort | Reason |
-|-----------|--------|--------|
-| Data lifecycle | 0 lines | `github-project.fixture.ts` seeded issues, `DataManager` auto-cleaned up |
-| Auth setup | 0 lines | `ensureAuthCookies()` in the `page` fixture override — loaded once per test |
-| Board navigation | 0 lines | `When I navigate to the kanban view` already defined in board-workflow steps |
+| Component              | Effort  | Reason                                                                                 |
+| ---------------------- | ------- | -------------------------------------------------------------------------------------- |
+| Data lifecycle         | 0 lines | `github-project.fixture.ts` seeded issues, `DataManager` auto-cleaned up               |
+| Auth setup             | 0 lines | `ensureAuthCookies()` in the `page` fixture override — loaded once per test            |
+| Board navigation       | 0 lines | `When I navigate to the kanban view` already defined in board-workflow steps           |
 | Issue visibility check | 0 lines | `Then the seeded issue should be visible on the board` already defined in labels steps |
-| Assignee API | 0 lines | `updateIssue({ assignees })` existed from Phase 1 |
+| Assignee API           | 0 lines | `updateIssue({ assignees })` existed from Phase 1                                      |
 
 The only net-new code was milestone REST methods (63 lines), five step definitions, and two feature files. The fixture architecture absorbed everything else.
 
@@ -270,31 +270,31 @@ The only net-new code was milestone REST methods (63 lines), five step definitio
 
 ## Key takeaways
 
-| Lesson | Why it matters |
-|--------|---------------|
-| **Sidebar patterns are reusable** | The `button "Edit X"` → `dialog` → `option` → `Escape` flow works for labels, assignees, and milestones. Discover it once, apply it everywhere. |
-| **REST over GraphQL when possible** | Assignees work via the issue REST endpoint — no field resolution, no GraphQL mutations, no eventual consistency headaches. If GitHub exposes it via REST, use REST. |
-| **Milestones are repo-level, not project-level** | They live at `/repos/{owner}/{repo}/milestones`, not in the Project V2 GraphQL API. Understanding the data model before coding prevents dead ends. |
-| **`getByRole()` can miss DOM-attached roles** | The `<span role="progressbar">` was in the DOM but not the accessibility tree. `locator('[role="progressbar"]')` is the reliable fallback. |
-| **LIFO cleanup order is non-negotiable** | Milestones can't be deleted while they have linked issues. Close issues first, then remove them from the project, then delete the milestone. |
-| **A growing step library compounds** | 5 new scenarios added only 5 new step definitions — the rest came from existing steps defined in Phase 1 and Phase 2. Every phase makes the next one faster. |
+| Lesson                                           | Why it matters                                                                                                                                                      |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Sidebar patterns are reusable**                | The `button "Edit X"` → `dialog` → `option` → `Escape` flow works for labels, assignees, and milestones. Discover it once, apply it everywhere.                     |
+| **REST over GraphQL when possible**              | Assignees work via the issue REST endpoint — no field resolution, no GraphQL mutations, no eventual consistency headaches. If GitHub exposes it via REST, use REST. |
+| **Milestones are repo-level, not project-level** | They live at `/repos/{owner}/{repo}/milestones`, not in the Project V2 GraphQL API. Understanding the data model before coding prevents dead ends.                  |
+| **`getByRole()` can miss DOM-attached roles**    | The `<span role="progressbar">` was in the DOM but not the accessibility tree. `locator('[role="progressbar"]')` is the reliable fallback.                          |
+| **LIFO cleanup order is non-negotiable**         | Milestones can't be deleted while they have linked issues. Close issues first, then remove them from the project, then delete the milestone.                        |
+| **A growing step library compounds**             | 5 new scenarios added only 5 new step definitions — the rest came from existing steps defined in Phase 1 and Phase 2. Every phase makes the next one faster.        |
 
 ---
 
 ## Progress: 17 of 37 scenarios
 
-| Phase | Scenarios | Status |
-|-------|-----------|--------|
-| Issue CRUD | ISS-01–04 | Done |
-| Board Workflow | BRD-01–04 | Done |
-| Labels & Metadata | LBL-01–04 | Done |
-| Assignees | ASN-01–03 | Done |
-| Milestones | MIL-01–02 | Done |
-| **Total** | **17/37** | **46%** |
+| Phase             | Scenarios | Status  |
+| ----------------- | --------- | ------- |
+| Issue CRUD        | ISS-01–04 | Done    |
+| Board Workflow    | BRD-01–04 | Done    |
+| Labels & Metadata | LBL-01–04 | Done    |
+| Assignees         | ASN-01–03 | Done    |
+| Milestones        | MIL-01–02 | Done    |
+| **Total**         | **17/37** | **46%** |
 
 The sidebar pattern has been proven against three metadata types. Next: table views and comments — which will test whether the same discovery approach works for list-style and timeline interfaces, not just dialogs.
 
 ---
 
-*Part 4: [Authentication without the 2FA nightmare](/blog/04-authentication-without-2fa.md)*
-*Part 5: [Building E2E label tests with UI discovery](/blog/05-building-label-tests-with-ui-discovery.md)*
+_Part 4: [Authentication without the 2FA nightmare](/blog/04-authentication-without-2fa.md)_
+_Part 5: [Building E2E label tests with UI discovery](/blog/05-building-label-tests-with-ui-discovery.md)_

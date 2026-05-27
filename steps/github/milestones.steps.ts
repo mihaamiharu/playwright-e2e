@@ -34,42 +34,52 @@ When('I create a milestone with a due date via the API', async ({ githubAPI, dat
   });
 });
 
-When('I link the seeded issue to the milestone via the API', async ({ githubAPI, seededProjectIssue }) => {
-  await githubAPI.updateIssue(env.github.testRepo, seededProjectIssue.number, {
-    milestone: milestoneNumber,
-  });
-});
+When(
+  'I link the seeded issue to the milestone via the API',
+  async ({ githubAPI, seededProjectIssue }) => {
+    await githubAPI.updateIssue(env.github.testRepo, seededProjectIssue.number, {
+      milestone: milestoneNumber,
+    });
+  },
+);
 
 Then('I should see the milestone name in the issue sidebar', async ({ page }) => {
   const milestoneSection = page.getByTestId('sidebar-milestones-section');
-  await expect(milestoneSection.getByTestId('issue-milestone-container')).toContainText(milestoneTitle);
+  await expect(milestoneSection.getByTestId('issue-milestone-container')).toContainText(
+    milestoneTitle,
+  );
 });
 
-When('I seed a second issue on the board linked to the milestone', async ({ githubAPI, projectsAPI, sandbox, dataManager }) => {
-  const uniqueId = `mil-issue-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-  const title = `e2e-${uniqueId}`;
+When(
+  'I seed a second issue on the board linked to the milestone',
+  async ({ githubAPI, projectsAPI, sandbox, dataManager }) => {
+    const uniqueId = `mil-issue-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    const title = `e2e-${uniqueId}`;
 
-  const issue = await githubAPI.createIssue(env.github.testRepo, {
-    title,
-    body: `Second issue for milestone progress test. Run: ${uniqueId}`,
-    milestone: milestoneNumber,
-  });
+    const issue = await githubAPI.createIssue(env.github.testRepo, {
+      title,
+      body: `Second issue for milestone progress test. Run: ${uniqueId}`,
+      milestone: milestoneNumber,
+    });
 
-  secondMilestoneIssueNumber = issue.number;
+    secondMilestoneIssueNumber = issue.number;
 
-  const projectItemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
+    const projectItemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
 
-  dataManager.enqueue(async () => {
-    await projectsAPI.removeItemFromProject(sandbox.projectId, projectItemId);
-  });
-  dataManager.enqueue(async () => {
-    await githubAPI.closeIssue(env.github.testRepo, issue.number);
-  });
-});
+    dataManager.enqueue(async () => {
+      await projectsAPI.removeItemFromProject(sandbox.projectId, projectItemId);
+    });
+    dataManager.enqueue(async () => {
+      await githubAPI.closeIssue(env.github.testRepo, issue.number);
+    });
+  },
+);
 
 When('I navigate to the milestone page', async ({ page }) => {
   await page.goto(`/${env.github.testRepo}/milestone/${milestoneNumber}`);
-  await page.getByRole('heading', { name: milestoneTitle, level: 2 }).waitFor({ state: 'visible', timeout: 15000 });
+  await page
+    .getByRole('heading', { name: milestoneTitle, level: 2 })
+    .waitFor({ state: 'visible', timeout: 15000 });
 });
 
 Then('I should see the milestone progress bar showing partial completion', async ({ page }) => {

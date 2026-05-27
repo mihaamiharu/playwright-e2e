@@ -30,26 +30,29 @@ Then('I should see no assignee on the issue', async ({ page }) => {
   await expect(assigneeSection.getByText('No one')).toBeVisible();
 });
 
-When('I seed a second unassigned issue on the board', async ({ githubAPI, projectsAPI, sandbox, dataManager }) => {
-  const uniqueId = `unassigned-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-  const title = `e2e-${uniqueId}`;
+When(
+  'I seed a second unassigned issue on the board',
+  async ({ githubAPI, projectsAPI, sandbox, dataManager }) => {
+    const uniqueId = `unassigned-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    const title = `e2e-${uniqueId}`;
 
-  const issue = await githubAPI.createIssue(env.github.testRepo, {
-    title,
-    body: `Second unassigned issue for assignee filter test. Run: ${uniqueId}`,
-  });
+    const issue = await githubAPI.createIssue(env.github.testRepo, {
+      title,
+      body: `Second unassigned issue for assignee filter test. Run: ${uniqueId}`,
+    });
 
-  const projectItemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
+    const projectItemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
 
-  dataManager.enqueue(async () => {
-    await projectsAPI.removeItemFromProject(sandbox.projectId, projectItemId);
-  });
-  dataManager.enqueue(async () => {
-    await githubAPI.closeIssue(env.github.testRepo, issue.number);
-  });
+    dataManager.enqueue(async () => {
+      await projectsAPI.removeItemFromProject(sandbox.projectId, projectItemId);
+    });
+    dataManager.enqueue(async () => {
+      await githubAPI.closeIssue(env.github.testRepo, issue.number);
+    });
 
-  secondUnassignedIssueTitle = title;
-});
+    secondUnassignedIssueTitle = title;
+  },
+);
 
 When('I filter the board by assignee {string}', async ({ page }, assigneeFilter: string) => {
   const filterInput = page.getByRole('combobox').first();
@@ -59,7 +62,10 @@ When('I filter the board by assignee {string}', async ({ page }, assigneeFilter:
   await page.getByRole('option', { name: assigneeFilter }).click();
 
   await page.waitForURL(/filterQuery=assignee/);
-  await page.getByRole('heading', { level: 2 }).first().waitFor({ state: 'visible', timeout: 15000 });
+  await page
+    .getByRole('heading', { level: 2 })
+    .first()
+    .waitFor({ state: 'visible', timeout: 15000 });
 });
 
 Then('the second unassigned issue should not be visible on the board', async ({ page }) => {

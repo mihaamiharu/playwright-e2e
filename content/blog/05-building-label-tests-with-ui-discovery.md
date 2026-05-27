@@ -12,11 +12,11 @@
 
 After building the board workflow tests, the next target in our test plan was **Labels & Metadata** — four P1 scenarios:
 
-| ID | Scenario |
-|----|----------|
-| LBL-01 | Add a label to an issue via the UI, verify it renders |
-| LBL-02 | Add multiple labels via the UI, verify all render |
-| LBL-03 | Remove a label via the UI, verify it disappears |
+| ID     | Scenario                                                            |
+| ------ | ------------------------------------------------------------------- |
+| LBL-01 | Add a label to an issue via the UI, verify it renders               |
+| LBL-02 | Add multiple labels via the UI, verify all render                   |
+| LBL-03 | Remove a label via the UI, verify it disappears                     |
 | LBL-04 | Filter the kanban board by label, verify only matching items appear |
 
 The data lifecycle was already proven — our `github-project.fixture.ts` could seed issues, add them to the project board, and auto-clean up. The API layer had `addLabels()` and `removeLabel()` ready to go. The question was: **how do we interact with GitHub's label picker UI?**
@@ -157,18 +157,18 @@ When('I remove the label {string} via the UI', async ({ page }, label: string) =
 
 The full locator table:
 
-| UI Element | Locator |
-|-----------|---------|
-| Open label picker | `getByRole('button', { name: 'Edit Labels' })` |
-| Label picker dialog | `getByRole('dialog', { name: 'Apply labels to this issue' })` |
-| Select/deselect label | `dialog.getByRole('option', { name: label })` |
-| Dismiss picker | `page.keyboard.press('Escape')` |
-| Verify label on issue | `getByRole('link', { name: new RegExp(label) })` |
-| Board filter combobox | `getByRole('combobox', { name: 'Filter' })` |
+| UI Element                 | Locator                                                           |
+| -------------------------- | ----------------------------------------------------------------- |
+| Open label picker          | `getByRole('button', { name: 'Edit Labels' })`                    |
+| Label picker dialog        | `getByRole('dialog', { name: 'Apply labels to this issue' })`     |
+| Select/deselect label      | `dialog.getByRole('option', { name: label })`                     |
+| Dismiss picker             | `page.keyboard.press('Escape')`                                   |
+| Verify label on issue      | `getByRole('link', { name: new RegExp(label) })`                  |
+| Board filter combobox      | `getByRole('combobox', { name: 'Filter' })`                       |
 | Select "Label" filter type | `getByRole('option', { name: 'Label, Filter, Filter by label' })` |
-| Select specific label | `getByRole('option', { name: 'bug, Label' })` |
-| Apply filter | `getByRole('button', { name: 'Save' })` |
-| Board card | `getByRole('button', { name: new RegExp(title) })` |
+| Select specific label      | `getByRole('option', { name: 'bug, Label' })`                     |
+| Apply filter               | `getByRole('button', { name: 'Save' })`                           |
+| Board card                 | `getByRole('button', { name: new RegExp(title) })`                |
 
 The 4 Gherkin scenarios that use these steps:
 
@@ -286,16 +286,16 @@ await expect(sidebar.getByRole('link', { name: new RegExp(label) })).toBeVisible
 
 ## Key takeaways
 
-| Lesson | Why it matters |
-|--------|---------------|
-| **Discover locators in a live browser** | You can't write tests for a UI you haven't seen. playwright-cli lets you walk through the flow interactively before writing a single line of code. |
-| **Role-based locators survive deploys** | `button "Edit Labels"` will outlive any CSS refactor GitHub ships. |
-| **Dialog patterns are reusable** | The label picker, the board filter, the assignee selector — all GitHub dialogs follow the same `option` + `Save`/`Escape` pattern. The discovery process for one applies to all. |
-| **Dry up auth loading before it spreads** | Two duplications became three would become five. Extracting to the fixture level early prevented a refactoring headache later. |
-| **Test the test framework itself** | `fullyParallel`, `networkidle`, and event labeling bugs were framework-level issues caught because we ran the full suite, not just the new tests. |
+| Lesson                                    | Why it matters                                                                                                                                                                   |
+| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Discover locators in a live browser**   | You can't write tests for a UI you haven't seen. playwright-cli lets you walk through the flow interactively before writing a single line of code.                               |
+| **Role-based locators survive deploys**   | `button "Edit Labels"` will outlive any CSS refactor GitHub ships.                                                                                                               |
+| **Dialog patterns are reusable**          | The label picker, the board filter, the assignee selector — all GitHub dialogs follow the same `option` + `Save`/`Escape` pattern. The discovery process for one applies to all. |
+| **Dry up auth loading before it spreads** | Two duplications became three would become five. Extracting to the fixture level early prevented a refactoring headache later.                                                   |
+| **Test the test framework itself**        | `fullyParallel`, `networkidle`, and event labeling bugs were framework-level issues caught because we ran the full suite, not just the new tests.                                |
 
 ---
 
 The finished labels test suite adds 4 scenarios (14 total), covers both UI and API operations, and took exactly one session from `playwright-cli open` to all-green. The locators discovered here will be reused for assignees, milestones, and custom fields — all of which use the same sidebar "Edit" button and dialog pattern.
 
-*Next up: Assignees & Milestones — building on the same sidebar interaction patterns.*
+_Next up: Assignees & Milestones — building on the same sidebar interaction patterns._

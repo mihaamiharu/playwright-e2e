@@ -119,9 +119,7 @@ export class GitHubProjectsAPI {
     const projectId = data.user?.projectV2?.id;
 
     if (!projectId) {
-      throw new Error(
-        `Project #${projectNumber} not found for user "${owner}"`,
-      );
+      throw new Error(`Project #${projectNumber} not found for user "${owner}"`);
     }
 
     return projectId;
@@ -241,9 +239,7 @@ export class GitHubProjectsAPI {
               name: o.name,
             }))
           : undefined,
-        iterations: iterations
-          ? iterations.map((i) => ({ id: i.id, title: i.title }))
-          : undefined,
+        iterations: iterations ? iterations.map((i) => ({ id: i.id, title: i.title })) : undefined,
       };
     });
   }
@@ -486,10 +482,7 @@ export class GitHubProjectsAPI {
    * Read back the display value of a specific field on a project item.
    * Returns the value as a string, or null if not set / field not found.
    */
-  async getItemFieldValue(
-    itemId: string,
-    fieldName: string,
-  ): Promise<string | null> {
+  async getItemFieldValue(itemId: string, fieldName: string): Promise<string | null> {
     const query = `
       query($itemId: ID!, $fieldName: String!) {
         node(id: $itemId) {
@@ -516,7 +509,11 @@ export class GitHubProjectsAPI {
     const fv = data.node?.fieldValueByName;
     if (!fv) return null;
 
-    return (fv.name ?? fv.text ?? (fv.number as number | undefined)?.toString() ?? fv.date ?? fv.title) as string | null;
+    return (fv.name ??
+      fv.text ??
+      (fv.number as number | undefined)?.toString() ??
+      fv.date ??
+      fv.title) as string | null;
   }
 
   // ── Convenience ─────────────────────────────────────

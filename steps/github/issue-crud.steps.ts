@@ -28,11 +28,14 @@ Then('I should see the issue number in the header', async ({ page, seededProject
   await expect(page.getByText(`#${number}`).first()).toBeVisible();
 });
 
-When('I update the issue description to {string}', async ({ githubAPI, seededProjectIssue }, newDescription: string) => {
-  await githubAPI.updateIssue(env.github.testRepo, seededProjectIssue.number, {
-    body: newDescription,
-  });
-});
+When(
+  'I update the issue description to {string}',
+  async ({ githubAPI, seededProjectIssue }, newDescription: string) => {
+    await githubAPI.updateIssue(env.github.testRepo, seededProjectIssue.number, {
+      body: newDescription,
+    });
+  },
+);
 
 Then('I should see {string} in the issue body', async ({ page }, expectedText: string) => {
   const bodyViewer = page.getByTestId('issue-body-viewer');

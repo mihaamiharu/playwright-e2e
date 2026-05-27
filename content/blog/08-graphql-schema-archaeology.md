@@ -15,13 +15,13 @@
 
 After completing the UI scenarios in Phases 1–4, Phase 5 of our test plan tackled the backend-heavy domains — the features that require programmatic data manipulation before any UI verification makes sense:
 
-| ID | Scenario | GraphQL Dependency |
-|----|----------|-------------------|
-| ARC-01/02 | Archive and restore items | `archiveProjectV2Item`, `unarchiveProjectV2Item` |
-| DRFT-01/02 | Draft item creation and conversion | `addProjectV2DraftIssue`, `convertProjectV2DraftIssueItemToIssue` |
-| FLD-01/02 | Set and filter by custom field values | Generalized `updateProjectV2ItemFieldValue` |
-| TDATE-01 | Date field via API | Same `updateProjectV2ItemFieldValue` with Date value type |
-| ITER-01 | Iteration field setup and value assignment | `createProjectV2Field` with `ITERATION` data type |
+| ID         | Scenario                                   | GraphQL Dependency                                                |
+| ---------- | ------------------------------------------ | ----------------------------------------------------------------- |
+| ARC-01/02  | Archive and restore items                  | `archiveProjectV2Item`, `unarchiveProjectV2Item`                  |
+| DRFT-01/02 | Draft item creation and conversion         | `addProjectV2DraftIssue`, `convertProjectV2DraftIssueItemToIssue` |
+| FLD-01/02  | Set and filter by custom field values      | Generalized `updateProjectV2ItemFieldValue`                       |
+| TDATE-01   | Date field via API                         | Same `updateProjectV2ItemFieldValue` with Date value type         |
+| ITER-01    | Iteration field setup and value assignment | `createProjectV2Field` with `ITERATION` data type                 |
 
 GitHub's [official Projects V2 API guide](https://docs.github.com/en/issues/planning-and-tracking-with-projects/automating-your-project/using-the-api-to-manage-projects) documents the basic CRUD operations: `addProjectV2ItemById`, `updateProjectV2ItemFieldValue`, `deleteProjectV2Item`.
 
@@ -62,7 +62,7 @@ OK — GitHub moved it, renamed it, or never had it. The docs don't list this ex
 
 ### The archaeological dig: querying the schema itself
 
-GraphQL has a built-in introspection system. You can ask the schema *about* the schema:
+GraphQL has a built-in introspection system. You can ask the schema _about_ the schema:
 
 ```graphql
 {
@@ -104,7 +104,10 @@ The mutation name is only half the story. We need to know what arguments it acce
   __type(name: "ConvertProjectV2DraftIssueItemToIssueInput") {
     inputFields {
       name
-      type { name kind }
+      type {
+        name
+        kind
+      }
     }
   }
 }
@@ -160,7 +163,7 @@ The response:
 Error: ProjectV2FieldDataType isn't a defined input type (on $dataType)
 ```
 
-`ProjectV2FieldDataType` doesn't exist as a variable type. But the enum values (TEXT, NUMBER, ITERATION, etc.) clearly do — they're referenced throughout the docs. The *type name itself* is wrong.
+`ProjectV2FieldDataType` doesn't exist as a variable type. But the enum values (TEXT, NUMBER, ITERATION, etc.) clearly do — they're referenced throughout the docs. The _type name itself_ is wrong.
 
 ### Dig two: check what the mutation actually accepts
 
@@ -169,7 +172,13 @@ Error: ProjectV2FieldDataType isn't a defined input type (on $dataType)
   __type(name: "CreateProjectV2FieldInput") {
     inputFields {
       name
-      type { name kind ofType { name } }
+      type {
+        name
+        kind
+        ofType {
+          name
+        }
+      }
     }
   }
 }
@@ -187,7 +196,9 @@ The correct enum is **`ProjectV2CustomFieldType`**, not `ProjectV2FieldDataType`
 ```graphql
 {
   __type(name: "ProjectV2CustomFieldType") {
-    enumValues { name }
+    enumValues {
+      name
+    }
   }
 }
 ```
@@ -216,7 +227,7 @@ Error: Argument 'iterations' on InputObject
 Expected type [ProjectV2Iteration!]!
 ```
 
-The `createProjectV2Field` mutation has an optional field called `iterationConfiguration` — which, if you include it at all, is an input object that *itself* has required fields. The standard docs show the top-level mutation signature. They don't show the nested types.
+The `createProjectV2Field` mutation has an optional field called `iterationConfiguration` — which, if you include it at all, is an input object that _itself_ has required fields. The standard docs show the top-level mutation signature. They don't show the nested types.
 
 ### The full dig chain
 
@@ -227,7 +238,13 @@ We traced the requirement chain through three introspection queries:
 ```graphql
 {
   __type(name: "ProjectV2IterationFieldConfigurationInput") {
-    inputFields { name type { name kind } }
+    inputFields {
+      name
+      type {
+        name
+        kind
+      }
+    }
   }
 }
 ```
@@ -247,7 +264,13 @@ All three are required. The `iterations` field takes an array of `ProjectV2Itera
 ```graphql
 {
   __type(name: "ProjectV2Iteration") {
-    inputFields { name type { name kind } }
+    inputFields {
+      name
+      type {
+        name
+        kind
+      }
+    }
   }
 }
 ```
@@ -282,22 +305,27 @@ Selections can't be made directly on unions
 ### The working mutation
 
 ```graphql
-mutation($projectId: ID!) {
-  createProjectV2Field(input: {
-    projectId: $projectId
-    name: "Iteration"
-    dataType: ITERATION
-    iterationConfiguration: {
-      startDate: "2026-06-01"
-      duration: 14
-      iterations: [
-        { title: "Sprint 1", duration: 14, startDate: "2026-06-01" }
-        { title: "Sprint 2", duration: 14, startDate: "2026-06-15" }
-      ]
+mutation ($projectId: ID!) {
+  createProjectV2Field(
+    input: {
+      projectId: $projectId
+      name: "Iteration"
+      dataType: ITERATION
+      iterationConfiguration: {
+        startDate: "2026-06-01"
+        duration: 14
+        iterations: [
+          { title: "Sprint 1", duration: 14, startDate: "2026-06-01" }
+          { title: "Sprint 2", duration: 14, startDate: "2026-06-15" }
+        ]
+      }
     }
-  }) {
+  ) {
     projectV2Field {
-      ... on ProjectV2IterationField { id name }
+      ... on ProjectV2IterationField {
+        id
+        name
+      }
     }
   }
 }
@@ -338,16 +366,16 @@ curl -s https://api.github.com/graphql -H "Authorization: Bearer $TOKEN" \
 
 ## The key takeaways
 
-| Lesson | Why it matters |
-|--------|---------------|
-| **Mutation names are not guessable** | `convertProjectV2DraftIssueToIssue` vs `convertProjectV2DraftIssueItemToIssue` — one missing word. Always query `__type(name:"Mutation")` to verify the exact name. |
-| **Enum type names change between schema versions** | `ProjectV2FieldDataType` doesn't exist in the current schema — it's `ProjectV2CustomFieldType`. Same values, different name. The introspection `inputFields` → `ofType` chain is the only reliable source. |
-| **Required fields can be nested 3+ levels deep** | `iterationConfiguration` is optional on the mutation, but if you include it, its children (`startDate`, `duration`, `iterations`) are all required. And each element in the `iterations` array has its OWN required fields. The docs show the surface — introspection shows the depth. |
-| **Union response types need inline fragments** | `createProjectV2Field` returns `ProjectV2FieldConfiguration`, which is a union of `ProjectV2Field`, `ProjectV2SingleSelectField`, and `ProjectV2IterationField`. You need `... on ProjectV2IterationField { id }` to extract field-specific data. |
-| **The introspection workflow should be your first move, not your last resort** | For every new GraphQL integration, start with `__type(name:"Mutation")`. Discover names, trace types, and build the query bottom-up. Trial-and-error against the endpoint is slower than a 30-second introspection query. |
+| Lesson                                                                         | Why it matters                                                                                                                                                                                                                                                                         |
+| ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Mutation names are not guessable**                                           | `convertProjectV2DraftIssueToIssue` vs `convertProjectV2DraftIssueItemToIssue` — one missing word. Always query `__type(name:"Mutation")` to verify the exact name.                                                                                                                    |
+| **Enum type names change between schema versions**                             | `ProjectV2FieldDataType` doesn't exist in the current schema — it's `ProjectV2CustomFieldType`. Same values, different name. The introspection `inputFields` → `ofType` chain is the only reliable source.                                                                             |
+| **Required fields can be nested 3+ levels deep**                               | `iterationConfiguration` is optional on the mutation, but if you include it, its children (`startDate`, `duration`, `iterations`) are all required. And each element in the `iterations` array has its OWN required fields. The docs show the surface — introspection shows the depth. |
+| **Union response types need inline fragments**                                 | `createProjectV2Field` returns `ProjectV2FieldConfiguration`, which is a union of `ProjectV2Field`, `ProjectV2SingleSelectField`, and `ProjectV2IterationField`. You need `... on ProjectV2IterationField { id }` to extract field-specific data.                                      |
+| **The introspection workflow should be your first move, not your last resort** | For every new GraphQL integration, start with `__type(name:"Mutation")`. Discover names, trace types, and build the query bottom-up. Trial-and-error against the endpoint is slower than a 30-second introspection query.                                                              |
 
 ---
 
 Phase 5 shipped 13 scenarios across 7 new domains, backed by 5 new GraphQL operations and 1 expanded REST endpoint. The API layer grew from 7 methods to 12. Every method followed the same pattern: find the mutations → trace the inputs → chain the nested types → ship.
 
-*Next up: [Part 9](/blog/09-scaling-playwright-cli-discovery.md) — Scaling playwright-cli to multi-step UI flows (Saved Views).*
+_Next up: [Part 9](/blog/09-scaling-playwright-cli-discovery.md) — Scaling playwright-cli to multi-step UI flows (Saved Views)._

@@ -39,7 +39,8 @@ When('I submit the form without entering credentials', async ({ loginPage }) => 
 
 // ── Then ───────────────────────────────────────────────
 
-Then('I should be redirected to the dashboard', async ({ page }) => {
+Then('I should be redirected to the dashboard', async ({ loginPage }) => {
+  const page = loginPage.page;
   // GitHub redirects to dashboard or a 2FA page after login
   await expect(page).toHaveURL(/github\.com/);
 
@@ -66,8 +67,8 @@ Then('I should see an error message {string}', async ({ loginPage }, expectedMes
   await expect(loginPage.errorMessage).toContainText(expectedMessage);
 });
 
-Then('the form should not submit', async ({ page }) => {
+Then('the form should not submit', async ({ loginPage }) => {
   // Browser HTML5 validation intercepts empty required fields.
   // The page URL stays on /login — the form was never sent to the server.
-  await expect(page).toHaveURL(/login/);
+  await expect(loginPage.page).toHaveURL(/login/);
 });

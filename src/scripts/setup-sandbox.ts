@@ -57,9 +57,15 @@ async function main() {
 
   // 1. Get project ID
   const projData = await graphql<{ user: { projectV2: { id: string } | null } }>(
-    `query($owner: String!, $projectNumber: Int!) {
-      user(login: $owner) { projectV2(number: $projectNumber) { id } }
-    }`,
+    `
+      query ($owner: String!, $projectNumber: Int!) {
+        user(login: $owner) {
+          projectV2(number: $projectNumber) {
+            id
+          }
+        }
+      }
+    `,
     { owner: testRepoOwner, projectNumber: sandboxProjectNumber },
   );
 
@@ -72,20 +78,35 @@ async function main() {
 
   // 2. Get existing fields
   const fieldsData = await graphql<{ node: { fields: { nodes: FieldNode[] } } }>(
-    `query($projectId: ID!) {
-      node(id: $projectId) {
-        ... on ProjectV2 {
-          fields(first: 20) {
-            nodes {
-              __typename
-              ... on ProjectV2SingleSelectField { id name options { id name } }
-              ... on ProjectV2Field { id name }
-              ... on ProjectV2IterationField { id name }
+    `
+      query ($projectId: ID!) {
+        node(id: $projectId) {
+          ... on ProjectV2 {
+            fields(first: 20) {
+              nodes {
+                __typename
+                ... on ProjectV2SingleSelectField {
+                  id
+                  name
+                  options {
+                    id
+                    name
+                  }
+                }
+                ... on ProjectV2Field {
+                  id
+                  name
+                }
+                ... on ProjectV2IterationField {
+                  id
+                  name
+                }
+              }
             }
           }
         }
       }
-    }`,
+    `,
     { projectId },
   );
 
@@ -133,13 +154,22 @@ async function main() {
         console.log(`  ✅ Created — ID: ${result.createProjectV2Field.projectV2Field.id}`);
       } else {
         const result = await graphql<{ createProjectV2Field: { projectV2Field: { id: string } } }>(
-          `mutation($projectId: ID!, $name: String!, $dataType: ProjectV2CustomFieldType!) {
-            createProjectV2Field(input: {
-              projectId: $projectId
-              name: $name
-              dataType: $dataType
-            }) { projectV2Field { ... on ProjectV2Field { id } ... on ProjectV2SingleSelectField { id } } }
-          }`,
+          `
+            mutation ($projectId: ID!, $name: String!, $dataType: ProjectV2CustomFieldType!) {
+              createProjectV2Field(
+                input: { projectId: $projectId, name: $name, dataType: $dataType }
+              ) {
+                projectV2Field {
+                  ... on ProjectV2Field {
+                    id
+                  }
+                  ... on ProjectV2SingleSelectField {
+                    id
+                  }
+                }
+              }
+            }
+          `,
           { projectId, name: required.name, dataType: required.type },
         );
         console.log(`  ✅ Created — ID: ${result.createProjectV2Field.projectV2Field.id}`);
@@ -151,20 +181,30 @@ async function main() {
 
   // 4. Check workflows
   console.log(`\n📋 Checking workflows...`);
-  const wfData = await graphql<{ node: { workflows: { nodes: Array<{ id: string; name: string; enabled: boolean }> } } }>(
-    `query($projectId: ID!) {
-      node(id: $projectId) {
-        ... on ProjectV2 {
-          workflows(first: 20) {
-            nodes { id name enabled }
+  const wfData = await graphql<{
+    node: { workflows: { nodes: Array<{ id: string; name: string; enabled: boolean }> } };
+  }>(
+    `
+      query ($projectId: ID!) {
+        node(id: $projectId) {
+          ... on ProjectV2 {
+            workflows(first: 20) {
+              nodes {
+                id
+                name
+                enabled
+              }
+            }
           }
         }
       }
-    }`,
+    `,
     { projectId },
   );
   for (const wf of wfData.node?.workflows?.nodes || []) {
-    console.log(`  ${wf.enabled ? '✅' : '⏸️'} "${wf.name}" — ${wf.enabled ? 'enabled' : 'disabled'}`);
+    console.log(
+      `  ${wf.enabled ? '✅' : '⏸️'} "${wf.name}" — ${wf.enabled ? 'enabled' : 'disabled'}`,
+    );
   }
 
   console.log(`\n✅ Sandbox setup complete\n`);

@@ -46,6 +46,9 @@ export type ProjectFixtures = {
 
 /** Throw early if sandbox config is missing. */
 function requireSandbox() {
+  if (env.testMode === 'read-only') {
+    test.skip(true, 'Skipping sandbox-dependent test in read-only mode');
+  }
   if (!env.hasSandboxProject) {
     throw new Error(
       'Project fixtures require GITHUB_API_TOKEN, GITHUB_TEST_REPO, and GITHUB_PROJECT_SANDBOX in .env',
