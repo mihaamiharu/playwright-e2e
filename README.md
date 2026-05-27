@@ -157,6 +157,8 @@ This repository is part of a QA engineering blog series:
 5. **[Building E2E Label Tests: From Gherkin to Green](./content/blog/05-building-label-tests-with-ui-discovery.md)** — Discovering GitHub's label picker UI with playwright-cli, auth refactor, and 4 bugs caught in implementation
 6. **[Assignees & Milestones: The Sidebar Pattern Pays Off](./content/blog/06-assignees-milestones.md)** — Reusing the dialog pattern across metadata fields, 5 scenarios in one session
 7. **[When the DOM Fights Back: 4 Real-World E2E Gotchas from GitHub Projects](./content/blog/07-real-world-e2e-gotchas.md)** — Substring matching, filter bar limitations, backdrop overlays, and parallel BDD pitfalls
+8. **[GraphQL Schema Archaeology: Finding the Right Mutation](./content/blog/08-graphql-schema-archaeology.md)** — Introspecting GitHub's GraphQL schema to discover undocumented mutations, nested input types, and union response handling
+9. **[From Single Click to Full Workflow: Scaling playwright-cli](./content/blog/09-scaling-playwright-cli-discovery.md)** — Multi-step UI flow discovery for saved views: creating views, applying filters, renaming, and verifying persistence
 
 ## 🛠️ Tech Stack
 
@@ -182,6 +184,7 @@ This repository is part of a QA engineering blog series:
 - [x] Labels & metadata (LBL-01–04)
 - [x] Assignees & milestones (ASN-01–03, MIL-01–02)
 - [x] Table views, comments, bulk ops & search (TBL-01–03, CMT-01–02, BULK-01, SRCH-01)
+- [x] Custom fields, milestones, draft items, archive, date fields, saved views, ranking, auto-workflows (Phase 5 — 36/37 automated)
 - [ ] GitHub Actions CI/CD pipeline
 - [ ] Visual regression tests
 - [ ] Accessibility checks (WCAG)
