@@ -186,8 +186,8 @@ This repository is part of a QA engineering blog series:
 - [x] Table views, comments, bulk ops & search (TBL-01–03, CMT-01–02, BULK-01, SRCH-01)
 - [x] Custom fields, milestones, draft items, archive, date fields, saved views, ranking, auto-workflows (Phase 5 — 37/37 automated)
 - [ ] GitHub Actions CI/CD pipeline
-- [ ] Visual regression tests
-- [ ] Accessibility checks (WCAG)
+- [x] Visual regression tests
+- [x] Accessibility checks (WCAG)
 - [ ] Multi-browser (firefox, webkit)
 
 ## 🤝 Contributing

@@ -1,19 +1,16 @@
-name: E2E Full Suite
+name: E2E Visual Regression
 
 on:
-  schedule:
-    # 8 AM Indonesia Western Time (WIB) = 1 AM UTC every Sunday
-    - cron: '0 1 * * 0'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  e2e:
-    name: Run E2E Tests
+  visual:
+    name: Visual Regression
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
 
     steps:
       - name: Checkout repository
@@ -31,7 +28,7 @@ jobs:
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
-      - name: Run Playwright tests
+      - name: Run visual regression tests
         env:
           GITHUB_USERNAME: ${{ secrets.GITHUB_USERNAME }}
           GITHUB_PASSWORD: ${{ secrets.GITHUB_PASSWORD }}
@@ -45,49 +42,17 @@ jobs:
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           BASE_URL: https://github.com
           TEST_MODE: full
-        run: npm run bddgen && npx playwright test --config=playwright.bdd.config.ts --grep-invert @visual
-
-      - name: Restore Allure History Cache
-        uses: actions/cache/restore@v4
-        with:
-          path: reports/allure/history
-          key: allure-history-${{ github.ref_name }}-${{ github.run_id }}
-          restore-keys: |
-            allure-history-${{ github.ref_name }}-
-            allure-history-
-
-      - name: Copy Allure History to Results
-        if: always()
-        run: |
-          if [ -d "reports/allure/history" ]; then
-            mkdir -p reports/allure/results/history
-            cp -r reports/allure/history/* reports/allure/results/history/
-          fi
+        run: npm run bddgen && npx playwright test --config=playwright.bdd.config.ts --grep @visual
 
       - name: Generate Allure Report
         if: always()
         run: npx allure generate reports/allure/results --clean -o reports/allure/report || true
 
-      - name: Update Allure History for Cache
-        if: always()
-        run: |
-          if [ -d "reports/allure/report/history" ]; then
-            mkdir -p reports/allure/history
-            cp -r reports/allure/report/history/* reports/allure/history/
-          fi
-
-      - name: Save Allure History Cache
-        if: always()
-        uses: actions/cache/save@v4
-        with:
-          path: reports/allure/history
-          key: allure-history-${{ github.ref_name }}-${{ github.run_id }}
-
       - name: Upload HTML Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
+          name: visual-html-report
           path: reports/playwright/
           retention-days: 7
 
@@ -95,14 +60,24 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: allure-report
+          name: visual-allure-report
           path: reports/allure/report/
+          retention-days: 7
+
+      - name: Upload Visual Diffs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-diffs
+          path: |
+            reports/artifacts/**/*-actual.png
+            reports/artifacts/**/*-diff.png
           retention-days: 7
 
       - name: Upload Test Results (Traces/Videos)
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results
+          name: visual-test-results
           path: reports/artifacts/
           retention-days: 7

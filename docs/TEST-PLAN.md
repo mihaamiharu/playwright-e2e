@@ -244,6 +244,30 @@ Find issues within the project scope.
 
 ---
 
+### 17. Visual Regression
+
+Element-level screenshot comparison against committed baselines. Tagged `@visual` — excluded from CI, run locally.
+
+| ID     | Scenario                                                          | Priority | Type  | Status |
+| ------ | ----------------------------------------------------------------- | -------- | ----- | ------ |
+| VIS-01 | Board kanban columns match baseline after navigating to board     | P2       | E2E   | ✅     |
+| VIS-02 | Issue detail page header matches baseline after navigating        | P2       | E2E   | ✅     |
+| VIS-03 | Table view grid matches baseline after switching to table layout  | P2       | E2E   | ✅     |
+
+---
+
+### 18. Accessibility Checks
+
+WCAG A/AA compliance via `@axe-core/playwright`. Fails on `critical` + `serious` violations; warns on `moderate` + `minor`. Full results attached to Allure report.
+
+| ID      | Scenario                                                      | Priority | Type  | Status |
+| ------- | ------------------------------------------------------------- | -------- | ----- | ------ |
+| A11Y-01 | Board kanban view has no critical WCAG violations             | P2       | E2E   | ✅     |
+| A11Y-02 | Issue detail page has no critical WCAG violations             | P2       | E2E   | ✅     |
+| A11Y-03 | Table layout view has no critical WCAG violations             | P2       | E2E   | ✅     |
+
+---
+
 ## Coverage Summary
 
 | Area              | Scenarios | P0    | P1     | P2     | Done   |
@@ -264,9 +288,11 @@ Find issues within the project scope.
 | Ranking           | 1         | 0     | 0      | 1      | 1      |
 | Auto-Workflows    | 1         | 0     | 0      | 1      | 1      |
 | In-Project Search | 1         | 0     | 1      | 0      | 1      |
-| **Total**         | **37**    | **2** | **21** | **14** | **37** |
+| Visual Regression | 3         | 0     | 0      | 3      | 3      |
+| Accessibility     | 3         | 0     | 0      | 3      | 3      |
+| **Total**         | **43**    | **2** | **21** | **20** | **43** |
 
-**Full lifecycle covered:** Create → Label → Assign → Estimate (milestone/iteration) → Prioritize (rank) → Track (board) → Collaborate (comments) → Report (views/table) → Search → Bulk update → Complete (archive/auto-workflow).
+**Full lifecycle covered:** Create → Label → Assign → Estimate (milestone/iteration) → Prioritize (rank) → Track (board) → Collaborate (comments) → Report (views/table) → Search → Bulk update → Complete (archive/auto-workflow) → Verify (visual + a11y).
 
 ---
 
@@ -302,6 +328,7 @@ GITHUB_PROJECT_SANDBOX=e2e-sandbox
 4. **Phase 4 — Views & Collaboration ✅:** TBL-01/02/03, CMT-01/02, BULK-01, SRCH-01 — table mode, comments, bulk ops, search.
 5. **Phase 5 — Advanced ✅:** FLD-01/02, DRFT-01/02, ARC-01/02, TDATE-01, ITER-01, VIEW-01/02, RANK-01, MIL-03, WFLOW-01 — P2s and edge cases. All 37 scenarios automated.
 6. **Phase 6 — CI:** GitHub Actions for read-only + authenticated suite on schedule.
+7. **Phase 7 — Visual + A11y ✅:** Visual regression (VIS-01/02/03) with `toHaveScreenshot()` and accessibility checks (A11Y-01/02/03) via `@axe-core/playwright`.
 
 ---
 
