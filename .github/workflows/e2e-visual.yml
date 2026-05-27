@@ -30,14 +30,14 @@ jobs:
 
       - name: Run visual regression tests
         env:
-          GITHUB_USERNAME: ${{ secrets.GITHUB_USERNAME }}
-          GITHUB_PASSWORD: ${{ secrets.GITHUB_PASSWORD }}
-          GITHUB_API_TOKEN: ${{ secrets.GITHUB_API_TOKEN }}
-          GITHUB_TEST_REPO: ${{ secrets.GITHUB_TEST_REPO }}
-          GITHUB_TEST_REPO_OWNER: ${{ secrets.GITHUB_TEST_REPO_OWNER }}
-          GITHUB_TEST_REPO_NAME: ${{ secrets.GITHUB_TEST_REPO_NAME }}
-          GITHUB_PROJECT_SANDBOX: ${{ secrets.GITHUB_PROJECT_SANDBOX }}
-          GITHUB_PROJECT_SANDBOX_NUMBER: ${{ secrets.GITHUB_PROJECT_SANDBOX_NUMBER }}
+          GH_USERNAME: ${{ secrets.GH_USERNAME }}
+          GH_PASSWORD: ${{ secrets.GH_PASSWORD }}
+          GH_API_TOKEN: ${{ secrets.GH_API_TOKEN }}
+          GH_TEST_REPO: ${{ secrets.GH_TEST_REPO }}
+          GH_TEST_REPO_OWNER: ${{ secrets.GH_TEST_REPO_OWNER }}
+          GH_TEST_REPO_NAME: ${{ secrets.GH_TEST_REPO_NAME }}
+          GH_PROJECT_SANDBOX: ${{ secrets.GH_PROJECT_SANDBOX }}
+          GH_PROJECT_SANDBOX_NUMBER: ${{ secrets.GH_PROJECT_SANDBOX_NUMBER }}
           GMAIL_ADDRESS: ${{ secrets.GMAIL_ADDRESS }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           BASE_URL: https://github.com
