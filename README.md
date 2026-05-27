@@ -14,6 +14,11 @@ This repo is both a **reference architecture** and a **QA blog series**. Every p
 - **Issue CRUD** — create, update, close, reopen issues via API + UI verification
 - **Board Workflow (Kanban)** — move items between columns, backward moves, drag-and-drop
 - **Labels & Metadata** — add/remove labels via UI, multi-label, board filtering
+- **Assignees & Milestones** — assign/unassign users, create milestones, track progress
+- **Table & Views** — switch layouts, column sorting, table filtering
+- **Comments** — add/edit comments via API, verify in timeline
+- **Bulk Operations** — batch status updates via API, verify in UI
+- **In-Project Search** — keyword search through filter bar
 - **Page Object Model** with role-based locators — resilient against DOM changes on 3rd-party sites
 - **BDD with Gherkin** via `playwright-bdd` — executable specs for business-readable test flows
 - **Data lifecycle** — auto-seed before tests, guaranteed auto-cleanup after (even on failure)
@@ -95,13 +100,25 @@ playwright-e2e/
 │       ├── login.feature
 │       ├── issue-crud.feature
 │       ├── board-workflow.feature
-│       └── labels.feature
+│       ├── labels.feature
+│       ├── assignees.feature
+│       ├── milestones.feature
+│       ├── table-views.feature
+│       ├── comments.feature
+│       ├── bulk-operations.feature
+│       └── search.feature
 ├── steps/                   # Step definitions (BDD)
 │   └── github/
 │       ├── login.steps.ts
 │       ├── issue-crud.steps.ts
 │       ├── board-workflow.steps.ts
-│       └── labels.steps.ts
+│       ├── labels.steps.ts
+│       ├── assignees.steps.ts
+│       ├── milestones.steps.ts
+│       ├── table-views.steps.ts
+│       ├── comments.steps.ts
+│       ├── bulk-operations.steps.ts
+│       └── search.steps.ts
 ├── src/
 │   ├── pages/               # Page Object Models
 │   │   └── github/
@@ -126,7 +143,7 @@ playwright-e2e/
 
 ## 📖 Documentation
 
-- **[TEST-PLAN.md](./docs/TEST-PLAN.md)** — Full test strategy: 37 scenarios across Issue CRUD, Labels, Milestones, Kanban, Custom Fields, Bulk Operations, and Workflows. 12 currently automated.
+- **[TEST-PLAN.md](./docs/TEST-PLAN.md)** — Full test strategy: 37 scenarios across Issue CRUD, Labels, Milestones, Kanban, Custom Fields, Bulk Operations, and Workflows. 24 currently automated.
 - **[ARCHITECTURE.md](./docs/ARCHITECTURE.md)** — Design decisions: why fixtures over BaseTest, why persistent sandbox, data lifecycle guarantees, dependency version policy
 
 ## 📝 Blog Series
@@ -138,6 +155,8 @@ This repository is part of a QA engineering blog series:
 3. **[Fixtures Over BaseTest](./content/fixtures-over-basetest.md)** — Playwright's fixture system vs traditional OOP test patterns
 4. **[Authentication Without the 2FA Nightmare](./content/blog/04-authentication-without-2fa.md)** — Device verification, IMAP polling, and the two-credential pattern
 5. **[Building E2E Label Tests: From Gherkin to Green](./content/blog/05-building-label-tests-with-ui-discovery.md)** — Discovering GitHub's label picker UI with playwright-cli, auth refactor, and 4 bugs caught in implementation
+6. **[Assignees & Milestones: The Sidebar Pattern Pays Off](./content/blog/06-assignees-milestones.md)** — Reusing the dialog pattern across metadata fields, 5 scenarios in one session
+7. **[When the DOM Fights Back: 4 Real-World E2E Gotchas from GitHub Projects](./content/blog/07-real-world-e2e-gotchas.md)** — Substring matching, filter bar limitations, backdrop overlays, and parallel BDD pitfalls
 
 ## 🛠️ Tech Stack
 
@@ -161,7 +180,8 @@ This repository is part of a QA engineering blog series:
 - [x] Issue CRUD lifecycle (ISS-01–04)
 - [x] Board workflow kanban tests (BRD-01–04)
 - [x] Labels & metadata (LBL-01–04)
-- [ ] Assignees, Milestones, Comments, Table views
+- [x] Assignees & milestones (ASN-01–03, MIL-01–02)
+- [x] Table views, comments, bulk ops & search (TBL-01–03, CMT-01–02, BULK-01, SRCH-01)
 - [ ] GitHub Actions CI/CD pipeline
 - [ ] Visual regression tests
 - [ ] Accessibility checks (WCAG)

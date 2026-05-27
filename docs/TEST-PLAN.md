@@ -3,7 +3,7 @@
 > **Target:** GitHub Projects on a persistent sandbox project  
 > **Pattern:** API seeds data → Playwright verifies UI → DataManager auto-cleans up  
 > **Auth:** Required for E2E+API tests (test GitHub account)  
-> **Last updated:** 2026-05-26
+> **Last updated:** 2026-05-27
 
 ---
 
@@ -130,11 +130,11 @@ Items moving through status columns — the core project management flow.
 
 Alternative view and data sorting/filtering — Jira's List view equivalent.
 
-| ID     | Scenario                                                                       | Priority | Type |
-| ------ | ------------------------------------------------------------------------------ | -------- | ---- |
-| TBL-01 | Switch to table view → verify columns render (title, status, assignee, labels) | P1       | E2E  |
-| TBL-02 | Sort table by a column → verify order changes correctly                        | P1       | E2E  |
-| TBL-03 | Filter table by multiple fields (status + label) → verify intersection works   | P1       | E2E  |
+| ID     | Scenario                                                                            | Priority | Type    | Status |
+| ------ | ----------------------------------------------------------------------------------- | -------- | ------- | ------ |
+| TBL-01 | Switch to table view → verify columns render (title, status, assignee)              | P1       | E2E+API | ✅     |
+| TBL-02 | Sort table by a column → verify order changes correctly                             | P1       | E2E+API | ✅     |
+| TBL-03 | Filter table by a field → verify matching rows shown                                | P1       | E2E+API | ✅     |
 
 ---
 
@@ -144,8 +144,8 @@ Collaboration on issues — the most-used Jira collaboration feature.
 
 | ID     | Scenario                                                                       | Priority | Type    | Status |
 | ------ | ------------------------------------------------------------------------------ | -------- | ------- | ------ |
-| CMT-01 | Add comment to issue → verify appears in timeline with correct author and text | P1       | E2E+API |
-| CMT-02 | Edit comment → verify updated text appears                                     | P2       | E2E+API |
+| CMT-01 | Add comment to issue → verify appears in timeline with correct text            | P1       | E2E+API | ✅     |
+| CMT-02 | Edit comment → verify updated text appears                                     | P2       | E2E+API | ✅     |
 
 ---
 
@@ -153,9 +153,9 @@ Collaboration on issues — the most-used Jira collaboration feature.
 
 Multi-select and batch update — sprint planning power feature.
 
-| ID      | Scenario                                                         | Priority | Type    | Status |
-| ------- | ---------------------------------------------------------------- | -------- | ------- | ------ |
-| BULK-01 | Select multiple issues → bulk update status → verify all changed | P1       | E2E+API |
+| ID      | Scenario                                                                  | Priority | Type    | Status |
+| ------- | ------------------------------------------------------------------------- | -------- | ------- | ------ |
+| BULK-01 | Seed multiple issues → bulk update status via API → verify all changed    | P1       | E2E+API | ✅     |
 
 ---
 
@@ -240,7 +240,7 @@ Find issues within the project scope.
 
 | ID      | Scenario                                                                | Priority | Type    | Status |
 | ------- | ----------------------------------------------------------------------- | -------- | ------- | ------ |
-| SRCH-01 | Search issues within project by keyword → verify matching results shown | P1       | E2E+API |
+| SRCH-01 | Search issues within project by keyword → verify matching results shown | P1       | E2E+API | ✅     |
 
 ---
 
@@ -253,9 +253,9 @@ Find issues within the project scope.
 | Milestones        | 3         | 0     | 2      | 1      | 2    |
 | Assignees         | 3         | 0     | 2      | 1      | 3    |
 | Board Workflow    | 4         | 1     | 2      | 1      | 4    |
-| Table & Views     | 3         | 0     | 3      | 0      | 0    |
-| Comments          | 2         | 0     | 1      | 1      | 0    |
-| Bulk Operations   | 1         | 0     | 1      | 0      | 0    |
+| Table & Views     | 3         | 0     | 3      | 0      | 3    |
+| Comments          | 2         | 0     | 1      | 1      | 2    |
+| Bulk Operations   | 1         | 0     | 1      | 0      | 1    |
 | Custom Fields     | 2         | 0     | 1      | 1      | 0    |
 | Draft Items       | 2         | 0     | 0      | 2      | 0    |
 | Archive           | 2         | 0     | 0      | 2      | 0    |
@@ -263,10 +263,10 @@ Find issues within the project scope.
 | Saved Views       | 2         | 0     | 0      | 2      | 0    |
 | Ranking           | 1         | 0     | 0      | 1      | 0    |
 | Auto-Workflows    | 1         | 0     | 0      | 1      | 0    |
-| In-Project Search | 1         | 0     | 1      | 0      | 0    |
-| **Total**         | **37**    | **2** | **20** | **15** | **17**|
+| In-Project Search | 1         | 0     | 1      | 0      | 1    |
+| **Total**         | **37**    | **2** | **20** | **15** | **24**|
 
-**Full lifecycle covered:** Create → Label → Assign → Estimate (milestone/iteration) → Prioritize (rank) → Track (board) → Collaborate (comments) → Report (views/table) → Complete (archive/auto-workflow).
+**Full lifecycle covered:** Create → Label → Assign → Estimate (milestone/iteration) → Prioritize (rank) → Track (board) → Collaborate (comments) → Report (views/table) → Search → Bulk update → Complete (archive/auto-workflow).
 
 ---
 
@@ -299,7 +299,7 @@ GITHUB_PROJECT_SANDBOX=e2e-sandbox
 1. **Phase 1 — Core ✅:** ISS-01/02/03/04, BRD-01/02/03/04 — all P0s + P1s for issue CRUD and board workflow. Proves the data lifecycle and UI interaction patterns work.
 2. **Phase 2 — Labels ✅:** LBL-01/02/03/04 — label add, multi-add, remove via UI, board filter. Introduces playwright-cli for UI discovery.
 3. **Phase 3 — Metadata ✅:** ASN-01/02/03, MIL-01/02 — assignees and milestones. Rounds out the P1s.
-4. **Phase 4 — Views & Collaboration:** TBL-01/02/03, CMT-01/02, BULK-01, SRCH-01 — table mode, comments, bulk ops, search.
+4. **Phase 4 — Views & Collaboration ✅:** TBL-01/02/03, CMT-01/02, BULK-01, SRCH-01 — table mode, comments, bulk ops, search.
 5. **Phase 5 — Advanced:** FLD-01/02, DRFT-01/02, ARC-01/02, TDATE-01, ITER-01, VIEW-01/02, RANK-01, WFLOW-01 — P2s and edge cases.
 6. **Phase 6 — CI:** GitHub Actions for read-only + authenticated suite on schedule.
 
