@@ -1,5 +1,6 @@
 import { test as base } from 'playwright-bdd';
 import { DataManager } from '../utils/data-manager';
+import { ScenarioContext } from '../utils/scenario-context';
 import { GitHubAPI, type GitHubIssue } from '../utils/api-client';
 import { GitHubProjectsAPI } from '../utils/github-projects-api';
 import { env } from '../config/env.config';
@@ -17,6 +18,9 @@ import { ensureAuthCookies } from '../utils/github-auth';
 export type ProjectFixtures = {
   /** Guaranteed cleanup queue — all enqueued tasks run after test, even on failure */
   dataManager: DataManager;
+
+  /** Per-test key-value store for sharing state between steps */
+  scenarioContext: ScenarioContext;
 
   /** GitHub REST API client (authenticated with token) */
   githubAPI: GitHubAPI;
@@ -72,6 +76,11 @@ export const test = base.extend<ProjectFixtures>({
     await use(dm);
     // Runs AFTER the test — always, even if test throws
     await dm.cleanupAll();
+  },
+
+  // eslint-disable-next-line no-empty-pattern
+  scenarioContext: async ({}, use) => {
+    await use(new ScenarioContext());
   },
 
   // ── API Clients ─────────────────────────────────────
