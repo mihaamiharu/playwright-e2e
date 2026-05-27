@@ -100,12 +100,12 @@ the test fails mid-way — preventing test pollution between runs.
 
 All tests in this repository use the BDD (Gherkin) pattern via `playwright-bdd`. There is no `tests/` directory — every scenario lives in `.feature` files with corresponding step definitions:
 
-| Feature File                           | Step File                        | Fixture Used               |
-| -------------------------------------- | -------------------------------- | -------------------------- |
-| `features/github/login.feature`        | `steps/github/login.steps.ts`    | `github.fixture.ts`        |
-| `features/github/issue-crud.feature`   | `steps/github/issue-crud.steps.ts` | `github-project.fixture.ts` |
+| Feature File                             | Step File                              | Fixture Used                |
+| ---------------------------------------- | -------------------------------------- | --------------------------- |
+| `features/github/login.feature`          | `steps/github/login.steps.ts`          | `github.fixture.ts`         |
+| `features/github/issue-crud.feature`     | `steps/github/issue-crud.steps.ts`     | `github-project.fixture.ts` |
 | `features/github/board-workflow.feature` | `steps/github/board-workflow.steps.ts` | `github-project.fixture.ts` |
-| `features/github/labels.feature`       | `steps/github/labels.steps.ts`   | `github-project.fixture.ts` |
+| `features/github/labels.feature`         | `steps/github/labels.steps.ts`         | `github-project.fixture.ts` |
 
 The `data-lifecycle.fixture.ts` exists for pure REST-only API tests (using Playwright's `request` fixture) but is not currently consumed by any feature file.
 

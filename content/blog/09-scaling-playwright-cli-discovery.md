@@ -16,13 +16,13 @@
 
 Phase 5's Saved Views scenarios presented a new kind of challenge. Unlike labels (Part 5 — one dialog, one action) or assignees (Part 6 — same dialog pattern, different field), saved views required a multi-step sequential flow where the state of the page changes at every step:
 
-| Step | Action | Page State After |
-|------|--------|-----------------|
-| 1 | Navigate to kanban view | Board with columns, view tabs, toolbar |
-| 2 | Create a new board view | New tab "View N" appears in the tablist, URL changes to `/views/N` |
-| 3 | Apply a filter (Status = Backlog) | Filter chips appear in the toolbar, URL gains `?filterQuery=status%3ABacklog` |
-| 4 | Rename the view | Tab name changes, "View options for View N" → "View options for {name}" |
-| 5 | Reload and verify persistence | Same URL, same tab name, filter and sort preserved |
+| Step | Action                            | Page State After                                                              |
+| ---- | --------------------------------- | ----------------------------------------------------------------------------- |
+| 1    | Navigate to kanban view           | Board with columns, view tabs, toolbar                                        |
+| 2    | Create a new board view           | New tab "View N" appears in the tablist, URL changes to `/views/N`            |
+| 3    | Apply a filter (Status = Backlog) | Filter chips appear in the toolbar, URL gains `?filterQuery=status%3ABacklog` |
+| 4    | Rename the view                   | Tab name changes, "View options for View N" → "View options for {name}"       |
+| 5    | Reload and verify persistence     | Same URL, same tab name, filter and sort preserved                            |
 
 Part 5 taught us: open the browser with playwright-cli, interact with the page, snapshot the ARIA tree, and document the locators. That works for a single dialog. For a five-step flow, we needed a **discovery session** — a methodical walk-through where each interaction reveals the next set of locators and every state transition is captured.
 
@@ -117,19 +117,19 @@ playwright-cli click "getByRole('option', { name: /Backlog/ })"
 
 The URL changed immediately: `?filterQuery=status%3ABacklog`. Two state transitions occurred:
 
-| Transition | Before | After |
-|-----------|--------|-------|
-| Filter combobox value | Empty | `status:Backlog` |
-| URL query params | `/views/6` | `/views/6?filterQuery=status%3ABacklog` |
-| Toolbar buttons | Just "Filter" | Now includes "Discard" and "Save" buttons |
-| Board content | All columns visible | Only Backlog column with items |
+| Transition            | Before              | After                                     |
+| --------------------- | ------------------- | ----------------------------------------- |
+| Filter combobox value | Empty               | `status:Backlog`                          |
+| URL query params      | `/views/6`          | `/views/6?filterQuery=status%3ABacklog`   |
+| Toolbar buttons       | Just "Filter"       | Now includes "Discard" and "Save" buttons |
+| Board content         | All columns visible | Only Backlog column with items            |
 
 The "Save" and "Discard" buttons appear because changing the filter in a new view triggers an "Unsaved changes" state. Our step definition needed to either:
 
 1. Click "Save" to persist the filter, or
 2. Click "Discard" to revert
 
-In practice, leaving the filter unsaved still preserves it in the URL — GitHub auto-saves view modifications during the session. The "Save" button is only required if you want to persist changes *to the view definition* so they survive after you switch tabs. Since reloading stays on the same view, the auto-saved filter was sufficient.
+In practice, leaving the filter unsaved still preserves it in the URL — GitHub auto-saves view modifications during the session. The "Save" button is only required if you want to persist changes _to the view definition_ so they survive after you switch tabs. Since reloading stays on the same view, the auto-saved filter was sufficient.
 
 But for safety, and to match the actual flow, our step clicks Save after applying:
 
@@ -150,8 +150,7 @@ playwright-cli snapshot --depth=8
 The options menu opened:
 
 ```yaml
-menu "View options for View 6":
-  menuitem "Rename view"
+menu "View options for View 6": menuitem "Rename view"
   menuitem "Move view"
   menuitem "Save changes to new view"
   menuitem "Delete view"
@@ -182,8 +181,10 @@ The rename flow is a standard dialog pattern: `dialog "Rename view"` → `textbo
 await page.getByRole('button', { name: 'Save' }).click();
 
 // ✅ Scoped to the rename dialog
-await page.getByRole('dialog', { name: 'Rename view' })
-  .getByRole('button', { name: 'Save' }).click();
+await page
+  .getByRole('dialog', { name: 'Rename view' })
+  .getByRole('button', { name: 'Save' })
+  .click();
 ```
 
 After renaming, the title changed:
@@ -231,12 +232,12 @@ After reloading, we verified three things:
 3. **Tab state**: `tab "E2E Test View" [selected]` — the active tab persisted
 
 ```typescript
-Then('the current view should show filter {string} with value {string}',
+Then(
+  'the current view should show filter {string} with value {string}',
   async ({ page }, field, value) => {
     await expect(page).toHaveURL(new RegExp(`filterQuery=${field.toLowerCase()}%3A${value}`));
-    await expect(page.getByRole('combobox', { name: 'Filter' }))
-      .toHaveValue(new RegExp(value));
-  }
+    await expect(page.getByRole('combobox', { name: 'Filter' })).toHaveValue(new RegExp(value));
+  },
 );
 ```
 
@@ -340,38 +341,38 @@ Then('the current view tab should be named {string}', async ({ page }, viewName)
 
 ## The locator table
 
-| UI Element | Locator | Notes |
-|-----------|---------|-------|
-| View tablist | `getByRole('tablist')` | Scopes to visible tabs only |
-| Specific view tab | `getByRole('tab', { name: viewName })` | For switching |
-| New view tab | `getByRole('tab', { name: 'New view' })` | Opens a menu, not a page |
-| Board layout option | `getByRole('menuitem', { name: 'Board' })` | Inside New view menu |
-| Table layout option | `getByRole('menuitem', { name: 'Table' })` | Inside New view menu |
-| Open view options | `getByRole('button', { name: /View options for/ })` | Regex matches any view |
-| Rename view option | `getByRole('menuitem', { name: 'Rename view' })` | Inside options menu |
-| Rename dialog | `getByRole('dialog', { name: 'Rename view' })` | For scoping Save button |
-| View name textbox | `getByRole('textbox', { name: 'View name' })` | Inside rename dialog |
-| Filter combobox | `getByRole('combobox', { name: 'Filter' })` | Part 7, Gotcha 1 |
-| Status filter option | `getByRole('option', { name: /Status, Filter/ })` | Filters list |
-| Filter value option | `getByRole('option', { name: new RegExp(value + ', Status') })` | Status value |
-| Selected tab check | `toHaveAttribute('aria-selected', 'true')` | On the tab element |
-| Page title check | `toHaveTitle(new RegExp(viewName))` | First verification of active view |
-| Filter URL check | `toHaveURL(new RegExp(\`filterQuery=\`))` | Verifies filter applied |
-| Delete view option | `getByRole('menuitem', { name: 'Delete view' })` | For cleanup |
-| Delete confirmation | `getByRole('alertdialog', { name: 'Delete view?' })` | Click "Delete" button inside |
+| UI Element           | Locator                                                         | Notes                             |
+| -------------------- | --------------------------------------------------------------- | --------------------------------- |
+| View tablist         | `getByRole('tablist')`                                          | Scopes to visible tabs only       |
+| Specific view tab    | `getByRole('tab', { name: viewName })`                          | For switching                     |
+| New view tab         | `getByRole('tab', { name: 'New view' })`                        | Opens a menu, not a page          |
+| Board layout option  | `getByRole('menuitem', { name: 'Board' })`                      | Inside New view menu              |
+| Table layout option  | `getByRole('menuitem', { name: 'Table' })`                      | Inside New view menu              |
+| Open view options    | `getByRole('button', { name: /View options for/ })`             | Regex matches any view            |
+| Rename view option   | `getByRole('menuitem', { name: 'Rename view' })`                | Inside options menu               |
+| Rename dialog        | `getByRole('dialog', { name: 'Rename view' })`                  | For scoping Save button           |
+| View name textbox    | `getByRole('textbox', { name: 'View name' })`                   | Inside rename dialog              |
+| Filter combobox      | `getByRole('combobox', { name: 'Filter' })`                     | Part 7, Gotcha 1                  |
+| Status filter option | `getByRole('option', { name: /Status, Filter/ })`               | Filters list                      |
+| Filter value option  | `getByRole('option', { name: new RegExp(value + ', Status') })` | Status value                      |
+| Selected tab check   | `toHaveAttribute('aria-selected', 'true')`                      | On the tab element                |
+| Page title check     | `toHaveTitle(new RegExp(viewName))`                             | First verification of active view |
+| Filter URL check     | `toHaveURL(new RegExp(\`filterQuery=\`))`                       | Verifies filter applied           |
+| Delete view option   | `getByRole('menuitem', { name: 'Delete view' })`                | For cleanup                       |
+| Delete confirmation  | `getByRole('alertdialog', { name: 'Delete view?' })`            | Click "Delete" button inside      |
 
 ---
 
 ## Key takeaways
 
-| Lesson | Why it matters |
-|--------|---------------|
-| **Multi-step flows need discovery sessions, not one-shot commands** | A single `snapshot` won't show you the rename dialog, the options menu, or the Unsaved changes state. Walk through the flow step by step, snapshotting after each action. |
-| **Scope tab locators to `tablist`** | Overflow menus duplicate tab elements. `getByRole('tablist').getByRole('tab', { name })` is the difference between passing and a 6-element strict-mode violation. |
-| **Dialog scope matters for button names** | There can be multiple "Save" buttons on the page at once (filter bar + rename dialog). Scope clicks to the dialog: `dialog.getByRole('button', { name: 'Save' })`. |
-| **Timestamp-suffix test data that persists across runs** | Views survive the page session. If your test creates a view with a static name and doesn't delete it, you'll accumulate duplicates until your locators break. Append `${Date.now()}` to every name. |
-| **Verify state transitions at every step** | After creating a view, check the URL changed. After applying a filter, check the URL gain parameters. After renaming, check the title changed. Each assertion is a breadcrumb that makes debugging easier when a later step fails. |
-| **Playwright-cli is a research tool, not just a debugger** | The 15-minute discovery session for saved views produced a complete locator table covering all five steps. We never had to open the test runner to find a locator. |
+| Lesson                                                              | Why it matters                                                                                                                                                                                                                     |
+| ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Multi-step flows need discovery sessions, not one-shot commands** | A single `snapshot` won't show you the rename dialog, the options menu, or the Unsaved changes state. Walk through the flow step by step, snapshotting after each action.                                                          |
+| **Scope tab locators to `tablist`**                                 | Overflow menus duplicate tab elements. `getByRole('tablist').getByRole('tab', { name })` is the difference between passing and a 6-element strict-mode violation.                                                                  |
+| **Dialog scope matters for button names**                           | There can be multiple "Save" buttons on the page at once (filter bar + rename dialog). Scope clicks to the dialog: `dialog.getByRole('button', { name: 'Save' })`.                                                                 |
+| **Timestamp-suffix test data that persists across runs**            | Views survive the page session. If your test creates a view with a static name and doesn't delete it, you'll accumulate duplicates until your locators break. Append `${Date.now()}` to every name.                                |
+| **Verify state transitions at every step**                          | After creating a view, check the URL changed. After applying a filter, check the URL gain parameters. After renaming, check the title changed. Each assertion is a breadcrumb that makes debugging easier when a later step fails. |
+| **Playwright-cli is a research tool, not just a debugger**          | The 15-minute discovery session for saved views produced a complete locator table covering all five steps. We never had to open the test runner to find a locator.                                                                 |
 
 ---
 

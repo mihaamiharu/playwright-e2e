@@ -21,9 +21,12 @@ When('I add the label {string} via the UI', async ({ page }, label: string) => {
   await expect(dialog).not.toBeVisible();
 });
 
-When('I add the label {string} via the API', async ({ githubAPI, seededProjectIssue }, label: string) => {
-  await githubAPI.addLabels(env.github.testRepo, seededProjectIssue.number, [label]);
-});
+When(
+  'I add the label {string} via the API',
+  async ({ githubAPI, seededProjectIssue }, label: string) => {
+    await githubAPI.addLabels(env.github.testRepo, seededProjectIssue.number, [label]);
+  },
+);
 
 When('I remove the label {string} via the UI', async ({ page }, label: string) => {
   const editButton = page.getByRole('button', { name: 'Edit Labels' });
@@ -49,26 +52,29 @@ Then('I should not see the {string} label on the issue', async ({ page }, label:
   await expect(sidebar.getByRole('link', { name: new RegExp(label) })).not.toBeVisible();
 });
 
-When('I seed a second unlabeled issue on the board', async ({ githubAPI, projectsAPI, sandbox, dataManager }) => {
-  const uniqueId = `unlabeled-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-  const title = `e2e-${uniqueId}`;
+When(
+  'I seed a second unlabeled issue on the board',
+  async ({ githubAPI, projectsAPI, sandbox, dataManager }) => {
+    const uniqueId = `unlabeled-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    const title = `e2e-${uniqueId}`;
 
-  const issue = await githubAPI.createIssue(env.github.testRepo, {
-    title,
-    body: `Second issue for label filter test. Run: ${uniqueId}`,
-  });
+    const issue = await githubAPI.createIssue(env.github.testRepo, {
+      title,
+      body: `Second issue for label filter test. Run: ${uniqueId}`,
+    });
 
-  const projectItemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
+    const projectItemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
 
-  dataManager.enqueue(async () => {
-    await projectsAPI.removeItemFromProject(sandbox.projectId, projectItemId);
-  });
-  dataManager.enqueue(async () => {
-    await githubAPI.closeIssue(env.github.testRepo, issue.number);
-  });
+    dataManager.enqueue(async () => {
+      await projectsAPI.removeItemFromProject(sandbox.projectId, projectItemId);
+    });
+    dataManager.enqueue(async () => {
+      await githubAPI.closeIssue(env.github.testRepo, issue.number);
+    });
 
-  secondUnlabeledIssueTitle = title;
-});
+    secondUnlabeledIssueTitle = title;
+  },
+);
 
 When('I filter the board by the label {string}', async ({ page }, label: string) => {
   await page.getByRole('combobox', { name: 'Filter' }).click();
@@ -83,7 +89,10 @@ When('I filter the board by the label {string}', async ({ page }, label: string)
 
   await page.getByRole('button', { name: 'Save' }).click();
   await page.waitForURL(/filterQuery=label/);
-  await page.getByRole('heading', { level: 2 }).first().waitFor({ state: 'visible', timeout: 15000 });
+  await page
+    .getByRole('heading', { level: 2 })
+    .first()
+    .waitFor({ state: 'visible', timeout: 15000 });
 });
 
 Then('the seeded issue should be visible on the board', async ({ page, seededProjectIssue }) => {

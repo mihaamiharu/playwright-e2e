@@ -19,11 +19,11 @@ GitHub had flagged my headless Chromium session as an unrecognized device. A 6-d
 
 This is the authentication problem every real-website E2E test suite eventually hits:
 
-| Challenge | Why it matters |
-|-----------|----------------|
-| **Device verification** | GitHub treats every headless browser as a new device |
-| **2FA / 2SV** | Accounts with enhanced security can't do simple password login |
-| **Session expiry** | Storage state eventually expires — usually at 3 AM during a CI run |
+| Challenge                | Why it matters                                                        |
+| ------------------------ | --------------------------------------------------------------------- |
+| **Device verification**  | GitHub treats every headless browser as a new device                  |
+| **2FA / 2SV**            | Accounts with enhanced security can't do simple password login        |
+| **Session expiry**       | Storage state eventually expires — usually at 3 AM during a CI run    |
 | **Test account hygiene** | You need a dedicated account, but giving it full permissions is risky |
 
 This article walks through the solution I built: a **two-credential authentication pattern** that handles device verification automatically, caches sessions across test runs, and requires zero manual intervention.
@@ -34,10 +34,10 @@ This article walks through the solution I built: a **two-credential authenticati
 
 The core insight is simple: **browser login and API calls serve different purposes, so they use different credentials.**
 
-| Purpose | Credential | Owner |
-|---------|-----------|-------|
-| Browser login (view boards, click buttons) | `GITHUB_USERNAME` + `GITHUB_PASSWORD` | Dedicated test account |
-| API calls (create issues, manage projects) | `GITHUB_API_TOKEN` | Repo owner (full access) |
+| Purpose                                    | Credential                            | Owner                    |
+| ------------------------------------------ | ------------------------------------- | ------------------------ |
+| Browser login (view boards, click buttons) | `GITHUB_USERNAME` + `GITHUB_PASSWORD` | Dedicated test account   |
+| API calls (create issues, manage projects) | `GITHUB_API_TOKEN`                    | Repo owner (full access) |
 
 The test account logs into the browser to verify UI state. The repo owner's API token does the heavy data setup and cleanup. They can be from different GitHub accounts — and in practice, they should be.
 
@@ -172,7 +172,7 @@ async function globalSetup() {
 
   // Handle device verification if triggered
   if (page.url().includes('/sessions/verified-device')) {
-    const code = await fetchVerificationCode();  // reads Gmail via IMAP
+    const code = await fetchVerificationCode(); // reads Gmail via IMAP
     await page.getByLabel('Device Verification Code').fill(code);
     await page.getByRole('button', { name: 'Verify' }).click({ noWaitAfter: true });
     await page.waitForURL('https://github.com/');
@@ -217,19 +217,14 @@ async function fetchVerificationCode(): Promise<string> {
 
       // Check the most recent email
       const latest = uids[uids.length - 1];
-      const msg = await client.fetchOne(
-        latest,
-        { source: { maxLength: 100_000 } },
-        { uid: true },
-      );
+      const msg = await client.fetchOne(latest, { source: { maxLength: 100_000 } }, { uid: true });
 
       if (!msg?.source) throw new Error('Could not read email');
 
       const src = msg.source.toString();
       // Decode quoted-printable (GitHub uses =XX encoding)
-      const decoded = src.replace(
-        /=([0-9A-F]{2})/g,
-        (_, hex) => String.fromCharCode(parseInt(hex, 16)),
+      const decoded = src.replace(/=([0-9A-F]{2})/g, (_, hex) =>
+        String.fromCharCode(parseInt(hex, 16)),
       );
 
       const codeMatch = decoded.match(/Verification code:\s*(\d{6})/);
@@ -287,10 +282,10 @@ GitHub's login page has both a submit button and a passkey button with the same 
 
 ```typescript
 // ❌ Strict mode violation — resolves to 2 elements
-page.getByRole('button', { name: 'Sign in' })
+page.getByRole('button', { name: 'Sign in' });
 
 // ✅ Matches only the submit input
-page.getByRole('button', { name: 'Sign in', exact: true })
+page.getByRole('button', { name: 'Sign in', exact: true });
 ```
 
 Always use `exact: true` on GitHub's login page.
@@ -305,21 +300,21 @@ When entering the verification code and clicking Verify, GitHub immediately redi
 
 ```typescript
 await page.getByRole('button', { name: 'Verify' }).click({ noWaitAfter: true });
-await page.waitForURL('https://github.com/');  // handle navigation explicitly
+await page.waitForURL('https://github.com/'); // handle navigation explicitly
 ```
 
 ---
 
 ## Security checklist
 
-| Rule | Implementation |
-|------|---------------|
-| Never commit credentials | `.env` in `.gitignore` |
-| Never hardcode in source | All creds via `process.env` |
-| Never store in config files | `backend.auth.cmd` reads from `.env` at runtime |
-| Use a dedicated test account | Zero blast radius if credentials leak |
-| Split browser + API credentials | Different accounts, different purposes |
-| .gitignore auth state | `auth/*.json` is gitignored (contains session cookies) |
+| Rule                            | Implementation                                         |
+| ------------------------------- | ------------------------------------------------------ |
+| Never commit credentials        | `.env` in `.gitignore`                                 |
+| Never hardcode in source        | All creds via `process.env`                            |
+| Never store in config files     | `backend.auth.cmd` reads from `.env` at runtime        |
+| Use a dedicated test account    | Zero blast radius if credentials leak                  |
+| Split browser + API credentials | Different accounts, different purposes                 |
+| .gitignore auth state           | `auth/*.json` is gitignored (contains session cookies) |
 
 ---
 
@@ -342,4 +337,4 @@ Authentication is the prerequisite. Now that we can reliably log in and stay log
 
 ---
 
-*Part 4 of the Playwright E2E series. [Browse the full repo →](https://github.com/mihaamiharu/playwright-e2e)*
+_Part 4 of the Playwright E2E series. [Browse the full repo →](https://github.com/mihaamiharu/playwright-e2e)_

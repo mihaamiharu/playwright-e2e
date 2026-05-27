@@ -14,7 +14,6 @@
     "outDir": "./dist",
     "rootDir": ".",
     "baseUrl": ".",
-    "ignoreDeprecations": "6.0",
     "paths": {
       "@pages/*": ["src/pages/*"],
       "@components/*": ["src/components/*"],
@@ -24,10 +23,6 @@
       "@config/*": ["src/config/*"]
     }
   },
-  "include": [
-    "src/**/*.ts",
-    "steps/**/*.ts",
-    "playwright.bdd.config.ts"
-  ],
+  "include": ["src/**/*.ts", "steps/**/*.ts", "playwright.bdd.config.ts"],
   "exclude": ["node_modules", "dist", "test-results"]
 }

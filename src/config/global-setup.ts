@@ -99,9 +99,7 @@ async function fetchVerificationCode(): Promise<string> {
           await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
           continue;
         }
-        throw new Error(
-          'GitHub verification email never arrived — checked 12 times over ~60s',
-        );
+        throw new Error('GitHub verification email never arrived — checked 12 times over ~60s');
       }
 
       const recent = results.slice(-5).reverse();
@@ -110,10 +108,8 @@ async function fetchVerificationCode(): Promise<string> {
         if (!raw) continue;
 
         // Decode quoted-printable encoding (GitHub uses =XX for special chars)
-        const decoded = raw.replace(
-          /=([0-9A-F]{2})/g,
-          (_match: string, hex: string) =>
-            String.fromCharCode(parseInt(hex, 16)),
+        const decoded = raw.replace(/=([0-9A-F]{2})/g, (_match: string, hex: string) =>
+          String.fromCharCode(parseInt(hex, 16)),
         );
 
         const codeMatch = decoded.match(/Verification code:\s*(\d{6})/);
@@ -130,9 +126,7 @@ async function fetchVerificationCode(): Promise<string> {
       }
     }
 
-    throw new Error(
-      'GitHub verification email never arrived — checked 12 times over ~60s',
-    );
+    throw new Error('GitHub verification email never arrived — checked 12 times over ~60s');
   } finally {
     imap!.end();
   }
@@ -173,9 +167,15 @@ async function ensureSandboxFields(): Promise<void> {
   try {
     // Get project ID
     const projData = await graphql<{ user: { projectV2: { id: string } | null } }>(
-      `query($owner: String!, $projectNumber: Int!) {
-        user(login: $owner) { projectV2(number: $projectNumber) { id } }
-      }`,
+      `
+        query ($owner: String!, $projectNumber: Int!) {
+          user(login: $owner) {
+            projectV2(number: $projectNumber) {
+              id
+            }
+          }
+        }
+      `,
       { owner, projectNumber },
     );
     const projectId = projData.user?.projectV2?.id;
@@ -185,16 +185,23 @@ async function ensureSandboxFields(): Promise<void> {
     }
 
     // Get existing fields
-    const fieldsData = await graphql<{ node: { fields: { nodes: Array<{ __typename: string; name: string }> } } }>(
-      `query($projectId: ID!) {
-        node(id: $projectId) {
-          ... on ProjectV2 {
-            fields(first: 20) {
-              nodes { __typename name }
+    const fieldsData = await graphql<{
+      node: { fields: { nodes: Array<{ __typename: string; name: string }> } };
+    }>(
+      `
+        query ($projectId: ID!) {
+          node(id: $projectId) {
+            ... on ProjectV2 {
+              fields(first: 20) {
+                nodes {
+                  __typename
+                  name
+                }
+              }
             }
           }
         }
-      }`,
+      `,
       { projectId },
     );
 
@@ -207,23 +214,31 @@ async function ensureSandboxFields(): Promise<void> {
       console.log('  ➕ Creating Iteration field...');
       try {
         await graphql(
-          `mutation($projectId: ID!) {
-            createProjectV2Field(input: {
-              projectId: $projectId
-              name: "Iteration"
-              dataType: ITERATION
-              iterationConfiguration: {
-                startDate: "2026-06-01"
-                duration: 14
-                iterations: [
-                  { title: "Sprint 1", duration: 14, startDate: "2026-06-01" }
-                  { title: "Sprint 2", duration: 14, startDate: "2026-06-15" }
-                ]
+          `
+            mutation ($projectId: ID!) {
+              createProjectV2Field(
+                input: {
+                  projectId: $projectId
+                  name: "Iteration"
+                  dataType: ITERATION
+                  iterationConfiguration: {
+                    startDate: "2026-06-01"
+                    duration: 14
+                    iterations: [
+                      { title: "Sprint 1", duration: 14, startDate: "2026-06-01" }
+                      { title: "Sprint 2", duration: 14, startDate: "2026-06-15" }
+                    ]
+                  }
+                }
+              ) {
+                projectV2Field {
+                  ... on ProjectV2IterationField {
+                    id
+                  }
+                }
               }
-            }) {
-              projectV2Field { ... on ProjectV2IterationField { id } }
             }
-          }`,
+          `,
           { projectId },
         );
         console.log('  ✅ Iteration field created');
@@ -249,9 +264,7 @@ async function globalSetup(_config: FullConfig) {
   const password = process.env.GITHUB_PASSWORD;
 
   if (!username || !password) {
-    console.warn(
-      '⚠️  GITHUB_USERNAME or GITHUB_PASSWORD not set — skipping auth setup',
-    );
+    console.warn('⚠️  GITHUB_USERNAME or GITHUB_PASSWORD not set — skipping auth setup');
     return;
   }
 
@@ -268,9 +281,7 @@ async function globalSetup(_config: FullConfig) {
     await page.getByLabel('Password').fill(password);
 
     // Use exact:true to avoid matching the passkey button
-    await page
-      .getByRole('button', { name: 'Sign in', exact: true })
-      .click();
+    await page.getByRole('button', { name: 'Sign in', exact: true }).click();
 
     // Wait to see where we land
     await page.waitForTimeout(3000);
@@ -279,17 +290,13 @@ async function globalSetup(_config: FullConfig) {
 
     // ── Handle device verification ─────────────────────────────
     if (currentUrl.includes('/sessions/verified-device')) {
-      console.log(
-        '📱 Device verification required — fetching code from Gmail via IMAP...',
-      );
+      console.log('📱 Device verification required — fetching code from Gmail via IMAP...');
 
       const code = await fetchVerificationCode();
 
       // Enter the code
       await page.getByLabel('Device Verification Code').fill(code);
-      await page
-        .getByRole('button', { name: 'Verify' })
-        .click({ noWaitAfter: true });
+      await page.getByRole('button', { name: 'Verify' }).click({ noWaitAfter: true });
 
       // Wait for redirect to GitHub home
       await page.waitForURL('https://github.com/', { timeout: 15_000 });
@@ -298,14 +305,9 @@ async function globalSetup(_config: FullConfig) {
 
     // ── Check login succeeded ──────────────────────────────────
     const finalUrl = page.url();
-    if (
-      !finalUrl.startsWith('https://github.com/') ||
-      finalUrl.includes('/login')
-    ) {
+    if (!finalUrl.startsWith('https://github.com/') || finalUrl.includes('/login')) {
       await page.screenshot({ path: 'test-results/login-debug.png' });
-      console.error(
-        '❌ Login still on login page — check test-results/login-debug.png',
-      );
+      console.error('❌ Login still on login page — check test-results/login-debug.png');
       process.exit(1);
     }
 

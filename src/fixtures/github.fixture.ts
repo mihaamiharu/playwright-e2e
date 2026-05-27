@@ -18,13 +18,15 @@ export type GitHubFixtures = {
 };
 
 export const test = base.extend<GitHubFixtures>({
-  // page is built-in — anonymousPage is just a semantic alias
-  anonymousPage: async ({ page }, use) => {
+  anonymousPage: async ({ browser }, use) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
     await use(page);
+    await context.close();
   },
 
-  loginPage: async ({ page }, use) => {
-    const loginPage = new LoginPage(page);
+  loginPage: async ({ anonymousPage }, use) => {
+    const loginPage = new LoginPage(anonymousPage);
     await use(loginPage);
   },
 });

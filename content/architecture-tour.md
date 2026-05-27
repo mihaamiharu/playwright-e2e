@@ -26,16 +26,16 @@ If my test target never fights back, I'm not testing — I'm just writing script
 
 I landed on [GitHub Projects](https://docs.github.com/en/issues/planning-and-tracking-with-projects). It's GitHub's project management surface — kanban boards, issues, labels, milestones, custom fields, the works. And it's close enough to Jira, Linear, and Asana that the testing patterns transfer directly:
 
-| Jira Concept | GitHub Projects Equivalent |
-|-------------|---------------------------|
-| Issue | Issue |
-| Board | Board view (Kanban) |
-| Labels / Components | Labels |
-| Sprints / Fix Versions | Milestones / Iterations |
-| Custom Fields | Custom Fields (Text, Number, Date, Single Select) |
-| JQL Filters | Saved Views with filters |
-| Bulk Change | Bulk operations |
-| Post-Functions | Auto-workflows |
+| Jira Concept           | GitHub Projects Equivalent                        |
+| ---------------------- | ------------------------------------------------- |
+| Issue                  | Issue                                             |
+| Board                  | Board view (Kanban)                               |
+| Labels / Components    | Labels                                            |
+| Sprints / Fix Versions | Milestones / Iterations                           |
+| Custom Fields          | Custom Fields (Text, Number, Date, Single Select) |
+| JQL Filters            | Saved Views with filters                          |
+| Bulk Change            | Bulk operations                                   |
+| Post-Functions         | Auto-workflows                                    |
 
 But here's the real reason: GitHub doesn't make it easy.
 
@@ -78,6 +78,7 @@ GitHub splits its API surface. Issues, labels, comments, milestones? **REST**. P
 So we have two clients, both using Playwright's built-in `request` fixture:
 
 **REST** — `GitHubAPI`:
+
 ```typescript
 async createIssue(repo: string, params: CreateIssueParams): Promise<GitHubIssue> {
   const response = await this.request.post(
@@ -89,6 +90,7 @@ async createIssue(repo: string, params: CreateIssueParams): Promise<GitHubIssue>
 ```
 
 **GraphQL** — `GitHubProjectsAPI`:
+
 ```typescript
 async addIssueToProject(projectId: string, contentId: string): Promise<string> {
   const data = await this.graphql<{ addProjectV2ItemById: { item: { id: string } } }>(`
@@ -164,15 +166,19 @@ this.errorMessage = page.getByRole('alert');
 GitHub didn't roll over. Here's what broke during setup:
 
 ### Duplicate `role="alert"` elements
+
 GitHub's login page has two elements with `role="alert"` — an empty WebAuthn span, then the real error `<div>`. `getByRole('alert')` fixed it — the accessibility tree filters out invisible elements that raw CSS selectors would match.
 
 ### Two "Sign in" buttons
+
 `getByRole('button', { name: 'Sign in' })` matches both the submit input AND a passkey prompt button. `{ exact: true }` resolves it — the passkey button has a longer accessible name ("Sign in with a passkey").
 
 ### Shadow DOM in the kanban board
+
 Project board items render inside web components. `document.querySelectorAll('button')` finds nothing. But `getByRole('button')` traverses shadow DOM via the accessibility tree — so it works.
 
 ### Headless Backlog view is broken
+
 The Backlog tab renders column headings but **not the item cards** in headless Chromium. The Priority board tab does. Finding this took hours of debugging. A demo app would never have this problem — because demo apps don't use shadow DOM.
 
 ---
@@ -192,4 +198,4 @@ Each one will surface new constraints. Rate limits will trigger. Auth will expir
 
 ---
 
-*Part 1 of a series on real-website E2E testing with Playwright. Part 2: ["Why I Dropped BaseTest for Fixtures"](/fixtures-over-basetest). Part 4: ["Authentication Without the 2FA Nightmare"](/blog/04-authentication-without-2fa).*
+_Part 1 of a series on real-website E2E testing with Playwright. Part 2: ["Why I Dropped BaseTest for Fixtures"](/fixtures-over-basetest). Part 4: ["Authentication Without the 2FA Nightmare"](/blog/04-authentication-without-2fa)._

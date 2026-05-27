@@ -31,13 +31,13 @@ This repo is both a **reference architecture** and a **QA blog series**. Every p
 
 We test **GitHub** exclusively — specifically GitHub project management workflows. Single target lets us go deep on patterns that transfer to any modern project tracker:
 
-| Pattern                | Why It Matters                                      |
-| ---------------------- | --------------------------------------------------- |
-| Role-based locators    | Production CSS classes change on every deploy       |
-| API seed + UI verify   | Fast, deterministic test data without UI flakiness   |
-| GraphQL mutations      | Projects V2 has no REST API — a real-world constraint |
-| Persistent sandbox     | Avoids rate limits; shared context across all tests  |
-| Parallel-safe cleanup  | Unique test names so sharded runs don't collide      |
+| Pattern               | Why It Matters                                        |
+| --------------------- | ----------------------------------------------------- |
+| Role-based locators   | Production CSS classes change on every deploy         |
+| API seed + UI verify  | Fast, deterministic test data without UI flakiness    |
+| GraphQL mutations     | Projects V2 has no REST API — a real-world constraint |
+| Persistent sandbox    | Avoids rate limits; shared context across all tests   |
+| Parallel-safe cleanup | Unique test names so sharded runs don't collide       |
 
 ## 🚀 Quick Start
 
@@ -162,14 +162,14 @@ This repository is part of a QA engineering blog series:
 
 ## 🛠️ Tech Stack
 
-| Tool               | Purpose                            |
-| ------------------- | ---------------------------------- |
-| Playwright v1.59    | Browser automation + assertions    |
-| TypeScript 6.0      | Type-safe test code                |
-| playwright-bdd      | Gherkin → executable tests         |
-| Allure              | Rich test reports with history     |
-| ESLint + Prettier   | Code quality + formatting          |
-| dotenv              | Credential management              |
+| Tool              | Purpose                         |
+| ----------------- | ------------------------------- |
+| Playwright v1.59  | Browser automation + assertions |
+| TypeScript 6.0    | Type-safe test code             |
+| playwright-bdd    | Gherkin → executable tests      |
+| Allure            | Rich test reports with history  |
+| ESLint + Prettier | Code quality + formatting       |
+| dotenv            | Credential management           |
 
 ## 🗺️ Roadmap
 
