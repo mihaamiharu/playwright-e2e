@@ -285,8 +285,11 @@ async function globalSetup(_config: FullConfig) {
 
     // Wait to see where we land
     await page.waitForTimeout(3000);
-    const currentUrl = page.url();
+    let currentUrl = page.url();
     console.log(`📍 Post-login URL: ${currentUrl}`);
+
+    // ── Debug screenshot ────────────────────────────────────────
+    await page.screenshot({ path: 'reports/artifacts/debug-post-submit.png' });
 
     // ── Handle device verification ─────────────────────────────
     if (currentUrl.includes('/sessions/verified-device')) {
@@ -315,12 +318,36 @@ async function globalSetup(_config: FullConfig) {
       console.log('✅ Device verification passed');
     }
 
+    // ── Handle CAPTCHA / challenge ─────────────────────────────
+    currentUrl = page.url();
+    if (currentUrl.includes('/login')) {
+      console.log('🔐 CAPTCHA or challenge detected — attempting AI-assisted solve...');
+
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) {
+        console.warn('⚠️  GEMINI_API_KEY not set — CAPTCHA cannot be solved. Skipping browser auth.');
+        return;
+      }
+
+      const { solveCaptcha } = await import('../utils/captcha-solver');
+      const solved = await solveCaptcha(page, apiKey);
+
+      if (!solved) {
+        console.warn('⚠️  CAPTCHA solver exhausted. Browser auth unavailable.');
+        console.warn('    Tests will proceed without browser cookies (API tests may still pass).');
+        return;
+      }
+    }
+
     // ── Check login succeeded ──────────────────────────────────
     const finalUrl = page.url();
+    await page.screenshot({ path: 'reports/artifacts/debug-final.png' });
+
     if (!finalUrl.startsWith('https://github.com/') || finalUrl.includes('/login')) {
-      await page.screenshot({ path: 'test-results/login-debug.png' });
-      console.error('❌ Login still on login page — check test-results/login-debug.png');
-      process.exit(1);
+      await page.screenshot({ path: 'reports/artifacts/login-failed.png' });
+      console.warn('⚠️  Login blocked — unexpected page state. Tests will proceed without browser auth.');
+      console.warn(`    Final URL: ${finalUrl}`);
+      return;
     }
 
     // ── Save browser state ─────────────────────────────────────

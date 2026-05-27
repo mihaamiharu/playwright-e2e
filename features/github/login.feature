@@ -1,4 +1,4 @@
-@github @authentication
+@github @authentication @debug-comments
 Feature: GitHub Login
 
   As a GitHub user
