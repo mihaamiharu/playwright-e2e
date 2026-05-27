@@ -32,7 +32,16 @@ export class LoginPage {
 
   async login(username: string, password: string): Promise<void> {
     await this.usernameInput.fill(username);
-    await this.passwordInput.fill(password);
+    // Use evaluate instead of fill to avoid exposing password in trace
+    await this.passwordInput.evaluate((el, val) => {
+      const input = el as HTMLInputElement;
+      const nativeSetter = Object.getOwnPropertyDescriptor(
+        window.HTMLInputElement.prototype, 'value',
+      )?.set;
+      nativeSetter?.call(input, val);
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    }, password);
   }
 
   async submit(): Promise<void> {

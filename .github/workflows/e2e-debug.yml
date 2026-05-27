@@ -66,11 +66,11 @@ jobs:
           BASE_URL: https://github.com
           TEST_MODE: full
           NODE_OPTIONS: --use-system-ca
-        run: npm test -- --grep "${{ inputs.tag }}" --trace "${{ inputs.trace }}" --video "${{ inputs.video }}"
+        run: npm test -- --grep "${{ inputs.tag }}" --trace "${{ inputs.trace }}"
 
       - name: Generate Allure Report
         if: always()
-        run: npx allure generate reports/allure/results --clean -o reports/allure/report || true
+        run: npx allure generate -o reports/allure/report reports/allure/results || true
 
       - name: Upload HTML Report
         if: always()

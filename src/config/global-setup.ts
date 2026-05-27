@@ -296,7 +296,19 @@ async function globalSetup(_config: FullConfig) {
 
       // Enter the code
       await page.getByLabel('Device Verification Code').fill(code);
-      await page.getByRole('button', { name: 'Verify' }).click({ noWaitAfter: true });
+
+      // Try to click Verify, but GitHub may auto-submit after 6 digits
+      try {
+        await page.getByRole('button', { name: 'Verify' }).click({
+          noWaitAfter: true,
+          timeout: 5000,
+        });
+      } catch {
+        await page.screenshot({ path: 'reports/artifacts/verify-button-gone.png' });
+        console.log(
+          '  ℹ️  Verify button already gone — page may have auto-navigated (screenshot saved)',
+        );
+      }
 
       // Wait for redirect to GitHub home
       await page.waitForURL('https://github.com/', { timeout: 15_000 });
