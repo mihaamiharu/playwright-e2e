@@ -8,7 +8,7 @@ Feature: Comments
   Background:
     Given a seeded project issue exists on the kanban board
 
-  @P1
+  @P1 @debug-comments
   Scenario: CMT-01 — Add comment via API and verify it appears in the timeline
     When I add a comment "CMT-01 test comment from E2E" via the API
     And I navigate to the issue page
