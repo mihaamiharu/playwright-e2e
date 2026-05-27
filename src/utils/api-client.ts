@@ -272,6 +272,29 @@ export class GitHubAPI {
     }
   }
 
+  /** Update a milestone (title, description, due_on, or state). */
+  async updateMilestone(
+    repo: string,
+    milestoneNumber: number,
+    params: { title?: string; description?: string; due_on?: string; state?: 'open' | 'closed' },
+  ): Promise<GitHubMilestone> {
+    const response = await this.request.patch(
+      `${this.baseUrl}/repos/${repo}/milestones/${milestoneNumber}`,
+      {
+        headers: this.authHeaders(),
+        data: params,
+      },
+    );
+
+    if (!response.ok()) {
+      throw new Error(
+        `Failed to update milestone #${milestoneNumber}: ${response.status()} ${await response.text()}`,
+      );
+    }
+
+    return response.json();
+  }
+
   /** Update an existing comment. */
   async updateComment(repo: string, commentId: number, body: string): Promise<GitHubComment> {
     const response = await this.request.patch(
