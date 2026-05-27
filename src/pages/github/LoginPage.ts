@@ -36,7 +36,8 @@ export class LoginPage {
     await this.passwordInput.evaluate((el, val) => {
       const input = el as HTMLInputElement;
       const nativeSetter = Object.getOwnPropertyDescriptor(
-        window.HTMLInputElement.prototype, 'value',
+        window.HTMLInputElement.prototype,
+        'value',
       )?.set;
       nativeSetter?.call(input, val);
       input.dispatchEvent(new Event('input', { bubbles: true }));
