@@ -1,5 +1,4 @@
 import { createBdd } from 'playwright-bdd';
-import { expect } from '@playwright/test';
 import { test } from '../../src/fixtures';
 import { env } from '../../src/config/env.config';
 
@@ -13,19 +12,19 @@ Given('a seeded project issue exists on the kanban board', async ({ seededProjec
   }
 });
 
-When('I navigate to the issue page', async ({ page, seededProjectIssue }) => {
+When('I navigate to the issue page', async ({ issuePage, seededProjectIssue }) => {
   const { number } = seededProjectIssue;
-  await page.goto(`/${env.github.testRepo}/issues/${number}`);
+  await issuePage.navigateTo(env.github.testRepo, number);
 });
 
-Then('I should see the issue heading', async ({ page, seededProjectIssue }) => {
+Then('I should see the issue heading', async ({ issuePage, seededProjectIssue }) => {
   const { title } = seededProjectIssue;
-  await expect(page.getByRole('heading', { name: title, level: 1 })).toBeVisible();
+  await issuePage.expectHeading(title);
 });
 
-Then('I should see the issue number in the header', async ({ page, seededProjectIssue }) => {
+Then('I should see the issue number in the header', async ({ issuePage, seededProjectIssue }) => {
   const { number } = seededProjectIssue;
-  await expect(page.getByText(`#${number}`).first()).toBeVisible();
+  await issuePage.expectIssueNumber(number);
 });
 
 When(
@@ -37,10 +36,8 @@ When(
   },
 );
 
-Then('I should see {string} in the issue body', async ({ page }, expectedText: string) => {
-  const bodyViewer = page.getByTestId('issue-body-viewer');
-  await expect(bodyViewer).toBeVisible();
-  await expect(bodyViewer).toContainText(expectedText);
+Then('I should see {string} in the issue body', async ({ issuePage }, expectedText: string) => {
+  await issuePage.expectBodyText(expectedText);
 });
 
 When('I close the issue via API', async ({ githubAPI, seededProjectIssue }) => {
@@ -60,9 +57,7 @@ When('I reopen the issue via API', async ({ githubAPI, seededProjectIssue }) => 
   }
 });
 
-Then('I should see a {string} status badge', async ({ page }, expectedStatus: string) => {
-  await page.reload();
-  const stateLabel = page.getByTestId('issue-metadata-fixed').getByTestId('header-state');
-  await expect(stateLabel).toBeVisible();
-  await expect(stateLabel).toHaveText(expectedStatus);
+Then('I should see a {string} status badge', async ({ issuePage }, expectedStatus: string) => {
+  await issuePage.page.reload();
+  await issuePage.expectState(expectedStatus);
 });

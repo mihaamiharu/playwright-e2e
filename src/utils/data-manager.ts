@@ -17,7 +17,6 @@ export class DataManager {
   async cleanupAll(): Promise<void> {
     if (this.cleanupQueue.length === 0) return;
 
-    // eslint-disable-next-line no-console
     console.log(`[cleanup] Running ${this.cleanupQueue.length} task(s)...`);
 
     const errors: Error[] = [];
@@ -35,13 +34,11 @@ export class DataManager {
     this.cleanupQueue = [];
 
     if (errors.length > 0) {
-      // eslint-disable-next-line no-console
       console.warn(
         `DataManager: ${errors.length} cleanup task(s) failed:\n` +
           errors.map((e) => `  - ${e.message}`).join('\n'),
       );
     } else {
-      // eslint-disable-next-line no-console
       console.log('[cleanup] Done');
     }
   }

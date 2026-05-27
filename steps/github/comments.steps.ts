@@ -1,5 +1,4 @@
 import { createBdd } from 'playwright-bdd';
-import { expect } from '@playwright/test';
 import { test } from '../../src/fixtures';
 import { env } from '../../src/config/env.config';
 
@@ -12,8 +11,8 @@ When('I add a comment {string} via the API', async ({ githubAPI, seededProjectIs
   commentId = comment.id;
 });
 
-Then('I should see the comment {string} on the issue', async ({ page }, body) => {
-  await expect(page.getByText(body)).toBeVisible();
+Then('I should see the comment {string} on the issue', async ({ issuePage }, body) => {
+  await issuePage.expectCommentVisible(body);
 });
 
 Given(
@@ -32,10 +31,10 @@ When('I update the comment to {string} via the API', async ({ githubAPI }, newBo
   await githubAPI.updateComment(env.github.testRepo, commentId, newBody);
 });
 
-Then('I should see {string} in the comments', async ({ page }, text) => {
-  await expect(page.getByText(text)).toBeVisible();
+Then('I should see {string} in the comments', async ({ issuePage }, text) => {
+  await issuePage.expectCommentVisible(text);
 });
 
-Then('I should not see {string} on the page', async ({ page }, text) => {
-  await expect(page.getByText(text)).not.toBeVisible();
+Then('I should not see {string} on the page', async ({ issuePage }, text) => {
+  await issuePage.expectCommentNotVisible(text);
 });

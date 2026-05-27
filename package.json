@@ -16,7 +16,8 @@
     "format:check": "prettier --check '**/*.{ts,js,json,md}'",
     "typecheck": "tsc --noEmit",
     "bddgen": "npx bddgen -c playwright.bdd.config.ts",
-    "pw:cli": "npx playwright-cli"
+    "pw:cli": "npx playwright-cli",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.0",
@@ -29,6 +30,7 @@
     "allure-playwright": "^3.7.0",
     "dotenv": "^16.6.0",
     "eslint": "^8.57.0",
+    "husky": "^9.1.7",
     "imap": "^0.8.19",
     "playwright": "^1.59.0",
     "playwright-bdd": "^8.5.0",

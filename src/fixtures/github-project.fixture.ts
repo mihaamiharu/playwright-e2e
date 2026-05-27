@@ -51,7 +51,7 @@ function requireSandbox() {
   }
   if (!env.hasSandboxProject) {
     throw new Error(
-      'Project fixtures require GITHUB_API_TOKEN, GITHUB_TEST_REPO, and GITHUB_PROJECT_SANDBOX in .env',
+      'Project fixtures require GH_API_TOKEN, GH_TEST_REPO, and GH_PROJECT_SANDBOX in .env',
     );
   }
 }
@@ -98,7 +98,6 @@ export const test = base.extend<ProjectFixtures>({
       env.github.sandboxProjectNumber,
     );
 
-    // eslint-disable-next-line no-console
     console.log(
       `[sandbox] Resolved project "${env.github.sandboxProject}" (${projectId}), ` +
         `statuses: ${[...statusOptions.keys()].join(', ')}`,
@@ -119,22 +118,18 @@ export const test = base.extend<ProjectFixtures>({
       title,
       body: `🤖 Seeded by Playwright E2E test. Auto-cleaned. Run: ${uniqueId}`,
     });
-    // eslint-disable-next-line no-console
     console.log(`[seeder] Created issue #${issue.number}: "${title}"`);
 
     // 2. Add to sandbox project via GraphQL
     const projectItemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
-    // eslint-disable-next-line no-console
     console.log(`[seeder] Added issue #${issue.number} to project ${sandbox.projectId}`);
 
     // 3. Enqueue cleanup (LIFO: project removal first, then close)
     dataManager.enqueue(async () => {
-      // eslint-disable-next-line no-console
       console.log(`[cleanup] Removing issue #${issue.number} from project`);
       await projectsAPI.removeItemFromProject(sandbox.projectId, projectItemId);
     });
     dataManager.enqueue(async () => {
-      // eslint-disable-next-line no-console
       console.log(`[cleanup] Closing issue #${issue.number}`);
       await githubAPI.closeIssue(env.github.testRepo, issue.number);
     });

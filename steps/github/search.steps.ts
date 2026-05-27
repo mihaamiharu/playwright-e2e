@@ -30,18 +30,18 @@ Given(
   },
 );
 
-When('I search the project by title for the unique keyword', async ({ page }) => {
-  await page.getByRole('combobox', { name: 'Filter' }).click();
-
-  const titleFilter = page.getByRole('option', { name: 'Title, Filter' });
-  await expect(titleFilter).toBeVisible();
-  await titleFilter.click();
-
+When('I search the project by title for the unique keyword', async ({ page, projectFilterBar }) => {
+  await projectFilterBar.open();
+  await projectFilterBar.selectType('Title');
   await page.waitForURL(/filterQuery=title/);
-  await page.waitForTimeout(300);
 
-  await page.keyboard.type(searchKeyword);
-  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  const input = (await projectFilterBar.filterInput.isVisible())
+    ? projectFilterBar.filterInput
+    : page.getByRole('combobox').first();
+  await expect(input).toHaveValue('title:');
+
+  await projectFilterBar.typeSearch(searchKeyword);
+  await projectFilterBar.save();
 
   await page.waitForURL(new RegExp(searchKeyword));
   await page
@@ -50,15 +50,13 @@ When('I search the project by title for the unique keyword', async ({ page }) =>
     .waitFor({ state: 'visible', timeout: 15000 });
 });
 
-Then('the issue with the keyword should be visible on the board', async ({ page }) => {
-  const card = page.getByRole('button', { name: new RegExp(keywordIssueTitle) });
-  await expect(card.first()).toBeVisible();
+Then('the issue with the keyword should be visible on the board', async ({ projectBoardPage }) => {
+  await projectBoardPage.expectCardVisible(keywordIssueTitle);
 });
 
 Then(
   'the seeded issue without the keyword should not be visible',
-  async ({ page, seededProjectIssue }) => {
-    const card = page.getByRole('button', { name: new RegExp(seededProjectIssue.title) });
-    await expect(card.first()).not.toBeVisible();
+  async ({ projectBoardPage, seededProjectIssue }) => {
+    await projectBoardPage.expectCardNotVisible(seededProjectIssue.title);
   },
 );

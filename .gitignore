@@ -33,3 +33,7 @@ Thumbs.db
 # Videos / screenshots from test runs
 videos/
 screenshots/
+
+# Tool metadata
+.antigravitycli/
+

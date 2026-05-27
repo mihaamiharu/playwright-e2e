@@ -28,7 +28,7 @@ When('I create a new board view named {string}', async ({ page }, baseName: stri
   await textbox.fill(currentViewName);
 
   await dialog.getByRole('button', { name: 'Save' }).click();
-  await page.waitForTimeout(500);
+  await expect(dialog).not.toBeVisible();
 });
 
 When(
@@ -47,7 +47,7 @@ When(
     await filterValue.click();
 
     await page.waitForURL(new RegExp(`filterQuery=status%3A${value}`));
-    await page.waitForTimeout(300);
+    await expect(filterValue).not.toBeVisible();
   },
 );
 

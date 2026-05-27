@@ -11,29 +11,21 @@ let sortTitleZ = '';
 let issueATitle = '';
 let issueBTitle = '';
 
-When('I switch to the table layout view', async ({ page }) => {
-  await page.getByRole('button', { name: 'View', exact: true }).click();
-  await page.getByRole('button', { name: 'Table' }).click();
-  await page.waitForURL(/layout=table/);
-  await expect(page.getByRole('grid')).toBeVisible({ timeout: 15000 });
-  await page.keyboard.press('Escape');
-  await page.waitForTimeout(500);
+When('I switch to the table layout view', async ({ tableViewPage }) => {
+  await tableViewPage.switchToTableLayout();
 });
 
 Then(
   'I should see the table with columns {string}, {string}, and {string}',
-  async ({ page }, col1, col2, col3) => {
-    await expect(page.getByRole('columnheader', { name: new RegExp(`^${col1}`) })).toBeVisible();
-    await expect(page.getByRole('columnheader', { name: new RegExp(`^${col2}`) })).toBeVisible();
-    await expect(page.getByRole('columnheader', { name: new RegExp(`^${col3}`) })).toBeVisible();
+  async ({ tableViewPage }, col1, col2, col3) => {
+    await tableViewPage.expectColumnsVisible([col1, col2, col3]);
   },
 );
 
 Then(
   'the seeded issue should appear as a row in the table',
-  async ({ page, seededProjectIssue }) => {
-    const row = page.getByRole('row').filter({ hasText: seededProjectIssue.title });
-    await expect(row.first()).toBeVisible();
+  async ({ tableViewPage, seededProjectIssue }) => {
+    await tableViewPage.expectRowVisible(seededProjectIssue.title);
   },
 );
 
@@ -73,37 +65,24 @@ Given(
   },
 );
 
-When('I sort the table by the {string} column in ascending order', async ({ page }, columnName) => {
-  await page.getByRole('button', { name: `${columnName} column options` }).click();
-  await page.getByRole('menuitem', { name: 'Sort ascending' }).click();
-  await page.waitForURL(/sortedBy.*direction.*asc/);
-  await expect(page.getByRole('grid')).toBeVisible();
-  await page.waitForTimeout(500);
-});
+When(
+  'I sort the table by the {string} column in ascending order',
+  async ({ tableViewPage }, columnName) => {
+    await tableViewPage.sortColumnAscending(columnName);
+  },
+);
 
 When(
   'I sort the table by the {string} column in descending order',
-  async ({ page }, columnName) => {
-    await page.getByRole('button', { name: `${columnName} column options` }).click();
-    await page.getByRole('menuitem', { name: 'Sort descending' }).click();
-    await page.waitForURL(/sortedBy.*direction.*desc/);
-    await expect(page.getByRole('grid')).toBeVisible();
-    await page.waitForTimeout(500);
+  async ({ tableViewPage }, columnName) => {
+    await tableViewPage.sortColumnDescending(columnName);
   },
 );
 
 Then(
   'the {string} issue should appear before the {string} issue in the table',
-  async ({ page }, firstPrefix, secondPrefix) => {
-    const titleLinks = page.getByRole('rowheader').getByRole('link');
-    const titles = await titleLinks.allTextContents();
-
-    const firstIdx = titles.findIndex((t) => t.includes(firstPrefix));
-    const secondIdx = titles.findIndex((t) => t.includes(secondPrefix));
-
-    expect(firstIdx).not.toBe(-1);
-    expect(secondIdx).not.toBe(-1);
-    expect(firstIdx).toBeLessThan(secondIdx);
+  async ({ tableViewPage }, firstPrefix, secondPrefix) => {
+    await tableViewPage.expectRowBefore(firstPrefix, secondPrefix);
   },
 );
 
@@ -174,32 +153,29 @@ Given(
   },
 );
 
-When('I filter the table by label {string}', async ({ page }, labelName) => {
-  await page.getByRole('combobox', { name: 'Filter' }).click();
+When(
+  'I filter the table by label {string}',
+  async ({ page, projectFilterBar, tableViewPage }, labelName) => {
+    await projectFilterBar.open();
+    await projectFilterBar.selectType('Label');
+    await page.waitForURL(/filterQuery=label/);
 
-  const labelFilter = page.getByRole('option', { name: 'Label, Filter, Filter by label' });
-  await expect(labelFilter).toBeVisible();
-  await labelFilter.click();
+    await projectFilterBar.selectOption(labelName, 'Label');
+    await projectFilterBar.save();
+    await page.waitForURL(/filterQuery=label/);
 
-  const labelOption = page.getByRole('option', { name: `${labelName}, Label` });
-  await expect(labelOption).toBeVisible();
-  await labelOption.click();
+    const option = page.getByRole('option', { name: `${labelName}, Label` });
+    await projectFilterBar.close(option);
+    await expect(tableViewPage.grid).toBeVisible();
+  },
+);
 
-  await page.getByRole('button', { name: 'Save', exact: true }).click();
-  await page.waitForURL(/filterQuery=label/);
-  await page.keyboard.press('Escape');
-  await page.waitForTimeout(300);
-  await expect(page.getByRole('grid')).toBeVisible();
+Then('issue {string} should be visible in the table', async ({ tableViewPage }, issueId) => {
+  const title = issueId === 'A' ? issueATitle : issueBTitle;
+  await tableViewPage.expectRowVisible(title);
 });
 
-Then('issue {string} should be visible in the table', async ({ page }, issueId) => {
+Then('issue {string} should not be visible in the table', async ({ tableViewPage }, issueId) => {
   const title = issueId === 'A' ? issueATitle : issueBTitle;
-  const row = page.getByRole('row').filter({ hasText: title });
-  await expect(row).toBeVisible();
-});
-
-Then('issue {string} should not be visible in the table', async ({ page }, issueId) => {
-  const title = issueId === 'A' ? issueATitle : issueBTitle;
-  const row = page.getByRole('row').filter({ hasText: title });
-  await expect(row).not.toBeVisible();
+  await tableViewPage.expectRowNotVisible(title);
 });

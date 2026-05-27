@@ -129,7 +129,6 @@ export class GitHubAPI {
     );
 
     if (!response.ok()) {
-      // eslint-disable-next-line no-console
       console.warn(
         `Failed to close issue #${issueNumber}: ${response.status()} ${await response.text()}`,
       );
@@ -194,7 +193,6 @@ export class GitHubAPI {
     );
 
     if (!response.ok()) {
-      // eslint-disable-next-line no-console
       console.warn(
         `Failed to remove label "${label}" from issue #${issueNumber}: ${response.status()}`,
       );
@@ -265,7 +263,6 @@ export class GitHubAPI {
     );
 
     if (!response.ok()) {
-      // eslint-disable-next-line no-console
       console.warn(
         `Failed to delete milestone #${milestoneNumber}: ${response.status()} ${await response.text()}`,
       );

@@ -107,8 +107,6 @@ All tests in this repository use the BDD (Gherkin) pattern via `playwright-bdd`.
 | `features/github/board-workflow.feature` | `steps/github/board-workflow.steps.ts` | `github-project.fixture.ts` |
 | `features/github/labels.feature`         | `steps/github/labels.steps.ts`         | `github-project.fixture.ts` |
 
-The `data-lifecycle.fixture.ts` exists for pure REST-only API tests (using Playwright's `request` fixture) but is not currently consumed by any feature file.
-
 **Why no `tests/` directory?** We chose consistency over flexibility. When all tests follow the same BDD pattern, onboarding is simpler, step reuse is automatic across features, and the reporting layer (Allure, Playwright HTML) presents a unified view.
 
 ### 6. CI strategy: read-only by default
@@ -169,8 +167,7 @@ playwright-e2e/
 │   │   └── github/        # LoginPage
 │   ├── fixtures/          # Auto-setup/teardown test fixtures
 │   │   ├── github.fixture.ts
-│   │   ├── github-project.fixture.ts
-│   │   └── data-lifecycle.fixture.ts
+│   │   └── github-project.fixture.ts
 │   ├── utils/             # DataManager, APIClient, GraphQL, Auth helper
 │   │   ├── data-manager.ts
 │   │   ├── api-client.ts
@@ -196,28 +193,26 @@ this boundary explicit.
 
 ## Key Patterns
 
-### Pattern 1: Resilient BasePage
+### Pattern 1: Fixture-centric Page Objects (No BasePage)
+
+In traditional Selenium-based frameworks, a `BasePage` class is used to share helper methods, standard assertions, and navigation logic.
+
+In Playwright, we purposefully **do not use** a `BasePage` base class.
+
+#### Why we avoid BasePage:
+
+- **Playwright already provides standard wrappers**: Helper methods like `safeClick` or `fillAndBlur` are unnecessary because Playwright's native locators include auto-waiting, retries, and actionability checks out of the box.
+- **Composition over inheritance**: Page Objects should be self-contained components. Shared setup or teardown logic is better handled by **Playwright Fixtures**, which manage context lifecycle, dependency injection, and cleanups in a modular way.
+- **Strict typing**: An inheritance model can lead to typing pollution or circular dependencies as pages extend pages.
+
+Instead, our Page Object Models are simple classes that receive the standard Playwright `Page` via constructor injection and define clean, descriptive interfaces for interacting with specific pages or components:
 
 ```typescript
-export abstract class BasePage {
-  protected readonly page: Page;
-  abstract readonly url: string;
+export class IssuePage {
+  constructor(private readonly page: Page) {}
 
-  async navigate(): Promise<void> {
-    await this.page.goto(this.url, { waitUntil: 'domcontentloaded' });
-    await this.waitForLoad();
-  }
-
-  abstract waitForLoad(): Promise<void>; // Each page knows its own ready signal
-
-  async safeClick(locator: Locator): Promise<void> {
-    await expect(locator).toBeVisible({ timeout: 10_000 });
-    await locator.click();
-  }
-
-  async fillAndBlur(locator: Locator, text: string): Promise<void> {
-    await locator.fill(text);
-    await locator.blur(); // Triggers validation on blur
+  async navigate(repo: string, issueNumber: number) {
+    await this.page.goto(`/${repo}/issues/${issueNumber}`);
   }
 }
 ```

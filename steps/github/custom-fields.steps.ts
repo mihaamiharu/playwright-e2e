@@ -48,9 +48,8 @@ When(
 
 Then(
   'the seeded issue should show {string} in the {string} column',
-  async ({ page, seededProjectIssue }, value: string, _columnName: string) => {
-    const row = page.getByRole('row').filter({ hasText: seededProjectIssue.title });
-    await expect(row.getByText(value)).toBeVisible();
+  async ({ tableViewPage, seededProjectIssue }, value: string, _columnName: string) => {
+    await tableViewPage.expectRowValue(seededProjectIssue.title, value);
   },
 );
 
@@ -112,40 +111,33 @@ Given(
 
 When(
   'I filter the table by {string} {string}',
-  async ({ page }, fieldName: string, optionName: string) => {
-    await page.getByRole('combobox', { name: 'Filter' }).click();
-
-    const fieldFilter = page.getByRole('option', { name: new RegExp(`${fieldName}, Filter`) });
-    await expect(fieldFilter).toBeVisible();
-    await fieldFilter.click();
-
+  async ({ page, projectFilterBar, tableViewPage }, fieldName: string, optionName: string) => {
+    await projectFilterBar.open();
+    await projectFilterBar.selectType(fieldName);
     await page.waitForURL(new RegExp(`filterQuery=${fieldName.toLowerCase()}`));
 
-    const fieldOption = page.getByRole('option', {
-      name: new RegExp(`${optionName}, ${fieldName}`),
-    });
-    await expect(fieldOption).toBeVisible();
-    await fieldOption.click();
-
-    await page.getByRole('button', { name: 'Save', exact: true }).click();
+    await projectFilterBar.selectOption(optionName, fieldName);
+    await projectFilterBar.save();
     await page.waitForURL(new RegExp(`filterQuery=${fieldName.toLowerCase()}%3A`));
-    await page.keyboard.press('Escape');
-    await page.waitForTimeout(300);
-    await expect(page.getByRole('grid')).toBeVisible();
+
+    const option = page.getByRole('option', { name: new RegExp(`${optionName}, ${fieldName}`) });
+    await projectFilterBar.close(option);
+    await expect(tableViewPage.grid).toBeVisible();
   },
 );
 
-Then('custom issue {string} should be visible in the table', async ({ page }, issueId: string) => {
-  const title = issueId === 'A' ? issueATitle : issueBTitle;
-  const row = page.getByRole('row').filter({ hasText: title });
-  await expect(row).toBeVisible();
-});
+Then(
+  'custom issue {string} should be visible in the table',
+  async ({ tableViewPage }, issueId: string) => {
+    const title = issueId === 'A' ? issueATitle : issueBTitle;
+    await tableViewPage.expectRowVisible(title);
+  },
+);
 
 Then(
   'custom issue {string} should not be visible in the table',
-  async ({ page }, issueId: string) => {
+  async ({ tableViewPage }, issueId: string) => {
     const title = issueId === 'A' ? issueATitle : issueBTitle;
-    const row = page.getByRole('row').filter({ hasText: title });
-    await expect(row).not.toBeVisible();
+    await tableViewPage.expectRowNotVisible(title);
   },
 );
