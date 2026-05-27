@@ -1,7 +1,7 @@
 # Playwright E2E Testing — Real-World Best Practices
 
 [![Playwright](https://img.shields.io/badge/playwright-v1.59-blue)](https://playwright.dev)
-[![TypeScript](https://img.shields.io/badge/TypeScript-6.0-blue)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org/)
 [![BDD](https://img.shields.io/badge/BDD-playwright--bdd-green)](https://github.com/vitalets/playwright-bdd)
 [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
@@ -71,12 +71,6 @@ npm run test:headed
 
 # Playwright UI mode — interactive debugging
 npm run test:ui
-
-# Run only BDD tests (Gherkin features)
-npm run test:bdd
-
-# BDD tests headed
-npm run test:bdd:headed
 
 # Generate + view HTML report
 npm run report
@@ -165,7 +159,7 @@ This repository is part of a QA engineering blog series:
 | Tool              | Purpose                         |
 | ----------------- | ------------------------------- |
 | Playwright v1.59  | Browser automation + assertions |
-| TypeScript 6.0    | Type-safe test code             |
+| TypeScript 5.x    | Type-safe test code             |
 | playwright-bdd    | Gherkin → executable tests      |
 | Allure            | Rich test reports with history  |
 | ESLint + Prettier | Code quality + formatting       |

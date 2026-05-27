@@ -20,5 +20,13 @@ module.exports = {
     node: true,
     es2022: true,
   },
+  overrides: [
+    {
+      files: ['src/utils/**/*.ts', 'src/config/**/*.ts', 'src/fixtures/**/*.ts', 'src/scripts/**/*.ts'],
+      rules: {
+        'no-console': 'off',
+      },
+    },
+  ],
   ignorePatterns: ['dist/', 'node_modules/', 'test-results/', 'playwright-report/'],
 };

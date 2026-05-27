@@ -48,11 +48,10 @@ No `tests/` directory — everything is BDD.
 
 ## Fixtures (src/fixtures/)
 
-| File                        | Extends            | Used by                           |
-| --------------------------- | ------------------ | --------------------------------- |
-| `github.fixture.ts`         | `playwright-bdd`   | Login BDD steps (unauthenticated) |
-| `data-lifecycle.fixture.ts` | `@playwright/test` | REST-only tests                   |
-| `github-project.fixture.ts` | `playwright-bdd`   | Project management BDD steps      |
+| File                        | Extends          | Used by                           |
+| --------------------------- | ---------------- | --------------------------------- |
+| `github.fixture.ts`         | `playwright-bdd` | Login BDD steps (unauthenticated) |
+| `github-project.fixture.ts` | `playwright-bdd` | Project management BDD steps      |
 
 `src/fixtures/index.ts` merges fixtures via `mergeTests` and attaches an auto-fixture for Allure labels.
 
@@ -69,23 +68,21 @@ No `tests/` directory — everything is BDD.
 
 All env vars use the `GH_` prefix (not `GITHUB_`):
 
-| Variable | Purpose |
-|----------|---------|
-| `GH_USERNAME` | GitHub test account |
-| `GH_PASSWORD` | GitHub test password |
-| `GH_API_TOKEN` | Personal access token |
-| `GH_TEST_REPO` | Repo for test issues (e.g. `owner/repo`) |
-| `GH_TEST_REPO_OWNER` | Owner of test repo |
-| `GH_TEST_REPO_NAME` | Name of test repo (without owner/) |
-| `GH_PROJECT_SANDBOX` | Persistent sandbox project name |
-| `GH_PROJECT_SANDBOX_NUMBER` | Sandbox project number (URL slug) |
-| `GMAIL_ADDRESS` | Gmail for device verification |
-| `GMAIL_APP_PASSWORD` | 16-char app password (not regular password) |
-| `BASE_URL` | Defaults to `https://github.com` |
-| `TEST_MODE` | `read-only` (safe no-auth) or `full` (authenticated + write) |
-| `NODE_OPTIONS` | Must be `--use-system-ca` in CI (HTTPS to GitHub fails without it) |
-
-Known inconsistency: `login.steps.ts` error message says "Set `GITHUB_USERNAME`" but the actual env var is `GH_USERNAME`.
+| Variable                    | Purpose                                                            |
+| --------------------------- | ------------------------------------------------------------------ |
+| `GH_USERNAME`               | GitHub test account                                                |
+| `GH_PASSWORD`               | GitHub test password                                               |
+| `GH_API_TOKEN`              | Personal access token                                              |
+| `GH_TEST_REPO`              | Repo for test issues (e.g. `owner/repo`)                           |
+| `GH_TEST_REPO_OWNER`        | Owner of test repo                                                 |
+| `GH_TEST_REPO_NAME`         | Name of test repo (without owner/)                                 |
+| `GH_PROJECT_SANDBOX`        | Persistent sandbox project name                                    |
+| `GH_PROJECT_SANDBOX_NUMBER` | Sandbox project number (URL slug)                                  |
+| `GMAIL_ADDRESS`             | Gmail for device verification                                      |
+| `GMAIL_APP_PASSWORD`        | 16-char app password (not regular password)                        |
+| `BASE_URL`                  | Defaults to `https://github.com`                                   |
+| `TEST_MODE`                 | `read-only` (safe no-auth) or `full` (authenticated + write)       |
+| `NODE_OPTIONS`              | Must be `--use-system-ca` in CI (HTTPS to GitHub fails without it) |
 
 ## DataManager — LIFO cleanup queue
 
@@ -104,12 +101,12 @@ Role-based only (no CSS selectors — GitHub hashes class names). Use `exact: tr
 
 ## CI workflows (.github/workflows/)
 
-| Workflow | Trigger | Purpose |
-|----------|---------|---------|
-| `ci.yml` | PR to main, push to main | Typecheck, lint, format check, bddgen |
-| `e2e-full.yml` | Schedule (Sun 1AM UTC), manual | Full BDD suite (excludes @visual), Allure report to GH Pages |
-| `e2e-debug.yml` | Manual (with tag input) | Filtered tests by Gherkin tag, configurable trace/video |
-| `e2e-visual.yml` | Manual | Visual regression (`@visual` tag only) |
+| Workflow         | Trigger                        | Purpose                                                      |
+| ---------------- | ------------------------------ | ------------------------------------------------------------ |
+| `ci.yml`         | PR to main, push to main       | Typecheck, lint, format check, bddgen                        |
+| `e2e-full.yml`   | Schedule (Sun 1AM UTC), manual | Full BDD suite (excludes @visual), Allure report to GH Pages |
+| `e2e-debug.yml`  | Manual (with tag input)        | Filtered tests by Gherkin tag, configurable trace/video      |
+| `e2e-visual.yml` | Manual                         | Visual regression (`@visual` tag only)                       |
 
 ### Rerun-failed-only (e2e-full.yml)
 
@@ -123,10 +120,8 @@ When you click "Re-run failed jobs" in GitHub on `e2e-full.yml`:
 
 ## Gotchas
 
-- TypeScript 6.0 with `ignoreDeprecations: "6.0"` — bleeding edge
+- TypeScript 5.x with strict mode enabled
 - `closeIssue()` swallows errors (cleanup); `createIssue()` throws
-- No `BasePage` class implemented yet despite architecture doc mentioning it
 - `imap` is an unusual devDependency — only used by global-setup for device verification codes
 - `test.use()` at module level breaks BDD codegen — use it inside `Before` hooks or fixture definitions only
 - `NODE_OPTIONS: --use-system-ca` is **required in CI** — HTTPS requests to GitHub fail without it
-- `npm run test:bdd` and `npm run test:bdd:headed` from README don't exist in package.json

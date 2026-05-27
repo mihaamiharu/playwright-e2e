@@ -15,9 +15,7 @@ Given('I am on the GitHub login page', async ({ loginPage }) => {
 
 When('I enter valid credentials', async ({ loginPage }) => {
   if (!env.hasGitHubAuth) {
-    throw new Error(
-      'GitHub credentials not configured. Set GITHUB_USERNAME and GITHUB_PASSWORD in .env',
-    );
+    throw new Error('GitHub credentials not configured. Set GH_USERNAME and GH_PASSWORD in .env');
   }
   await loginPage.login(env.github.username, env.github.password);
 });
@@ -48,13 +46,20 @@ Then('I should be redirected to the dashboard', async ({ loginPage }) => {
   const twoFactorPrompt = page.getByText(/two-factor authentication/i);
   const dashboardHeader = page.getByRole('heading', { name: /home|dashboard/i });
 
-  // One of these should be visible
-  const visible = await Promise.race([
-    twoFactorPrompt.isVisible().then((v) => (v ? '2fa' : null)),
-    dashboardHeader.isVisible().then((v) => (v ? 'dashboard' : null)),
-    // If neither visible after timeout, page.waitForTimeout as last resort
-    page.waitForTimeout(3000).then(() => 'timeout'),
-  ]);
+  let visible: '2fa' | 'dashboard' | 'timeout' = 'timeout';
+  await expect(async () => {
+    if (await twoFactorPrompt.isVisible()) {
+      visible = '2fa';
+    } else if ((await dashboardHeader.isVisible()) || page.url().endsWith('github.com/')) {
+      visible = 'dashboard';
+    } else {
+      throw new Error('Waiting for 2FA or dashboard...');
+    }
+  })
+    .toPass({ timeout: 5000 })
+    .catch(() => {
+      visible = 'timeout';
+    });
 
   if (visible === 'timeout') {
     // Page loaded but neither expected element — log the URL for debugging

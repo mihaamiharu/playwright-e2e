@@ -1,5 +1,4 @@
 import { createBdd } from 'playwright-bdd';
-import { expect } from '@playwright/test';
 import { test } from '../../src/fixtures';
 import { env } from '../../src/config/env.config';
 
@@ -19,15 +18,12 @@ When('I unassign the issue via the API', async ({ githubAPI, seededProjectIssue 
   });
 });
 
-Then('I should see myself as the assignee on the issue', async ({ page }) => {
-  const assigneeSection = page.getByTestId('sidebar-assignees-section');
-  await expect(assigneeSection.getByRole('link', { name: env.github.username })).toBeVisible();
+Then('I should see myself as the assignee on the issue', async ({ issuePage }) => {
+  await issuePage.expectAssignee(env.github.username);
 });
 
-Then('I should see no assignee on the issue', async ({ page }) => {
-  const assigneeSection = page.getByTestId('sidebar-assignees-section');
-  await expect(assigneeSection.getByRole('link', { name: env.github.username })).not.toBeVisible();
-  await expect(assigneeSection.getByText('No one')).toBeVisible();
+Then('I should see no assignee on the issue', async ({ issuePage }) => {
+  await issuePage.expectNoAssignee(env.github.username);
 });
 
 When(
@@ -54,21 +50,24 @@ When(
   },
 );
 
-When('I filter the board by assignee {string}', async ({ page }, assigneeFilter: string) => {
-  const filterInput = page.getByRole('combobox').first();
-  await filterInput.click();
+When(
+  'I filter the board by assignee {string}',
+  async ({ page, projectFilterBar }, assigneeFilter: string) => {
+    await projectFilterBar.open();
+    await projectFilterBar.selectType('Assignee');
+    await projectFilterBar.selectOption(assigneeFilter);
 
-  await page.getByRole('option', { name: 'Assignee' }).click();
-  await page.getByRole('option', { name: assigneeFilter }).click();
+    await page.waitForURL(/filterQuery=assignee/);
+    await page
+      .getByRole('heading', { level: 2 })
+      .first()
+      .waitFor({ state: 'visible', timeout: 15000 });
+  },
+);
 
-  await page.waitForURL(/filterQuery=assignee/);
-  await page
-    .getByRole('heading', { level: 2 })
-    .first()
-    .waitFor({ state: 'visible', timeout: 15000 });
-});
-
-Then('the second unassigned issue should not be visible on the board', async ({ page }) => {
-  const card = page.getByRole('button', { name: new RegExp(secondUnassignedIssueTitle) });
-  await expect(card.first()).not.toBeVisible();
-});
+Then(
+  'the second unassigned issue should not be visible on the board',
+  async ({ projectBoardPage }) => {
+    await projectBoardPage.expectCardNotVisible(secondUnassignedIssueTitle);
+  },
+);

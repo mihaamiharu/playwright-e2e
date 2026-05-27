@@ -303,8 +303,17 @@ async function globalSetup(_config: FullConfig) {
     // Use exact:true to avoid matching the passkey button
     await page.getByRole('button', { name: 'Sign in', exact: true }).click();
 
-    // Wait to see where we land
-    await page.waitForTimeout(3000);
+    // Wait to see where we land (dashboard, 2FA, or device verification)
+    await page.waitForURL(
+      (url) => {
+        const path = url.pathname;
+        return (
+          !path.startsWith('/login') &&
+          (!path.startsWith('/session') || path.includes('/verified-device'))
+        );
+      },
+      { timeout: 15_000 },
+    );
     let currentUrl = page.url();
     console.log(`📍 Post-login URL: ${currentUrl}`);
 

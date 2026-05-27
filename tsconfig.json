@@ -16,10 +16,8 @@
     "baseUrl": ".",
     "paths": {
       "@pages/*": ["src/pages/*"],
-      "@components/*": ["src/components/*"],
       "@fixtures/*": ["src/fixtures/*"],
       "@utils/*": ["src/utils/*"],
-      "@data/*": ["src/data/*"],
       "@config/*": ["src/config/*"]
     }
   },

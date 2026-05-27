@@ -1,5 +1,4 @@
 import { createBdd } from 'playwright-bdd';
-import { expect } from '@playwright/test';
 import { test } from '../../src/fixtures';
 import { env } from '../../src/config/env.config';
 
@@ -31,16 +30,8 @@ Given(
 
 Then(
   'both the {string} and seeded issues should appear in the {string} column',
-  async ({ page, seededProjectIssue }, _sourcePrefix: string, _columnName: string) => {
-    await page
-      .getByRole('heading', { level: 2 })
-      .first()
-      .waitFor({ state: 'visible', timeout: 15000 });
-
-    const seededCard = page.getByRole('button', { name: new RegExp(seededProjectIssue.title) });
-    await expect(seededCard.first()).toBeVisible({ timeout: 15000 });
-
-    const zzzCard = page.getByRole('button', { name: new RegExp(secondRankIssueTitle) });
-    await expect(zzzCard.first()).toBeVisible({ timeout: 15000 });
+  async ({ projectBoardPage, seededProjectIssue }) => {
+    await projectBoardPage.expectCardVisible(seededProjectIssue.title);
+    await projectBoardPage.expectCardVisible(secondRankIssueTitle);
   },
 );

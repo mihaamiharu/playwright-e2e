@@ -5,11 +5,10 @@ import { env } from '../../src/config/env.config';
 
 const { When, Then } = createBdd(test);
 
-When('I close the seeded issue via the API', async ({ githubAPI, seededProjectIssue, page }) => {
+When('I close the seeded issue via the API', async ({ githubAPI, seededProjectIssue }) => {
   await githubAPI.updateIssue(env.github.testRepo, seededProjectIssue.number, {
     state: 'closed',
   });
-  await page.waitForTimeout(1000);
 });
 
 let milestoneNumber = 0;
@@ -43,11 +42,8 @@ When(
   },
 );
 
-Then('I should see the milestone name in the issue sidebar', async ({ page }) => {
-  const milestoneSection = page.getByTestId('sidebar-milestones-section');
-  await expect(milestoneSection.getByTestId('issue-milestone-container')).toContainText(
-    milestoneTitle,
-  );
+Then('I should see the milestone name in the issue sidebar', async ({ issuePage }) => {
+  await issuePage.expectMilestone(milestoneTitle);
 });
 
 When(
@@ -86,11 +82,17 @@ Then('I should see the milestone progress bar showing partial completion', async
   const progressBar = page.locator('[role="progressbar"]');
   await progressBar.waitFor({ state: 'visible', timeout: 20000 });
 
-  const progressValue = Number(await progressBar.getAttribute('aria-valuenow'));
-  const progressMax = Number(await progressBar.getAttribute('aria-valuemax'));
-
-  expect(progressValue).toBeGreaterThan(0);
-  expect(progressValue).toBeLessThan(progressMax);
+  let isFirst = true;
+  await expect(async () => {
+    if (!isFirst) {
+      await page.reload();
+    }
+    isFirst = false;
+    const progressValue = Number(await progressBar.getAttribute('aria-valuenow'));
+    const progressMax = Number(await progressBar.getAttribute('aria-valuemax'));
+    expect(progressValue).toBeGreaterThan(0);
+    expect(progressValue).toBeLessThan(progressMax);
+  }).toPass({ timeout: 15_000 });
 });
 
 // ── MIL-03 ──────────────────────────────────────────────────
@@ -114,9 +116,15 @@ Then('the milestone should show completed status and full progress', async ({ pa
   const progressBar = page.locator('[role="progressbar"]');
   await progressBar.waitFor({ state: 'visible', timeout: 20000 });
 
-  const progressValue = Number(await progressBar.getAttribute('aria-valuenow'));
-  const progressMax = Number(await progressBar.getAttribute('aria-valuemax'));
-
-  expect(progressValue).toBeGreaterThan(0);
-  expect(progressValue).toBe(progressMax);
+  let isFirst = true;
+  await expect(async () => {
+    if (!isFirst) {
+      await page.reload();
+    }
+    isFirst = false;
+    const progressValue = Number(await progressBar.getAttribute('aria-valuenow'));
+    const progressMax = Number(await progressBar.getAttribute('aria-valuemax'));
+    expect(progressValue).toBeGreaterThan(0);
+    expect(progressValue).toBe(progressMax);
+  }).toPass({ timeout: 15_000 });
 });

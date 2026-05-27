@@ -88,7 +88,6 @@ function parseResponse(text: string): CaptchaAction[] {
 
 export async function solveCaptcha(page: Page, apiKey: string, maxAttempts = 3): Promise<boolean> {
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    // eslint-disable-next-line no-console
     console.log(`🔐 CAPTCHA solver attempt ${attempt}/${maxAttempts}...`);
 
     const screenshot = await page.screenshot({ type: 'png', fullPage: false });
@@ -99,19 +98,15 @@ export async function solveCaptcha(page: Page, apiKey: string, maxAttempts = 3):
     fs.mkdirSync('reports/artifacts', { recursive: true });
     const shotPath = `reports/artifacts/captcha-attempt-${attempt}.png`;
     fs.writeFileSync(shotPath, screenshot);
-    // eslint-disable-next-line no-console
     console.log(`  📸 Saved debug screenshot: ${shotPath}`);
 
     const raw = await callGemini(base64, apiKey);
-    // eslint-disable-next-line no-console
     console.log(`  🤖 Gemini response: ${raw.substring(0, 300)}`);
 
     const actions = parseResponse(raw);
-    // eslint-disable-next-line no-console
     console.log(`  🔧 ${actions.length} actions parsed`);
 
     if (actions.length === 0) {
-      // eslint-disable-next-line no-console
       console.log('  ⚠️  No actions returned — check debug screenshot');
       return false;
     }
@@ -119,7 +114,6 @@ export async function solveCaptcha(page: Page, apiKey: string, maxAttempts = 3):
     for (const action of actions) {
       if (action.type === 'click' && typeof action.x === 'number' && typeof action.y === 'number') {
         await page.mouse.click(action.x, action.y);
-        // eslint-disable-next-line no-console
         console.log(`  👆 Click at (${action.x}, ${action.y})`);
       } else if (
         action.type === 'drag' &&
@@ -132,7 +126,6 @@ export async function solveCaptcha(page: Page, apiKey: string, maxAttempts = 3):
         await page.mouse.down();
         await page.mouse.move(action.x2, action.y2, { steps: 10 });
         await page.mouse.up();
-        // eslint-disable-next-line no-console
         console.log(`  🖱️  Drag from (${action.x1},${action.y1}) → (${action.x2},${action.y2})`);
       } else if (action.type === 'wait' && action.ms) {
         await page.waitForTimeout(action.ms);
@@ -143,12 +136,10 @@ export async function solveCaptcha(page: Page, apiKey: string, maxAttempts = 3):
     const url = page.url();
 
     if (!url.includes('/login')) {
-      // eslint-disable-next-line no-console
       console.log(`✅ CAPTCHA solved — navigated to: ${url}`);
       return true;
     }
 
-    // eslint-disable-next-line no-console
     console.log(`  ⏳ Still on login page (attempt ${attempt}/${maxAttempts})`);
   }
 
