@@ -67,7 +67,7 @@ jobs:
 
       - name: Generate Allure Report
         if: always()
-        run: npx allure generate reports/allure/results --clean -o reports/allure/report || true
+        run: npx allure generate --clean -o reports/allure/report reports/allure/results || true
 
       - name: Update Allure History for Cache
         if: always()
