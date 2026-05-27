@@ -42,10 +42,10 @@ jobs:
           gh run download "${{ github.run_id }}" \
             --name "test-cache-${PREV}" \
             --dir ./prev-cache 2>/dev/null || echo "No previous cache found — will run full suite"
-          if [ -f ./prev-cache/reports/artifacts/.last-run.json ]; then
+          if [ -f ./prev-cache/artifacts/.last-run.json ]; then
             mkdir -p reports/artifacts reports/allure/results
-            cp ./prev-cache/reports/artifacts/.last-run.json reports/artifacts/
-            cp -r ./prev-cache/reports/allure/results/* reports/allure/results/ 2>/dev/null || true
+            cp ./prev-cache/artifacts/.last-run.json reports/artifacts/
+            cp -r ./prev-cache/allure/results/* reports/allure/results/ 2>/dev/null || true
             echo "Restored previous results successfully"
             ls -la reports/artifacts/.last-run.json
           else
@@ -82,6 +82,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-cache-${{ github.run_attempt }}
+          include-hidden-files: true
           path: |
             reports/artifacts/.last-run.json
             reports/allure/results/
