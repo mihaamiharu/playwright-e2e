@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: write
+  actions: read
 
 jobs:
   e2e:
@@ -31,6 +32,26 @@ jobs:
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
+      - name: Restore previous run results (rerun only)
+        if: github.run_attempt > 1
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PREV=$(( ${{ github.run_attempt }} - 1 ))
+          echo "Attempting to restore results from attempt #$PREV"
+          gh run download "${{ github.run_id }}" \
+            --name "test-cache-${PREV}" \
+            --dir ./prev-cache 2>/dev/null || echo "No previous cache found — will run full suite"
+          if [ -f ./prev-cache/.last-run.json ]; then
+            mkdir -p reports/artifacts reports/allure/results
+            cp ./prev-cache/.last-run.json reports/artifacts/
+            cp -r ./prev-cache/results/* reports/allure/results/ 2>/dev/null || true
+            echo "Restored previous results successfully"
+            ls -la reports/artifacts/.last-run.json
+          else
+            echo "No .last-run.json in cache, will run full suite"
+          fi
+
       - name: Run Playwright tests
         env:
           GH_USERNAME: ${{ secrets.GH_USERNAME }}
@@ -46,7 +67,25 @@ jobs:
           BASE_URL: https://github.com
           TEST_MODE: full
           NODE_OPTIONS: --use-system-ca
-        run: npm run bddgen && npx playwright test --config=playwright.bdd.config.ts --grep-invert @visual
+        run: |
+          npm run bddgen
+          if [[ "${{ github.run_attempt }}" -gt 1 && -f reports/artifacts/.last-run.json ]]; then
+            echo "→ Rerun mode: only previously failed tests"
+            npx playwright test --config=playwright.bdd.config.ts --last-failed --grep-invert @visual
+          else
+            echo "→ Full mode: running all tests"
+            npx playwright test --config=playwright.bdd.config.ts --grep-invert @visual
+          fi
+
+      - name: Upload test run cache
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-cache-${{ github.run_attempt }}
+          path: |
+            reports/artifacts/.last-run.json
+            reports/allure/results/
+          retention-days: 7
 
       - name: Restore Allure History Cache
         uses: actions/cache/restore@v4
