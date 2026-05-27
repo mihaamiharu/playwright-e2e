@@ -8,6 +8,7 @@ dotenv.config();
 const AUTH_FILE = 'auth/github.json';
 const POLL_INTERVAL_MS = 5000;
 const MAX_POLLS = 12; // ~60 seconds total
+const GRAPHQL_ENDPOINT = 'https://api.github.com/graphql';
 
 function connectImap(user: string, pass: string): Promise<Imap> {
   return new Promise((resolve, reject) => {
@@ -137,6 +138,106 @@ async function fetchVerificationCode(): Promise<string> {
   }
 }
 
+async function graphql<T>(query: string, variables: Record<string, unknown> = {}): Promise<T> {
+  const token = process.env.GITHUB_API_TOKEN;
+  const response = await fetch(GRAPHQL_ENDPOINT, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ query, variables }),
+  });
+  const body: unknown = await response.json();
+  const { data, errors } = body as { data?: T; errors?: Array<{ message: string }> };
+  if (errors) throw new Error(errors.map((e) => e.message).join('; '));
+  return data as T;
+}
+
+/**
+ * One-time check to ensure the sandbox project has all fields required by tests.
+ * Runs only on first-run (when auth isn't cached). Idempotent — skips fields that already exist.
+ */
+async function ensureSandboxFields(): Promise<void> {
+  const token = process.env.GITHUB_API_TOKEN;
+  const owner = process.env.GITHUB_TEST_REPO_OWNER;
+  const projectNumber = parseInt(process.env.GITHUB_PROJECT_SANDBOX_NUMBER || '1', 10);
+
+  if (!token || !owner) {
+    console.log('  ⏭️  Sandbox check skipped — GITHUB_API_TOKEN or GITHUB_TEST_REPO_OWNER not set');
+    return;
+  }
+
+  console.log(`\n🔧 Verifying sandbox project fields...`);
+
+  try {
+    // Get project ID
+    const projData = await graphql<{ user: { projectV2: { id: string } | null } }>(
+      `query($owner: String!, $projectNumber: Int!) {
+        user(login: $owner) { projectV2(number: $projectNumber) { id } }
+      }`,
+      { owner, projectNumber },
+    );
+    const projectId = projData.user?.projectV2?.id;
+    if (!projectId) {
+      console.warn(`  ⚠️  Sandbox project #${projectNumber} not found for "${owner}"`);
+      return;
+    }
+
+    // Get existing fields
+    const fieldsData = await graphql<{ node: { fields: { nodes: Array<{ __typename: string; name: string }> } } }>(
+      `query($projectId: ID!) {
+        node(id: $projectId) {
+          ... on ProjectV2 {
+            fields(first: 20) {
+              nodes { __typename name }
+            }
+          }
+        }
+      }`,
+      { projectId },
+    );
+
+    const existingNames = new Set(fieldsData.node.fields.nodes.map((f) => f.name));
+
+    // Check Iteration field — only one we need to potentially create (others already exist)
+    if (existingNames.has('Iteration')) {
+      console.log('  ✅ Iteration field exists');
+    } else {
+      console.log('  ➕ Creating Iteration field...');
+      try {
+        await graphql(
+          `mutation($projectId: ID!) {
+            createProjectV2Field(input: {
+              projectId: $projectId
+              name: "Iteration"
+              dataType: ITERATION
+              iterationConfiguration: {
+                startDate: "2026-06-01"
+                duration: 14
+                iterations: [
+                  { title: "Sprint 1", duration: 14, startDate: "2026-06-01" }
+                  { title: "Sprint 2", duration: 14, startDate: "2026-06-15" }
+                ]
+              }
+            }) {
+              projectV2Field { ... on ProjectV2IterationField { id } }
+            }
+          }`,
+          { projectId },
+        );
+        console.log('  ✅ Iteration field created');
+      } catch (err) {
+        console.warn(`  ⚠️  Could not create Iteration field: ${err}`);
+      }
+    }
+
+    console.log('  ✅ Sandbox fields verified\n');
+  } catch (err) {
+    console.warn(`  ⚠️  Sandbox check failed (non-fatal): ${err}`);
+  }
+}
+
 async function globalSetup(_config: FullConfig) {
   // Skip login if storage state already exists
   if (fs.existsSync(AUTH_FILE)) {
@@ -211,6 +312,9 @@ async function globalSetup(_config: FullConfig) {
     // ── Save browser state ─────────────────────────────────────
     await page.context().storageState({ path: AUTH_FILE });
     console.log(`✅ GitHub auth saved to ${AUTH_FILE}`);
+
+    // ── One-time sandbox field check ────────────────────────────
+    await ensureSandboxFields();
   } finally {
     await browser.close();
   }

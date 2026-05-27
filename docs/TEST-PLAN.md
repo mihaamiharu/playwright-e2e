@@ -97,7 +97,7 @@ Group issues by milestone, track progress — Jira's Fix Versions equivalent.
 | ------ | ---------------------------------------------------------------- | -------- | ------- | ------ |
 | MIL-01 | Create milestone with due date → verify appears in issue sidebar | P1       | E2E+API | ✅     |
 | MIL-02 | Link issues to milestone → verify milestone progress bar updates | P1       | E2E+API | ✅     |
-| MIL-03 | Close milestone → verify "Completed" status and progress at 100% | P2       | E2E+API |
+| MIL-03 | Close milestone → verify "Completed" status and progress at 100% | P2       | E2E+API | ✅     | ✅     |
 
 ---
 
@@ -165,8 +165,8 @@ User-defined metadata — Jira's custom fields are the #1 reason orgs configure 
 
 | ID     | Scenario                                                                                        | Priority | Type    | Status |
 | ------ | ----------------------------------------------------------------------------------------------- | -------- | ------- | ------ |
-| FLD-01 | Create custom field (Text / Number / Single Select) → set value on issue → verify in table view | P1       | E2E+API |
-| FLD-02 | Filter/sort board by custom field value → verify correct results                                | P2       | E2E+API |
+| FLD-01 | Create custom field (Text / Number / Single Select) → set value on issue → verify in table view | P1       | E2E+API | ✅     |
+| FLD-02 | Filter/sort board by custom field value → verify correct results                                | P2       | E2E+API | ✅     |
 
 ---
 
@@ -176,8 +176,8 @@ Quick-add cards without creating full issues — Jira's "create" shortcut.
 
 | ID      | Scenario                                                                   | Priority | Type    | Status |
 | ------- | -------------------------------------------------------------------------- | -------- | ------- | ------ |
-| DRFT-01 | Create draft item on board → verify appears in column without issue number | P2       | E2E     |
-| DRFT-02 | Convert draft to issue → verify gets issue number and full detail view     | P2       | E2E+API |
+| DRFT-01 | Create draft item on board → verify appears in column without issue number | P2       | E2E     | ✅     |
+| DRFT-02 | Convert draft to issue → verify gets issue number and full detail view     | P2       | E2E+API | ✅     |
 
 ---
 
@@ -187,8 +187,8 @@ Lifecycle beyond open/closed — different from delete.
 
 | ID     | Scenario                                                   | Priority | Type    | Status |
 | ------ | ---------------------------------------------------------- | -------- | ------- | ------ |
-| ARC-01 | Archive issue from board → verify hidden from active views | P2       | E2E+API |
-| ARC-02 | Restore archived item → verify reappears in board          | P2       | E2E+API |
+| ARC-01 | Archive issue from board → verify hidden from active views | P2       | E2E+API | ✅     |
+| ARC-02 | Restore archived item → verify reappears in board          | P2       | E2E+API | ✅     |
 
 ---
 
@@ -198,8 +198,8 @@ Time-based fields — due dates, sprint assignment.
 
 | ID       | Scenario                                                      | Priority | Type    | Status |
 | -------- | ------------------------------------------------------------- | -------- | ------- | ------ |
-| TDATE-01 | Set custom Date field → verify rendered in table + board card | P2       | E2E+API |
-| ITER-01  | Set Iteration field → verify appears on card                  | P2       | E2E+API |
+| TDATE-01 | Set custom Date field → verify rendered in table + board card | P2       | E2E+API | ✅     |
+| ITER-01  | Set Iteration field → verify appears on card                  | P2       | E2E+API | ✅     |
 
 ---
 
@@ -209,8 +209,8 @@ Persistent filter configurations — Jira's saved boards/queries.
 
 | ID      | Scenario                                                                          | Priority | Type    | Status |
 | ------- | --------------------------------------------------------------------------------- | -------- | ------- | ------ |
-| VIEW-01 | Create saved view with filter + sort → verify configuration persists after reload | P2       | E2E+API |
-| VIEW-02 | Switch between saved views → verify correct filtered data shown                   | P2       | E2E     |
+| VIEW-01 | Create saved view with filter + sort → verify configuration persists after reload | P2       | E2E+API | ✅     |
+| VIEW-02 | Switch between saved views → verify correct filtered data shown                   | P2       | E2E     | ✅     |
 
 ---
 
@@ -220,7 +220,7 @@ Backlog prioritization — order matters.
 
 | ID      | Scenario                                                                | Priority | Type    | Status |
 | ------- | ----------------------------------------------------------------------- | -------- | ------- | ------ |
-| RANK-01 | Reorder items within a column → verify order persists after page reload | P2       | E2E+API |
+| RANK-01 | Reorder items within a column → verify order persists after page reload | P2       | E2E+API | ✅     |
 
 ---
 
@@ -230,7 +230,7 @@ Rule-based automation — Jira's "when X, do Y" post-functions.
 
 | ID       | Scenario                                                                                       | Priority | Type    | Status |
 | -------- | ---------------------------------------------------------------------------------------------- | -------- | ------- | ------ |
-| WFLOW-01 | Configure auto-workflow (on close → move to Done) → close issue via API → verify it auto-moves | P2       | E2E+API |
+| WFLOW-01 | Configure auto-workflow (on close → move to Done) → close issue via API → verify it auto-moves | P2       | E2E+API | ✅     |
 
 ---
 
@@ -250,21 +250,21 @@ Find issues within the project scope.
 | ----------------- | --------- | ----- | ------ | ------ | ---- |
 | Issue CRUD        | 4         | 1     | 3      | 0      | 4    |
 | Labels & Metadata | 4         | 0     | 4      | 0      | 4    |
-| Milestones        | 3         | 0     | 2      | 1      | 2    |
+| Milestones        | 3         | 0     | 2      | 1      | 3    |
 | Assignees         | 3         | 0     | 2      | 1      | 3    |
 | Board Workflow    | 4         | 1     | 2      | 1      | 4    |
 | Table & Views     | 3         | 0     | 3      | 0      | 3    |
 | Comments          | 2         | 0     | 1      | 1      | 2    |
 | Bulk Operations   | 1         | 0     | 1      | 0      | 1    |
-| Custom Fields     | 2         | 0     | 1      | 1      | 0    |
-| Draft Items       | 2         | 0     | 0      | 2      | 0    |
-| Archive           | 2         | 0     | 0      | 2      | 0    |
-| Date & Iteration  | 2         | 0     | 0      | 2      | 0    |
-| Saved Views       | 2         | 0     | 0      | 2      | 0    |
-| Ranking           | 1         | 0     | 0      | 1      | 0    |
-| Auto-Workflows    | 1         | 0     | 0      | 1      | 0    |
+| Custom Fields     | 2         | 0     | 1      | 1      | 2    |
+| Draft Items       | 2         | 0     | 0      | 2      | 2    |
+| Archive           | 2         | 0     | 0      | 2      | 2    |
+| Date & Iteration  | 2         | 0     | 0      | 2      | 2    |
+| Saved Views       | 2         | 0     | 0      | 2      | 2    |
+| Ranking           | 1         | 0     | 0      | 1      | 1    |
+| Auto-Workflows    | 1         | 0     | 0      | 1      | 1    |
 | In-Project Search | 1         | 0     | 1      | 0      | 1    |
-| **Total**         | **37**    | **2** | **20** | **15** | **24**|
+| **Total**         | **37**    | **2** | **21** | **14** | **37**|
 
 **Full lifecycle covered:** Create → Label → Assign → Estimate (milestone/iteration) → Prioritize (rank) → Track (board) → Collaborate (comments) → Report (views/table) → Search → Bulk update → Complete (archive/auto-workflow).
 
@@ -300,7 +300,7 @@ GITHUB_PROJECT_SANDBOX=e2e-sandbox
 2. **Phase 2 — Labels ✅:** LBL-01/02/03/04 — label add, multi-add, remove via UI, board filter. Introduces playwright-cli for UI discovery.
 3. **Phase 3 — Metadata ✅:** ASN-01/02/03, MIL-01/02 — assignees and milestones. Rounds out the P1s.
 4. **Phase 4 — Views & Collaboration ✅:** TBL-01/02/03, CMT-01/02, BULK-01, SRCH-01 — table mode, comments, bulk ops, search.
-5. **Phase 5 — Advanced:** FLD-01/02, DRFT-01/02, ARC-01/02, TDATE-01, ITER-01, VIEW-01/02, RANK-01, WFLOW-01 — P2s and edge cases.
+5. **Phase 5 — Advanced ✅:** FLD-01/02, DRFT-01/02, ARC-01/02, TDATE-01, ITER-01, VIEW-01/02, RANK-01, MIL-03, WFLOW-01 — P2s and edge cases. All 37 scenarios automated.
 6. **Phase 6 — CI:** GitHub Actions for read-only + authenticated suite on schedule.
 
 ---

@@ -21,3 +21,14 @@ Feature: Milestones
     And I close the seeded issue via the API
     And I navigate to the milestone page
     Then I should see the milestone progress bar showing partial completion
+
+  @P2
+  Scenario: MIL-03 — Close milestone and verify "Completed" status and 100% progress
+    When I create a milestone with a due date via the API
+    And I link the seeded issue to the milestone via the API
+    And I seed a second issue on the board linked to the milestone
+    And I close the seeded issue via the API
+    And I close the second issue via the API
+    And I close the milestone via the API
+    And I navigate to the milestone page
+    Then the milestone should show completed status and full progress
