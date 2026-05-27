@@ -1,7 +1,7 @@
 import { createBdd } from 'playwright-bdd';
 import { expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
-import { test } from '../../src/fixtures/github-project.fixture';
+import { test } from '../../src/fixtures';
 import { env } from '../../src/config/env.config';
 
 const { When, Then } = createBdd(test);
@@ -61,15 +61,20 @@ When('I drag the issue from {string} to {string}', async ({ page, seededProjectI
   const targetHeading = page.getByRole('heading', { name: toColumn, level: 2 });
   await expect(targetHeading).toBeVisible();
 
+  // Use the specific GitHub Projects attribute for columns to target the actual drop zone
+  const targetColumn = page.locator(`[data-board-column="${toColumn}"]`);
+  
   const sourceBox = await issueCard.boundingBox();
   if (!sourceBox) throw new Error('Could not determine source card position');
 
-  const targetBox = await targetHeading.boundingBox();
-  if (!targetBox) throw new Error(`Could not determine target position for "${toColumn}" column`);
+  const targetBox = await targetColumn.boundingBox();
+  if (!targetBox) throw new Error(`Could not determine target column position for "${toColumn}"`);
 
+  // Use explicit mouse events with steps to simulate a real drag (GitHub Projects relies heavily on pointer move events)
   await page.mouse.move(sourceBox.x + sourceBox.width / 2, sourceBox.y + sourceBox.height / 2);
   await page.mouse.down();
-  await page.mouse.move(targetBox.x + targetBox.width / 2, targetBox.y + targetBox.height + 40, { steps: 20 });
+  // Drag to the center of the actual column body dropzone
+  await page.mouse.move(targetBox.x + targetBox.width / 2, targetBox.y + targetBox.height / 2, { steps: 20 });
   await page.mouse.up();
 });
 

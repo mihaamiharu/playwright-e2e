@@ -1,6 +1,6 @@
 import { createBdd } from 'playwright-bdd';
 import { expect } from '@playwright/test';
-import { test } from '../../src/fixtures/github-project.fixture';
+import { test } from '../../src/fixtures';
 
 const { When, Then } = createBdd(test);
 
