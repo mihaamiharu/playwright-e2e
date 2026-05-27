@@ -8,13 +8,13 @@ Feature: GitHub Login
   Background:
     Given I am on the GitHub login page
 
-  @P0 @smoke
+  @P0
   Scenario: Login with valid credentials
     When I enter valid credentials
     And I submit the login form
     Then I should be redirected to the dashboard
 
-  @P1 @noauth
+  @P1 @noauth @smoke
   Scenario: Login fails with wrong password
     When I enter username "test-user" and password "wrong-password"
     And I submit the login form
