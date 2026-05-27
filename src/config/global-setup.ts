@@ -133,7 +133,7 @@ async function fetchVerificationCode(): Promise<string> {
 }
 
 async function graphql<T>(query: string, variables: Record<string, unknown> = {}): Promise<T> {
-  const token = process.env.GITHUB_API_TOKEN;
+  const token = process.env.GH_API_TOKEN;
   const response = await fetch(GRAPHQL_ENDPOINT, {
     method: 'POST',
     headers: {
@@ -153,12 +153,12 @@ async function graphql<T>(query: string, variables: Record<string, unknown> = {}
  * Runs only on first-run (when auth isn't cached). Idempotent — skips fields that already exist.
  */
 async function ensureSandboxFields(): Promise<void> {
-  const token = process.env.GITHUB_API_TOKEN;
-  const owner = process.env.GITHUB_TEST_REPO_OWNER;
-  const projectNumber = parseInt(process.env.GITHUB_PROJECT_SANDBOX_NUMBER || '1', 10);
+  const token = process.env.GH_API_TOKEN;
+  const owner = process.env.GH_TEST_REPO_OWNER;
+  const projectNumber = parseInt(process.env.GH_PROJECT_SANDBOX_NUMBER || '1', 10);
 
   if (!token || !owner) {
-    console.log('  ⏭️  Sandbox check skipped — GITHUB_API_TOKEN or GITHUB_TEST_REPO_OWNER not set');
+    console.log('  ⏭️  Sandbox check skipped — GH_API_TOKEN or GH_TEST_REPO_OWNER not set');
     return;
   }
 
@@ -260,11 +260,11 @@ async function globalSetup(_config: FullConfig) {
     return;
   }
 
-  const username = process.env.GITHUB_USERNAME;
-  const password = process.env.GITHUB_PASSWORD;
+  const username = process.env.GH_USERNAME;
+  const password = process.env.GH_PASSWORD;
 
   if (!username || !password) {
-    console.warn('⚠️  GITHUB_USERNAME or GITHUB_PASSWORD not set — skipping auth setup');
+    console.warn('⚠️  GH_USERNAME or GH_PASSWORD not set — skipping auth setup');
     return;
   }
 
