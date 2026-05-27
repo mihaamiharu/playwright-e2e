@@ -125,14 +125,14 @@ An App Password is a 16-character token you generate in your Google Account sett
 Generate one specifically for "Mail" on "Other (Custom name)" — I called mine `Playwright E2E Auth`.
 
 ```
-App password: ygsk dhhp gplg tmex
+App password: xxxx xxxx xxxx xxxx
 ```
 
 This goes into `.env` alongside the GitHub credentials:
 
 ```env
-GMAIL_ADDRESS=kikkawa23@gmail.com
-GMAIL_APP_PASSWORD=ygsk dhhp gplg tmex
+GMAIL_ADDRESS=your-email@gmail.com
+GMAIL_APP_PASSWORD=xxxx xxxx xxxx xxxx
 ```
 
 Never hardcode this. Never commit it. The `.env` file is gitignored.

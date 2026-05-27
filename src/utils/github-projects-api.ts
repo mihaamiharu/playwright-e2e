@@ -1,4 +1,5 @@
 import type { APIRequestContext } from '@playwright/test';
+import { retry } from './retry';
 
 /**
  * GraphQL client for GitHub Projects V2.
@@ -74,13 +75,21 @@ export class GitHubProjectsAPI {
 
   /** Execute a GraphQL query/mutation. Throws on errors. */
   private async graphql<T>(query: string, variables: Record<string, unknown> = {}): Promise<T> {
-    const response = await this.request.post(this.endpoint, {
-      headers: {
-        Authorization: `Bearer ${this.token}`,
-        'Content-Type': 'application/json',
+    const response = await retry(
+      () =>
+        this.request.post(this.endpoint, {
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+            'Content-Type': 'application/json',
+          },
+          data: { query, variables },
+        }),
+      {
+        retryable: (err) => /TIMEDOUT|ETIMEDOUT|socket hang up/i.test(err.message),
+        onRetry: (err, attempt, max) =>
+          console.warn(`[retry] GraphQL timeout (${attempt}/${max}) — ${err.message}`),
       },
-      data: { query, variables },
-    });
+    );
 
     if (!response.ok()) {
       throw new Error(`GraphQL request failed: ${response.status()} ${await response.text()}`);

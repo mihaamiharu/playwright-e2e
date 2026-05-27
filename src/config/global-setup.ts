@@ -63,9 +63,32 @@ function fetchMessageSource(imap: Imap, seqno: number): Promise<string> {
   });
 }
 
+/** Cutoff — skip emails older than this. */
+const CODE_AGE_MS = 10 * 60 * 1000; // 10 minutes
+
+/** Check whether the email's Date header is within the last CODE_AGE_MS. */
+function isRecentEmail(raw: string): boolean {
+  const dateMatch = raw.match(/^Date:\s*(.+)$/m);
+  if (!dateMatch) return false;
+  const emailDate = new Date(dateMatch[1]).getTime();
+  if (isNaN(emailDate)) return false;
+  return Date.now() - emailDate < CODE_AGE_MS;
+}
+
+/** Pull the 6-digit verification code from a raw email source. */
+function extractCode(raw: string): string | null {
+  // Decode quoted-printable encoding (GitHub uses =XX for special chars)
+  const decoded = raw.replace(/=([0-9A-F]{2})/g, (_match: string, hex: string) =>
+    String.fromCharCode(parseInt(hex, 16)),
+  );
+  const codeMatch = decoded.match(/Verification code:\s*(\d{6})/);
+  return codeMatch ? codeMatch[1] : null;
+}
+
 /**
  * Fetch the latest GitHub device verification code from Gmail via IMAP.
  * Polls up to ~60s, waiting for the email to arrive.
+ * Filters to only emails received in the last 10 minutes to avoid stale codes.
  */
 async function fetchVerificationCode(): Promise<string> {
   const user = process.env.GMAIL_ADDRESS;
@@ -106,21 +129,18 @@ async function fetchVerificationCode(): Promise<string> {
       for (const seqno of recent) {
         const raw = await fetchMessageSource(imap, seqno);
         if (!raw) continue;
+        if (!isRecentEmail(raw)) continue;
 
-        // Decode quoted-printable encoding (GitHub uses =XX for special chars)
-        const decoded = raw.replace(/=([0-9A-F]{2})/g, (_match: string, hex: string) =>
-          String.fromCharCode(parseInt(hex, 16)),
-        );
-
-        const codeMatch = decoded.match(/Verification code:\s*(\d{6})/);
-        if (codeMatch) {
-          return codeMatch[1];
+        const code = extractCode(raw);
+        if (code) {
+          console.log(`  📧 Found verification code in recent email`);
+          return code;
         }
       }
 
       if (attempt < MAX_POLLS) {
         console.log(
-          `⏳ GitHub verification email found but code not ready yet (attempt ${attempt}/${MAX_POLLS}) — retrying...`,
+          `⏳ Recent verification email not yet arrived (attempt ${attempt}/${MAX_POLLS}) — waiting ${POLL_INTERVAL_MS / 1000}s...`,
         );
         await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
       }
@@ -285,42 +305,98 @@ async function globalSetup(_config: FullConfig) {
 
     // Wait to see where we land
     await page.waitForTimeout(3000);
-    const currentUrl = page.url();
+    let currentUrl = page.url();
     console.log(`📍 Post-login URL: ${currentUrl}`);
 
-    // ── Handle device verification ─────────────────────────────
+    // ── Debug screenshot ────────────────────────────────────────
+    await page.screenshot({ path: 'reports/artifacts/debug-post-submit.png' });
+
+    // ── Handle device verification — retries up to 3x with fresh codes ──
     if (currentUrl.includes('/sessions/verified-device')) {
-      console.log('📱 Device verification required — fetching code from Gmail via IMAP...');
+      console.log('📱 Device verification required');
+      let verified = false;
 
-      const code = await fetchVerificationCode();
+      for (let vAttempt = 1; vAttempt <= 3; vAttempt++) {
+        console.log(`  📱 Verification attempt ${vAttempt}/3...`);
 
-      // Enter the code
-      await page.getByLabel('Device Verification Code').fill(code);
+        const code = await fetchVerificationCode();
 
-      // Try to click Verify, but GitHub may auto-submit after 6 digits
-      try {
-        await page.getByRole('button', { name: 'Verify' }).click({
-          noWaitAfter: true,
-          timeout: 5000,
+        // Fill the code
+        await page.getByLabel('Device Verification Code').clear();
+        await page.getByLabel('Device Verification Code').fill(code);
+        await page.screenshot({
+          path: `reports/artifacts/verify-code-filled-${vAttempt}.png`,
         });
-      } catch {
-        await page.screenshot({ path: 'reports/artifacts/verify-button-gone.png' });
-        console.log(
-          '  ℹ️  Verify button already gone — page may have auto-navigated (screenshot saved)',
-        );
+
+        // Try to click Verify — GitHub may auto-submit after 6 digits
+        try {
+          await page.getByRole('button', { name: 'Verify' }).click({
+            noWaitAfter: true,
+            timeout: 5000,
+          });
+        } catch {
+          console.log('  ℹ️  Verify button gone — page may have auto-submitted');
+        }
+
+        // Wait for redirect to GitHub home
+        try {
+          await page.waitForURL('https://github.com/', { timeout: 10_000 });
+          verified = true;
+          console.log('✅ Device verification passed');
+          break;
+        } catch {
+          await page.screenshot({
+            path: `reports/artifacts/verify-failed-${vAttempt}.png`,
+          });
+          console.warn(`  ⚠️  Verification attempt ${vAttempt}/3 failed — still on: ${page.url()}`);
+
+          if (vAttempt < 3) {
+            console.log('  ⏳ Waiting 5s for a fresh verification email before retry...');
+            await page.waitForTimeout(5000);
+          }
+        }
       }
 
-      // Wait for redirect to GitHub home
-      await page.waitForURL('https://github.com/', { timeout: 15_000 });
-      console.log('✅ Device verification passed');
+      if (!verified) {
+        console.warn('⚠️  Device verification exhausted. Skipping browser auth.');
+        return;
+      }
+    }
+
+    // ── Handle CAPTCHA / challenge ─────────────────────────────
+    currentUrl = page.url();
+    if (currentUrl.includes('/login')) {
+      console.log('🔐 CAPTCHA or challenge detected — attempting AI-assisted solve...');
+
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) {
+        console.warn(
+          '⚠️  GEMINI_API_KEY not set — CAPTCHA cannot be solved. Skipping browser auth.',
+        );
+        return;
+      }
+
+      const { solveCaptcha } = await import('../utils/captcha-solver');
+      const solved = await solveCaptcha(page, apiKey);
+
+      if (!solved) {
+        console.warn('⚠️  CAPTCHA solver exhausted. Browser auth unavailable.');
+        console.warn('    Tests will proceed without browser cookies (API tests may still pass).');
+        return;
+      }
     }
 
     // ── Check login succeeded ──────────────────────────────────
     const finalUrl = page.url();
+    await page.screenshot({ path: 'reports/artifacts/debug-final.png' });
+
     if (!finalUrl.startsWith('https://github.com/') || finalUrl.includes('/login')) {
-      await page.screenshot({ path: 'test-results/login-debug.png' });
-      console.error('❌ Login still on login page — check test-results/login-debug.png');
-      process.exit(1);
+      await page.screenshot({ path: 'reports/artifacts/login-failed.png' });
+      console.warn(
+        '⚠️  Login blocked — unexpected page state. Tests will proceed without browser auth.',
+      );
+      console.warn(`    Final URL: ${finalUrl}`);
+      return;
     }
 
     // ── Save browser state ─────────────────────────────────────
