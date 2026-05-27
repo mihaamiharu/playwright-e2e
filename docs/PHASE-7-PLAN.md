@@ -12,12 +12,12 @@
 
 ## Design Decisions
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Screenshot scope | Element-level | Avoid full-page noise from GitHub's dynamic content (timestamps, ads, notification banners). Specific stable regions: board columns, issue header, table grid. |
-| A11y architecture | Dedicated feature file | Cleaner BDD reporting. Separate `@a11y` tag enables selective execution without mixing functional failures with WCAG failures. |
-| Violation severity | `critical` + `serious` fail | Configurable via `A11Y_STRICT` env var. `moderate` + `minor` log warnings. Results attached to Allure as JSON. |
-| Visual in CI | Excluded | `@visual` tag → `--grep-invert @visual` in CI workflow. Baselines committed to git, compared locally. |
+| Decision           | Choice                      | Rationale                                                                                                                                                      |
+| ------------------ | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Screenshot scope   | Element-level               | Avoid full-page noise from GitHub's dynamic content (timestamps, ads, notification banners). Specific stable regions: board columns, issue header, table grid. |
+| A11y architecture  | Dedicated feature file      | Cleaner BDD reporting. Separate `@a11y` tag enables selective execution without mixing functional failures with WCAG failures.                                 |
+| Violation severity | `critical` + `serious` fail | Configurable via `A11Y_STRICT` env var. `moderate` + `minor` log warnings. Results attached to Allure as JSON.                                                 |
+| Visual in CI       | Excluded                    | `@visual` tag → `--grep-invert @visual` in CI workflow. Baselines committed to git, compared locally.                                                          |
 
 ## Pre-work
 
@@ -57,21 +57,21 @@
 
 ### New Files
 
-| File | Group |
-|------|-------|
-| `docs/PHASE-7-PLAN.md` | This file |
-| `src/utils/a11y.ts` | 1 |
-| `features/github/accessibility.feature` | 1 |
-| `steps/github/accessibility.steps.ts` | 1 |
-| `features/github/visual.feature` | 2 |
-| `steps/github/visual.steps.ts` | 2 |
-| `visual-baselines/*.png` | 2 (generated) |
+| File                                    | Group         |
+| --------------------------------------- | ------------- |
+| `docs/PHASE-7-PLAN.md`                  | This file     |
+| `src/utils/a11y.ts`                     | 1             |
+| `features/github/accessibility.feature` | 1             |
+| `steps/github/accessibility.steps.ts`   | 1             |
+| `features/github/visual.feature`        | 2             |
+| `steps/github/visual.steps.ts`          | 2             |
+| `visual-baselines/*.png`                | 2 (generated) |
 
 ### Modified Files
 
-| File | What |
-|------|------|
-| `playwright.bdd.config.ts` | `snapshotDir`, `snapshotPathTemplate`, `expect.toHaveScreenshot` |
-| `.github/workflows/e2e-full.yml` | Exclude `@visual` from scheduled suite |
-| `README.md` | Roadmap: check off visual + a11y |
-| `docs/TEST-PLAN.md` | Sections 17+18, coverage table, lifecycle |
+| File                             | What                                                             |
+| -------------------------------- | ---------------------------------------------------------------- |
+| `playwright.bdd.config.ts`       | `snapshotDir`, `snapshotPathTemplate`, `expect.toHaveScreenshot` |
+| `.github/workflows/e2e-full.yml` | Exclude `@visual` from scheduled suite                           |
+| `README.md`                      | Roadmap: check off visual + a11y                                 |
+| `docs/TEST-PLAN.md`              | Sections 17+18, coverage table, lifecycle                        |

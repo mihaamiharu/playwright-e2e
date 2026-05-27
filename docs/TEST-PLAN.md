@@ -248,11 +248,11 @@ Find issues within the project scope.
 
 Element-level screenshot comparison against committed baselines. Tagged `@visual` — excluded from CI, run locally.
 
-| ID     | Scenario                                                          | Priority | Type  | Status |
-| ------ | ----------------------------------------------------------------- | -------- | ----- | ------ |
-| VIS-01 | Board kanban columns match baseline after navigating to board     | P2       | E2E   | ✅     |
-| VIS-02 | Issue detail page header matches baseline after navigating        | P2       | E2E   | ✅     |
-| VIS-03 | Table view grid matches baseline after switching to table layout  | P2       | E2E   | ✅     |
+| ID     | Scenario                                                         | Priority | Type | Status |
+| ------ | ---------------------------------------------------------------- | -------- | ---- | ------ |
+| VIS-01 | Board kanban columns match baseline after navigating to board    | P2       | E2E  | ✅     |
+| VIS-02 | Issue detail page header matches baseline after navigating       | P2       | E2E  | ✅     |
+| VIS-03 | Table view grid matches baseline after switching to table layout | P2       | E2E  | ✅     |
 
 ---
 
@@ -260,11 +260,11 @@ Element-level screenshot comparison against committed baselines. Tagged `@visual
 
 WCAG A/AA compliance via `@axe-core/playwright`. Fails on `critical` + `serious` violations; warns on `moderate` + `minor`. Full results attached to Allure report.
 
-| ID      | Scenario                                                      | Priority | Type  | Status |
-| ------- | ------------------------------------------------------------- | -------- | ----- | ------ |
-| A11Y-01 | Board kanban view has no critical WCAG violations             | P2       | E2E   | ✅     |
-| A11Y-02 | Issue detail page has no critical WCAG violations             | P2       | E2E   | ✅     |
-| A11Y-03 | Table layout view has no critical WCAG violations             | P2       | E2E   | ✅     |
+| ID      | Scenario                                          | Priority | Type | Status |
+| ------- | ------------------------------------------------- | -------- | ---- | ------ |
+| A11Y-01 | Board kanban view has no critical WCAG violations | P2       | E2E  | ✅     |
+| A11Y-02 | Issue detail page has no critical WCAG violations | P2       | E2E  | ✅     |
+| A11Y-03 | Table layout view has no critical WCAG violations | P2       | E2E  | ✅     |
 
 ---
 

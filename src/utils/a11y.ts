@@ -30,7 +30,12 @@ export interface A11yOptions {
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function runA11y(page: any, options: A11yOptions = {}) {
-  const { exclude = [], disableRules = [], tags = DEFAULT_TAGS, failOn = DEFAULT_FAIL_ON } = options;
+  const {
+    exclude = [],
+    disableRules = [],
+    tags = DEFAULT_TAGS,
+    failOn = DEFAULT_FAIL_ON,
+  } = options;
 
   let builder = new AxeBuilder({ page }).withTags(tags).disableRules(disableRules);
 
@@ -53,7 +58,9 @@ export async function runA11y(page: any, options: A11yOptions = {}) {
 
   if (failing.length > 0) {
     const details = failing
-      .map((v) => `  - [${v.impact}] ${v.help} (${v.id}) — ${v.nodes.length} node(s) | ${v.helpUrl}`)
+      .map(
+        (v) => `  - [${v.impact}] ${v.help} (${v.id}) — ${v.nodes.length} node(s) | ${v.helpUrl}`,
+      )
       .join('\n');
     throw new Error(`Accessibility violations found (${failing.length} failing):\n${details}`);
   }

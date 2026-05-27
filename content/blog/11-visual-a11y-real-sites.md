@@ -20,11 +20,11 @@ After Phase 6, we had a CI pipeline that ran 37 Gherkin scenarios against real G
 
 What they didn't check:
 
-| Gap | Why it matters |
-|-----|---------------|
-| Does the board **look** right? | GitHub ships new CSS builds weekly. A layout regression could ship without us knowing. |
-| Are the pages **accessible**? | WCAG violations are invisible to functional assertions. A screen-reader user could lose access to the board overnight. |
-| Do we even know when the **rendering** changes? | Functional tests pass as long as text is visible and buttons are clickable. Visual drift accumulates silently. |
+| Gap                                             | Why it matters                                                                                                         |
+| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Does the board **look** right?                  | GitHub ships new CSS builds weekly. A layout regression could ship without us knowing.                                 |
+| Are the pages **accessible**?                   | WCAG violations are invisible to functional assertions. A screen-reader user could lose access to the board overnight. |
+| Do we even know when the **rendering** changes? | Functional tests pass as long as text is visible and buttons are clickable. Visual drift accumulates silently.         |
 
 These aren't hypotheticals. In June 2025, GitHub rolled out a new project board layout that shifted column widths by 8px. Every functional test still passed — headings were still headings, buttons were still buttons. But the visual rhythm of the kanban was broken, and we had no signal.
 
@@ -74,11 +74,11 @@ await expect(boardArea).toHaveScreenshot('board-kanban-columns.png');
 
 We picked three stable regions:
 
-| Test | Element | Why stable |
-|------|---------|------------|
-| Board kanban | `[data-board-column]` parent container | Fixed-width grid. Column widths don't change with card content. |
-| Table view | `role="grid"` | Table layout has predetermined column widths. Seeded issue always one row. |
-| Issue body | `data-testid="issue-body-viewer"` | Fixed-width markdown container. Body text seeded from a known template. |
+| Test         | Element                                | Why stable                                                                 |
+| ------------ | -------------------------------------- | -------------------------------------------------------------------------- |
+| Board kanban | `[data-board-column]` parent container | Fixed-width grid. Column widths don't change with card content.            |
+| Table view   | `role="grid"`                          | Table layout has predetermined column widths. Seeded issue always one row. |
+| Issue body   | `data-testid="issue-body-viewer"`      | Fixed-width markdown container. Body text seeded from a known template.    |
 
 ### Problem 2: Dimension mismatch is a hard fail
 
@@ -88,7 +88,7 @@ This one bit hard. Our initial VIS-02 scenario screenshotted the issue page head
 const heading = page.getByRole('heading', { name: issueTitle, level: 1 });
 const headerArea = heading.locator('..'); // parent <div>
 await expect(headerArea).toHaveScreenshot('issue-header.png', {
-  maxDiffPixelRatio: 0.10,
+  maxDiffPixelRatio: 0.1,
 });
 ```
 
@@ -99,6 +99,7 @@ Here's what happened:
 - **Result:** Hard fail. No pixel diff calculated.
 
 Playwright's comparison logic works in two phases:
+
 1. Check if dimensions match → **fail immediately if they don't**
 2. Only then compute pixel diff ratio against `maxDiffPixelRatio`
 
@@ -185,6 +186,7 @@ console.log(results.violations); // [{ id, impact, help, nodes, helpUrl }]
 ```
 
 We wrapped this in a utility (`src/utils/a11y.ts`) that:
+
 - Runs WCAG A and AA analysis by default
 - Fails on `critical` + `serious` violations
 - Logs `moderate` + `minor` violations as warnings
@@ -251,10 +253,11 @@ Scenario: A11Y-01 — Board kanban view has no critical WCAG violations
 The step definition accepts the rule name and passes it to `AxeBuilder.disableRules()`:
 
 ```typescript
-Then('the page has no critical WCAG violations except {string}',
+Then(
+  'the page has no critical WCAG violations except {string}',
   async ({ page }, disabledRule: string) => {
     await runA11y(page, { disableRules: [disabledRule] });
-  }
+  },
 );
 ```
 
@@ -284,11 +287,11 @@ Feature: Accessibility Checks (WCAG)
 
 ### The axe results in practice
 
-| Page | Violations | Passes | Incomplete | Verdict |
-|------|-----------|--------|------------|---------|
-| Board kanban | 0 (1 suppressed) | 31 | 3 | Pass |
-| Issue detail | 0 | 30 | 3 | Pass |
-| Table view | 0 | 31 | 3 | Pass |
+| Page         | Violations       | Passes | Incomplete | Verdict |
+| ------------ | ---------------- | ------ | ---------- | ------- |
+| Board kanban | 0 (1 suppressed) | 31     | 3          | Pass    |
+| Issue detail | 0                | 30     | 3          | Pass    |
+| Table view   | 0                | 31     | 3          | Pass    |
 
 The `incomplete` counts (3 per page) represent elements that axe-core couldn't fully evaluate — typically color-contrast checks that require manual review. These are non-failing by design.
 
@@ -311,12 +314,14 @@ Scenario: ISS-01 — Create issue via API and verify it appears on the board
 ```
 
 We rejected this for two reasons:
+
 1. **Failure isolation**. If ISS-01 passes functionally but fails a11y, the report says "ISS-01 failed." Is it a code regression or a WCAG regression? You can't tell without reading the full trace.
 2. **Tag granularity**. Inline tagging means you can't run "all a11y tests" without also running their functional companions. A dedicated `@a11y` feature gives you clean separation: `npx playwright test --grep @a11y` runs three tests, not thirty-seven.
 
 ### Why visual baselines live in git
 
 Alternative architectures:
+
 - **S3 bucket with timestamped baselines**: More CI-friendly, but loses git's review workflow. You can't see a visual diff in a PR.
 - **Per-developer baselines**: Too fragile. Baselines must be identical across the team.
 - **Generated in CI, compared against previous CI run**: Requires persistent storage, adds infrastructure complexity.
@@ -324,7 +329,7 @@ Alternative architectures:
 Committing baselines to git is the simplest solution that works for a small team. When we scale to multi-browser (firefox, webkit), we'll add `{platform}` to the snapshot path template:
 
 ```typescript
-snapshotPathTemplate: '{snapshotDir}/{testFileName}/{arg}-{platform}{ext}'
+snapshotPathTemplate: '{snapshotDir}/{testFileName}/{arg}-{platform}{ext}';
 // Produces: board-kanban-columns-darwin.png, board-kanban-columns-linux.png
 ```
 
@@ -332,12 +337,12 @@ snapshotPathTemplate: '{snapshotDir}/{testFileName}/{arg}-{platform}{ext}'
 
 WCAG categorizes violations into four impact levels. Failing on all four means your CI gate closes on color-contrast nitpicks while your team is trying to ship a hotfix. Our severity mapping:
 
-| Impact | Behavior | Rationale |
-|--------|----------|-----------|
-| `critical` | **Fail** | Screen-reader users are completely blocked |
-| `serious` | **Fail** | Major usability barrier (nested interactives, missing labels) |
-| `moderate` | **Warn** | Usability impact, but content remains accessible |
-| `minor` | **Warn** | Best-practice violations with minimal impact |
+| Impact     | Behavior | Rationale                                                     |
+| ---------- | -------- | ------------------------------------------------------------- |
+| `critical` | **Fail** | Screen-reader users are completely blocked                    |
+| `serious`  | **Fail** | Major usability barrier (nested interactives, missing labels) |
+| `moderate` | **Warn** | Usability impact, but content remains accessible              |
+| `minor`    | **Warn** | Best-practice violations with minimal impact                  |
 
 If you want all four to fail, set `A11Y_STRICT=true` in your `.env` — the utility reads it and expands `failOn`.
 
@@ -347,12 +352,12 @@ If you want all four to fail, set `A11Y_STRICT=true` in your `.env` — the util
 
 Phase 7 closes two of the four remaining roadmap items:
 
-| Item | Phase 7 | Remaining |
-|------|---------|-----------|
-| Visual regression tests | ✅ VIS-01/02/03 | — |
-| Accessibility checks (WCAG) | ✅ A11Y-01/02/03 | — |
-| GitHub Actions CI/CD pipeline | ✅ Phase 6 | — |
-| Multi-browser (firefox, webkit) | — | Phase 8 |
+| Item                            | Phase 7          | Remaining |
+| ------------------------------- | ---------------- | --------- |
+| Visual regression tests         | ✅ VIS-01/02/03  | —         |
+| Accessibility checks (WCAG)     | ✅ A11Y-01/02/03 | —         |
+| GitHub Actions CI/CD pipeline   | ✅ Phase 6       | —         |
+| Multi-browser (firefox, webkit) | —                | Phase 8   |
 
 Multi-browser is the logical next step. Visual baselines are already structured to support per-platform snapshots. The axe-core results are browser-agnostic (WCAG violations are DOM-based, not rendering-based). Adding two more browser projects to `playwright.bdd.config.ts` and running the suite across chromium + firefox + webkit will close the last checkbox.
 
@@ -370,4 +375,4 @@ But that's a story for Part 12.
 
 ---
 
-*Previously: [Part 10 — CI/CD for the Paranoid QA](/blog/10-cicd-allure-caching-isolation.md)*
+_Previously: [Part 10 — CI/CD for the Paranoid QA](/blog/10-cicd-allure-caching-isolation.md)_
