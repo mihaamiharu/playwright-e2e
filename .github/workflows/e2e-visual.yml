@@ -42,6 +42,7 @@ jobs:
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           BASE_URL: https://github.com
           TEST_MODE: full
+          NODE_OPTIONS: --use-system-ca
         run: npm run bddgen && npx playwright test --config=playwright.bdd.config.ts --grep @visual
 
       - name: Generate Allure Report

@@ -65,6 +65,7 @@ jobs:
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           BASE_URL: https://github.com
           TEST_MODE: full
+          NODE_OPTIONS: --use-system-ca
         run: npm test -- --grep "${{ inputs.tag }}" --trace "${{ inputs.trace }}" --video "${{ inputs.video }}"
 
       - name: Generate Allure Report
