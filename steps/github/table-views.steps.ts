@@ -5,12 +5,6 @@ import { env } from '../../src/config/env.config';
 
 const { Given, When, Then } = createBdd(test);
 
-let sortTitleA = '';
-let sortTitleZ = '';
-
-let issueATitle = '';
-let issueBTitle = '';
-
 When('I switch to the table layout view', async ({ tableViewPage }) => {
   await tableViewPage.switchToTableLayout();
 });
@@ -31,13 +25,15 @@ Then(
 
 Given(
   'seeded table sort test issues exist with prefixes {string} and {string}',
-  async ({ githubAPI, projectsAPI, sandbox, dataManager }, prefixA, prefixZ) => {
+  async ({ githubAPI, projectsAPI, sandbox, dataManager, scenarioContext }, prefixA, prefixZ) => {
     const ts = Date.now();
     const randA = Math.random().toString(36).slice(2, 6);
     const randZ = Math.random().toString(36).slice(2, 6);
 
-    sortTitleA = `${prefixA}-e2e-${ts}-${randA}`;
-    sortTitleZ = `${prefixZ}-e2e-${ts}-${randZ}`;
+    const sortTitleA = `${prefixA}-e2e-${ts}-${randA}`;
+    const sortTitleZ = `${prefixZ}-e2e-${ts}-${randZ}`;
+    scenarioContext.set('sortTitleA', sortTitleA);
+    scenarioContext.set('sortTitleZ', sortTitleZ);
 
     const issueA = await githubAPI.createIssue(env.github.testRepo, {
       title: sortTitleA,
@@ -88,13 +84,18 @@ Then(
 
 Given(
   'issue {string} exists with status {string} and label {string} in the sandbox project',
-  async ({ githubAPI, projectsAPI, sandbox, dataManager }, issueId, statusName, labelName) => {
+  async (
+    { githubAPI, projectsAPI, sandbox, dataManager, scenarioContext },
+    issueId,
+    statusName,
+    labelName,
+  ) => {
     const ts = Date.now();
     const rand = Math.random().toString(36).slice(2, 6);
     const title = `${issueId}-e2e-${ts}-${rand}`;
 
-    if (issueId === 'A') issueATitle = title;
-    else issueBTitle = title;
+    if (issueId === 'A') scenarioContext.set('issueATitle', title);
+    else scenarioContext.set('issueBTitle', title);
 
     const issue = await githubAPI.createIssue(env.github.testRepo, {
       title,
@@ -122,12 +123,16 @@ Given(
 
 Given(
   'issue {string} exists with status {string} and no label in the sandbox project',
-  async ({ githubAPI, projectsAPI, sandbox, dataManager }, issueId, statusName) => {
+  async (
+    { githubAPI, projectsAPI, sandbox, dataManager, scenarioContext },
+    issueId,
+    statusName,
+  ) => {
     const ts = Date.now();
     const rand = Math.random().toString(36).slice(2, 6);
     const title = `${issueId}-e2e-${ts}-${rand}`;
 
-    issueBTitle = title;
+    scenarioContext.set('issueBTitle', title);
 
     const issue = await githubAPI.createIssue(env.github.testRepo, {
       title,
@@ -170,12 +175,24 @@ When(
   },
 );
 
-Then('issue {string} should be visible in the table', async ({ tableViewPage }, issueId) => {
-  const title = issueId === 'A' ? issueATitle : issueBTitle;
-  await tableViewPage.expectRowVisible(title);
-});
+Then(
+  'issue {string} should be visible in the table',
+  async ({ tableViewPage, scenarioContext }, issueId) => {
+    const title =
+      issueId === 'A'
+        ? scenarioContext.get<string>('issueATitle')
+        : scenarioContext.get<string>('issueBTitle');
+    await tableViewPage.expectRowVisible(title);
+  },
+);
 
-Then('issue {string} should not be visible in the table', async ({ tableViewPage }, issueId) => {
-  const title = issueId === 'A' ? issueATitle : issueBTitle;
-  await tableViewPage.expectRowNotVisible(title);
-});
+Then(
+  'issue {string} should not be visible in the table',
+  async ({ tableViewPage, scenarioContext }, issueId) => {
+    const title =
+      issueId === 'A'
+        ? scenarioContext.get<string>('issueATitle')
+        : scenarioContext.get<string>('issueBTitle');
+    await tableViewPage.expectRowNotVisible(title);
+  },
+);

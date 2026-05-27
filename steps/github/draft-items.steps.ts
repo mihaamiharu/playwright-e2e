@@ -5,16 +5,15 @@ import { env } from '../../src/config/env.config';
 
 const { When, Then } = createBdd(test);
 
-let draftItemId = '';
-let draftTitle = '';
-
 When(
   'I create a draft issue with title {string} via the API',
-  async ({ projectsAPI, sandbox, dataManager }, title: string) => {
+  async ({ projectsAPI, sandbox, dataManager, scenarioContext }, title: string) => {
     const uniqueId = `draft-${Date.now()}`;
-    draftTitle = `e2e-${uniqueId} ${title}`;
+    const draftTitle = `e2e-${uniqueId} ${title}`;
 
-    draftItemId = await projectsAPI.addDraftIssue(sandbox.projectId, draftTitle);
+    const draftItemId = await projectsAPI.addDraftIssue(sandbox.projectId, draftTitle);
+    scenarioContext.set('draftItemId', draftItemId);
+    scenarioContext.set('draftTitle', draftTitle);
 
     dataManager.enqueue(async () => {
       await projectsAPI.removeItemFromProject(sandbox.projectId, draftItemId);
@@ -22,22 +21,24 @@ When(
   },
 );
 
-Then('the draft issue should be visible on the board without an issue number', async ({ page }) => {
-  const card = page.getByRole('button', { name: new RegExp(draftTitle) });
-  await expect(card.first()).toBeVisible({ timeout: 15000 });
+Then(
+  'the draft issue should be visible on the board without an issue number',
+  async ({ page, scenarioContext }) => {
+    const draftTitle = scenarioContext.get<string>('draftTitle');
+    const card = page.getByRole('button', { name: new RegExp(draftTitle) });
+    await expect(card.first()).toBeVisible({ timeout: 15000 });
 
-  const cardText = await card.first().textContent();
-  const hasIssueNumber = /#\d+/.test(cardText || '');
-  expect(hasIssueNumber).toBe(false);
-});
-
-let issueTitle = '';
+    const cardText = await card.first().textContent();
+    const hasIssueNumber = /#\d+/.test(cardText || '');
+    expect(hasIssueNumber).toBe(false);
+  },
+);
 
 When(
   'I create a full issue with the same title via the API',
-  async ({ githubAPI, projectsAPI, sandbox, dataManager }) => {
+  async ({ githubAPI, projectsAPI, sandbox, dataManager, scenarioContext }) => {
     const uniqueId = `draft-convert-${Date.now()}`;
-    issueTitle = `e2e-${uniqueId} - Converted issue`;
+    const issueTitle = `e2e-${uniqueId} - Converted issue`;
 
     const issue = await githubAPI.createIssue(env.github.testRepo, {
       title: issueTitle,
@@ -45,6 +46,7 @@ When(
     });
 
     const itemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
+    scenarioContext.set('issueTitle', issueTitle);
 
     dataManager.enqueue(async () => {
       await projectsAPI.removeItemFromProject(sandbox.projectId, itemId);
@@ -55,11 +57,15 @@ When(
   },
 );
 
-Then('the issue should be visible with an issue number on the board', async ({ page }) => {
-  const card = page.getByRole('button', { name: new RegExp(issueTitle) });
-  await expect(card.first()).toBeVisible({ timeout: 15000 });
+Then(
+  'the issue should be visible with an issue number on the board',
+  async ({ page, scenarioContext }) => {
+    const issueTitle = scenarioContext.get<string>('issueTitle');
+    const card = page.getByRole('button', { name: new RegExp(issueTitle) });
+    await expect(card.first()).toBeVisible({ timeout: 15000 });
 
-  const cardText = await card.first().textContent();
-  const hasIssueNumber = /#\d+/.test(cardText || '');
-  expect(hasIssueNumber).toBe(true);
-});
+    const cardText = await card.first().textContent();
+    const hasIssueNumber = /#\d+/.test(cardText || '');
+    expect(hasIssueNumber).toBe(true);
+  },
+);

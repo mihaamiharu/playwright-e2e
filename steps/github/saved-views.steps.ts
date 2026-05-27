@@ -4,32 +4,34 @@ import { test } from '../../src/fixtures';
 
 const { When, Then } = createBdd(test);
 
-let currentViewName = '';
+When(
+  'I create a new board view named {string}',
+  async ({ page, scenarioContext }, baseName: string) => {
+    const currentViewName = `${baseName} ${Date.now()}`;
+    scenarioContext.set('currentViewName', currentViewName);
 
-When('I create a new board view named {string}', async ({ page }, baseName: string) => {
-  currentViewName = `${baseName} ${Date.now()}`;
+    await page.getByRole('tab', { name: 'New view' }).click();
+    await page.getByRole('menuitem', { name: 'Board' }).click();
+    await page.waitForURL(/\/views\/\d+/);
+    await page
+      .getByRole('heading', { level: 2 })
+      .first()
+      .waitFor({ state: 'visible', timeout: 15000 });
 
-  await page.getByRole('tab', { name: 'New view' }).click();
-  await page.getByRole('menuitem', { name: 'Board' }).click();
-  await page.waitForURL(/\/views\/\d+/);
-  await page
-    .getByRole('heading', { level: 2 })
-    .first()
-    .waitFor({ state: 'visible', timeout: 15000 });
+    await page.getByRole('button', { name: /View options for/ }).click();
+    await page.getByRole('menuitem', { name: 'Rename view' }).click();
 
-  await page.getByRole('button', { name: /View options for/ }).click();
-  await page.getByRole('menuitem', { name: 'Rename view' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Rename view' });
+    await dialog.waitFor({ state: 'visible', timeout: 10000 });
 
-  const dialog = page.getByRole('dialog', { name: 'Rename view' });
-  await dialog.waitFor({ state: 'visible', timeout: 10000 });
+    const textbox = dialog.getByRole('textbox', { name: 'View name' });
+    await textbox.clear();
+    await textbox.fill(currentViewName);
 
-  const textbox = dialog.getByRole('textbox', { name: 'View name' });
-  await textbox.clear();
-  await textbox.fill(currentViewName);
-
-  await dialog.getByRole('button', { name: 'Save' }).click();
-  await expect(dialog).not.toBeVisible();
-});
+    await dialog.getByRole('button', { name: 'Save' }).click();
+    await expect(dialog).not.toBeVisible();
+  },
+);
 
 When(
   'I filter the current view by {string} with value {string}',
@@ -59,7 +61,8 @@ Then(
   },
 );
 
-Then('the created view tab should be visible', async ({ page }) => {
+Then('the created view tab should be visible', async ({ page, scenarioContext }) => {
+  const currentViewName = scenarioContext.get<string>('currentViewName');
   await expect(page).toHaveTitle(new RegExp(currentViewName));
 
   const tab = page.getByRole('tablist').getByRole('tab', { name: currentViewName });

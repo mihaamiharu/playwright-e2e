@@ -4,8 +4,6 @@ import { env } from '../../src/config/env.config';
 
 const { When, Then } = createBdd(test);
 
-let secondUnlabeledIssueTitle = '';
-
 When('I add the label {string} via the UI', async ({ issuePage }, label: string) => {
   await issuePage.addLabel(label);
 });
@@ -31,7 +29,7 @@ Then('I should not see the {string} label on the issue', async ({ issuePage }, l
 
 When(
   'I seed a second unlabeled issue on the board',
-  async ({ githubAPI, projectsAPI, sandbox, dataManager }) => {
+  async ({ githubAPI, projectsAPI, sandbox, dataManager, scenarioContext }) => {
     const uniqueId = `unlabeled-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
     const title = `e2e-${uniqueId}`;
 
@@ -49,7 +47,7 @@ When(
       await githubAPI.closeIssue(env.github.testRepo, issue.number);
     });
 
-    secondUnlabeledIssueTitle = title;
+    scenarioContext.set('secondUnlabeledIssueTitle', title);
   },
 );
 
@@ -80,7 +78,9 @@ Then(
 
 Then(
   'the second unlabeled issue should not be visible on the board',
-  async ({ projectBoardPage }) => {
-    await projectBoardPage.expectCardNotVisible(secondUnlabeledIssueTitle);
+  async ({ projectBoardPage, scenarioContext }) => {
+    await projectBoardPage.expectCardNotVisible(
+      scenarioContext.get<string>('secondUnlabeledIssueTitle'),
+    );
   },
 );
