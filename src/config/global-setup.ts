@@ -325,7 +325,9 @@ async function globalSetup(_config: FullConfig) {
 
       const apiKey = process.env.GEMINI_API_KEY;
       if (!apiKey) {
-        console.warn('⚠️  GEMINI_API_KEY not set — CAPTCHA cannot be solved. Skipping browser auth.');
+        console.warn(
+          '⚠️  GEMINI_API_KEY not set — CAPTCHA cannot be solved. Skipping browser auth.',
+        );
         return;
       }
 
@@ -345,7 +347,9 @@ async function globalSetup(_config: FullConfig) {
 
     if (!finalUrl.startsWith('https://github.com/') || finalUrl.includes('/login')) {
       await page.screenshot({ path: 'reports/artifacts/login-failed.png' });
-      console.warn('⚠️  Login blocked — unexpected page state. Tests will proceed without browser auth.');
+      console.warn(
+        '⚠️  Login blocked — unexpected page state. Tests will proceed without browser auth.',
+      );
       console.warn(`    Final URL: ${finalUrl}`);
       return;
     }

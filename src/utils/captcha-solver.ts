@@ -86,11 +86,7 @@ function parseResponse(text: string): CaptchaAction[] {
   }
 }
 
-export async function solveCaptcha(
-  page: Page,
-  apiKey: string,
-  maxAttempts = 3,
-): Promise<boolean> {
+export async function solveCaptcha(page: Page, apiKey: string, maxAttempts = 3): Promise<boolean> {
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     // eslint-disable-next-line no-console
     console.log(`🔐 CAPTCHA solver attempt ${attempt}/${maxAttempts}...`);
