@@ -25,7 +25,12 @@ export default defineConfig({
   timeout: 60_000,
   expect: {
     timeout: 10_000,
+    toHaveScreenshot: {
+      maxDiffPixelRatio: 0.05,
+    },
   },
+  snapshotDir: 'visual-baselines',
+  snapshotPathTemplate: '{snapshotDir}/{testFileName}/{arg}{ext}',
   outputDir: 'reports/artifacts',
   reporter: [
     ['html', { outputFolder: 'reports/playwright' }],
