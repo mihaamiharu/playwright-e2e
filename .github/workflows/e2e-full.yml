@@ -23,11 +23,17 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: lts/*
+          node-version: '20'
           cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
@@ -52,6 +58,15 @@ jobs:
             echo "No .last-run.json in cache, will run full suite"
           fi
 
+      - name: Restore Allure History Cache
+        uses: actions/cache/restore@v4
+        with:
+          path: reports/allure/history
+          key: allure-history-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            allure-history-${{ github.ref_name }}-
+            allure-history-
+
       - name: Run Playwright tests
         env:
           GH_USERNAME: ${{ secrets.GH_USERNAME }}
@@ -70,8 +85,14 @@ jobs:
         run: |
           npm run bddgen
           if [[ "${{ github.run_attempt }}" -gt 1 && -f reports/artifacts/.last-run.json ]]; then
-            echo "→ Rerun mode: only previously failed tests"
-            npx playwright test --config=playwright.bdd.config.ts --last-failed --grep-invert @visual
+            FAILED_COUNT=$(jq '.failed | length' reports/artifacts/.last-run.json 2>/dev/null || echo 0)
+            if [[ "$FAILED_COUNT" -eq 0 ]]; then
+              echo "→ No failures in previous run, running full suite"
+              npx playwright test --config=playwright.bdd.config.ts --grep-invert @visual
+            else
+              echo "→ Rerun mode: $FAILED_COUNT previously failed tests"
+              npx playwright test --config=playwright.bdd.config.ts --last-failed --grep-invert @visual
+            fi
           else
             echo "→ Full mode: running all tests"
             npx playwright test --config=playwright.bdd.config.ts --grep-invert @visual
@@ -87,15 +108,6 @@ jobs:
             reports/artifacts/.last-run.json
             reports/allure/results/
           retention-days: 7
-
-      - name: Restore Allure History Cache
-        uses: actions/cache/restore@v4
-        with:
-          path: reports/allure/history
-          key: allure-history-${{ github.ref_name }}-${{ github.run_id }}
-          restore-keys: |
-            allure-history-${{ github.ref_name }}-
-            allure-history-
 
       - name: Copy Allure History to Results
         if: always()
