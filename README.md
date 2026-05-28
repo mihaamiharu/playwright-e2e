@@ -160,6 +160,7 @@ This repository is part of a QA engineering blog series:
 11. **[So You Want to Screenshot GitHub](./blog/en/series/11-visual-a11y-real-sites.md)** — Visual regression and WCAG on a site you don't control
 
 **Tutorials:**
+
 - **[The Missing Piece in Playwright BDD: ScenarioContext](./blog/en/tutorials/scenario-context.md)** — Per-test key-value store for sharing state between BDD steps
 - **[YAML & CI/CD Concepts for QA Engineers](./blog/en/tutorials/yaml-and-ci-concepts.md)** — What you need before writing your first workflow
 - **[CI/CD for QA Engineers: A Decision Framework](./blog/en/tutorials/cicd-for-qa-engineers.md)** — Not a YAML tutorial — a decision framework

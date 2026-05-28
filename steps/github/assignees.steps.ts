@@ -66,8 +66,6 @@ When(
 Then(
   'the second unassigned issue should not be visible on the board',
   async ({ boardView, scenarioContext }) => {
-    await boardView.expectCardNotVisible(
-      scenarioContext.get<string>('secondUnassignedIssueTitle'),
-    );
+    await boardView.expectCardNotVisible(scenarioContext.get<string>('secondUnassignedIssueTitle'));
   },
 );

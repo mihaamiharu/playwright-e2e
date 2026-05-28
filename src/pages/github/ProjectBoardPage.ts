@@ -63,5 +63,4 @@ export class ProjectBoardPage {
     );
     await this.page.mouse.up();
   }
-
 }

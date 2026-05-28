@@ -79,8 +79,6 @@ Then(
 Then(
   'the second unlabeled issue should not be visible on the board',
   async ({ boardView, scenarioContext }) => {
-    await boardView.expectCardNotVisible(
-      scenarioContext.get<string>('secondUnlabeledIssueTitle'),
-    );
+    await boardView.expectCardNotVisible(scenarioContext.get<string>('secondUnlabeledIssueTitle'));
   },
 );

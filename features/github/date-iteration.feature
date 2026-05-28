@@ -1,7 +1,4 @@
 @github @project @date-iteration @P2
-# StepDeps: board-workflow.steps.ts ("I navigate to the kanban view"),
-#           table-views.steps.ts ("I switch to the table layout view",
-#           "the seeded issue should appear as a row in the table")
 Feature: Date & Iteration Fields
 
   As a project contributor
