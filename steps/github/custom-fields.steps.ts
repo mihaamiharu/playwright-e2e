@@ -14,7 +14,7 @@ When(
     const field = fields.find((f) => f.name === fieldName);
     if (!field) throw new Error(`Field "${fieldName}" not found`);
 
-    let fieldValue: import('../../src/utils/github-projects-api').ItemFieldValue;
+    let fieldValue: import('../../src/utils/api/github-graphql').ItemFieldValue;
 
     if (field.options) {
       // SingleSelect
@@ -77,7 +77,7 @@ Given(
     const field = fields.find((f) => f.name === fieldName);
     if (!field) throw new Error(`Field "${fieldName}" not found`);
 
-    let fieldValue: import('../../src/utils/github-projects-api').ItemFieldValue;
+    let fieldValue: import('../../src/utils/api/github-graphql').ItemFieldValue;
 
     if (field.options) {
       const option = field.options.find((o) => o.name === value);

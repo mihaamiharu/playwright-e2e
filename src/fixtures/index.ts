@@ -1,7 +1,7 @@
 import { mergeTests } from '@playwright/test';
 import { test as githubTest } from './github.fixture';
 import { test as projectTest } from './github-project.fixture';
-import { attachAllureLabels } from '../utils/allure-labels';
+import { attachAllureLabels } from '../utils/reporting/allure-labels';
 import { IssuePage } from '../pages/github/IssuePage';
 import { ProjectBoardPage } from '../pages/github/ProjectBoardPage';
 import { TableViewPage } from '../pages/github/TableViewPage';

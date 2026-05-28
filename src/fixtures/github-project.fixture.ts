@@ -1,10 +1,10 @@
 import { test as base } from 'playwright-bdd';
-import { DataManager } from '../utils/data-manager';
-import { ScenarioContext } from '../utils/scenario-context';
-import { GitHubAPI, type GitHubIssue } from '../utils/api-client';
-import { GitHubProjectsAPI } from '../utils/github-projects-api';
+import { DataManager } from '../utils/testing/data-manager';
+import { ScenarioContext } from '../utils/testing/scenario-context';
+import { GitHubAPI, type GitHubIssue } from '../utils/api/github-rest';
+import { GitHubProjectsAPI } from '../utils/api/github-graphql';
 import { env } from '../config/env.config';
-import { ensureAuthCookies } from '../utils/github-auth';
+import { ensureAuthCookies } from '../utils/auth/cookies';
 
 /**
  * GitHub Project Management fixtures.

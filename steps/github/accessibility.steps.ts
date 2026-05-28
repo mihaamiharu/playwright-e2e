@@ -1,6 +1,6 @@
 import { createBdd } from 'playwright-bdd';
 import { test } from '../../src/fixtures';
-import { runA11y } from '../../src/utils/a11y';
+import { runA11y } from '../../src/utils/accessibility/a11y';
 
 const { Then } = createBdd(test);
 

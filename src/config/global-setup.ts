@@ -385,7 +385,7 @@ async function globalSetup(_config: FullConfig) {
         return;
       }
 
-      const { solveCaptcha } = await import('../utils/captcha-solver');
+      const { solveCaptcha } = await import('../utils/ai/captcha-solver');
       const solved = await solveCaptcha(page, apiKey);
 
       if (!solved) {
