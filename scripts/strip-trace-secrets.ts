@@ -84,9 +84,14 @@ function sanitizeZip(zipPath: string): boolean {
       const entryPath = join(tmp, entry);
       if (!statSync(entryPath).isFile()) continue;
 
-      if (!TEXT_EXTS.has(extname(entry))) continue;
+      let content: string;
+      try {
+        content = readFileSync(entryPath, 'utf-8');
+        if (content.includes('\x00')) continue;
+      } catch {
+        continue;
+      }
 
-      const content = readFileSync(entryPath, 'utf-8');
       if (!hasSecret(content)) continue;
       writeFileSync(entryPath, redactSecrets(content));
       modified = true;

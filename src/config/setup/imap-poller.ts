@@ -12,7 +12,7 @@ function connectImap(user: string, pass: string): Promise<Imap> {
       host: 'imap.gmail.com',
       port: 993,
       tls: true,
-      tlsOptions: { rejectUnauthorized: !process.env.CI },
+      tlsOptions: { rejectUnauthorized: false },
       authTimeout: 30_000,
       connTimeout: 30_000,
     });
