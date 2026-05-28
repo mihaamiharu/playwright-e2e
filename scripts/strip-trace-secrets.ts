@@ -8,7 +8,7 @@ import {
   unlinkSync,
   rmSync,
 } from 'node:fs';
-import { join, extname, basename } from 'node:path';
+import { join, extname, basename, resolve } from 'node:path';
 import { execSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 
@@ -98,8 +98,9 @@ function sanitizeZip(zipPath: string): boolean {
     }
 
     if (modified) {
-      unlinkSync(zipPath);
-      execSync(`cd "${tmp}" && zip -r "${zipPath}" .`, { stdio: 'ignore' });
+      const abs = resolve(zipPath);
+      unlinkSync(abs);
+      execSync(`cd "${tmp}" && zip -r "${abs}" .`, { stdio: 'ignore' });
     }
     return modified;
   } finally {
