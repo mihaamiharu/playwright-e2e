@@ -29,8 +29,8 @@ Given(
 
 Then(
   'both the {string} and seeded issues should appear in the {string} column',
-  async ({ projectBoardPage, seededProjectIssue, scenarioContext }) => {
-    await projectBoardPage.expectCardVisible(seededProjectIssue.title);
-    await projectBoardPage.expectCardVisible(scenarioContext.get<string>('secondRankIssueTitle'));
+  async ({ boardView, seededProjectIssue, scenarioContext }) => {
+    await boardView.expectCardVisible(seededProjectIssue.title);
+    await boardView.expectCardVisible(scenarioContext.get<string>('secondRankIssueTitle'));
   },
 );

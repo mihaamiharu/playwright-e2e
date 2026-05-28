@@ -1,9 +1,12 @@
-import { Page, Locator, expect } from '@playwright/test';
+import { type Page, type Locator, expect } from '@playwright/test';
 
 /**
- * Page Object Model for GitHub Project Filter Bar.
+ * Page Object Model for GitHub Project Filter / Search Bar.
+ *
+ * Renamed from ProjectFilterBar — "search" better reflects its primary
+ * use case (type-to-filter) and avoids ambiguity with board column filters.
  */
-export class ProjectFilterBar {
+export class ProjectSearchBar {
   readonly filterInput: Locator;
   readonly saveButton: Locator;
 
