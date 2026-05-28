@@ -72,7 +72,9 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: auth/github.json.enc
-          key: auth-state-${{ github.run_id }}
+          key: auth-state-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            auth-state-${{ github.run_id }}-
 
       - name: Decrypt auth state (rerun only)
         if: github.run_attempt > 1
@@ -141,7 +143,7 @@ jobs:
         continue-on-error: true
         with:
           path: auth/github.json.enc
-          key: auth-state-${{ github.run_id }}
+          key: auth-state-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Upload test run cache
         if: always()
