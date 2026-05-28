@@ -109,7 +109,7 @@ jobs:
         run: |
           npm run bddgen
           if [[ "${{ github.run_attempt }}" -gt 1 && -f reports/artifacts/.last-run.json ]]; then
-            FAILED_COUNT=$(jq '.failed | length' reports/artifacts/.last-run.json 2>/dev/null || echo 0)
+            FAILED_COUNT=$(jq '.unexpected | length' reports/artifacts/.last-run.json 2>/dev/null || echo 0)
             if [[ "$FAILED_COUNT" -eq 0 ]]; then
               echo "→ No failures in previous run, running full suite"
               npx playwright test --config=playwright.bdd.config.ts --grep-invert @visual
