@@ -171,8 +171,8 @@ jobs:
       - name: Update Allure History for Cache
         if: always()
         run: |
+          mkdir -p reports/allure/history
           if [ -d "reports/allure/report/history" ]; then
-            mkdir -p reports/allure/history
             cp -r reports/allure/report/history/* reports/allure/history/
           fi
 
