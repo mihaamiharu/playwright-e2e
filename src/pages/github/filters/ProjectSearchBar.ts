@@ -24,14 +24,16 @@ export class ProjectSearchBar {
   }
 
   async selectType(typeName: string): Promise<void> {
-    const option = this.page.getByRole('option', { name: new RegExp(`^${typeName}(, Filter)?`) });
+    const option = this.page.getByRole('option', {
+      name: new RegExp(`^${typeName}(, Filter)?`, 'i'),
+    });
     await expect(option).toBeVisible();
     await option.click();
   }
 
   async selectOption(optionName: string, optionTypeName?: string): Promise<void> {
     const namePattern = optionTypeName ? `${optionName}, ${optionTypeName}` : optionName;
-    const option = this.page.getByRole('option', { name: new RegExp(namePattern) });
+    const option = this.page.getByRole('option', { name: new RegExp(namePattern, 'i') });
     await expect(option).toBeVisible();
     await option.click();
   }
