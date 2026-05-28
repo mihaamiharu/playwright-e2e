@@ -43,8 +43,8 @@ When(
 
 Then(
   'I should see the milestone name in the issue sidebar',
-  async ({ issuePage, scenarioContext }) => {
-    await issuePage.expectMilestone(scenarioContext.get<string>('milestoneTitle'));
+  async ({ milestonePanel, scenarioContext }) => {
+    await milestonePanel.expectMilestone(scenarioContext.get<string>('milestoneTitle'));
   },
 );
 

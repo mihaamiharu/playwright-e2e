@@ -63,15 +63,4 @@ export class ProjectBoardPage {
     );
     await this.page.mouse.up();
   }
-
-  async expectCardVisible(title: string): Promise<void> {
-    await this.firstHeading.waitFor({ state: 'visible', timeout: 15_000 });
-    const card = this.page.getByRole('button', { name: new RegExp(title) });
-    await expect(card.first()).toBeVisible({ timeout: 15_000 });
-  }
-
-  async expectCardNotVisible(title: string): Promise<void> {
-    const card = this.page.getByRole('button', { name: new RegExp(title) });
-    await expect(card.first()).not.toBeVisible({ timeout: 15_000 });
-  }
 }
