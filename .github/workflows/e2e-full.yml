@@ -163,9 +163,8 @@ jobs:
       - name: Copy Allure History to Results
         if: always()
         run: |
-          if [ -d "reports/allure/history" ]; then
+          if [ -d "reports/allure/history" ] && [ "$(ls -A reports/allure/history 2>/dev/null)" ]; then
             mkdir -p reports/allure/results/history
-            shopt -s nullglob
             cp -r reports/allure/history/* reports/allure/results/history/
           fi
 
