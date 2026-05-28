@@ -13,12 +13,33 @@ function connectImap(user: string, pass: string): Promise<Imap> {
       port: 993,
       tls: true,
       tlsOptions: { rejectUnauthorized: !process.env.CI },
+      authTimeout: 30_000,
+      connTimeout: 30_000,
     });
 
     imap.once('ready', () => resolve(imap));
     imap.once('error', reject);
     imap.connect();
   });
+}
+
+async function connectImapWithRetry(
+  user: string,
+  pass: string,
+  maxRetries = 3,
+  delayMs = 10_000,
+): Promise<Imap> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await connectImap(user, pass);
+    } catch (err) {
+      console.warn(`  ⚠️  IMAP connection attempt ${attempt}/${maxRetries} failed: ${String(err)}`);
+      if (attempt === maxRetries) throw err;
+      console.log(`  ⏳ Retrying in ${delayMs / 1000}s...`);
+      await new Promise((r) => setTimeout(r, delayMs));
+    }
+  }
+  throw new Error('IMAP connection failed — unreachable');
 }
 
 function openInbox(imap: Imap): Promise<Imap> {
@@ -84,7 +105,7 @@ export async function fetchVerificationCode(): Promise<string> {
 
   let imap: Imap;
   try {
-    imap = await connectImap(user, pass);
+    imap = await connectImapWithRetry(user, pass);
   } catch (err) {
     throw new Error(
       `IMAP connection to Gmail failed — check GMAIL_ADDRESS and GMAIL_APP_PASSWORD in .env: ${String(err)}`,

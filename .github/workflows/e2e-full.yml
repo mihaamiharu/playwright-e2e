@@ -67,6 +67,29 @@ jobs:
             allure-history-${{ github.ref_name }}-
             allure-history-
 
+      - name: Restore auth state (rerun only)
+        if: github.run_attempt > 1
+        uses: actions/cache/restore@v4
+        with:
+          path: auth/github.json.enc
+          key: auth-state-${{ github.run_id }}
+
+      - name: Decrypt auth state (rerun only)
+        if: github.run_attempt > 1
+        env:
+          AUTH_CACHE_KEY: ${{ secrets.GH_API_TOKEN }}
+        run: |
+          if [ -f auth/github.json.enc ]; then
+            mkdir -p auth
+            openssl enc -aes-256-cbc -pbkdf2 -d \
+              -in auth/github.json.enc \
+              -out auth/github.json \
+              -pass env:AUTH_CACHE_KEY
+            echo "✅ Restored auth state from previous attempt"
+          else
+            echo "⚠️  No encrypted auth state found — will re-authenticate"
+          fi
+
       - name: Run Playwright tests
         env:
           GH_USERNAME: ${{ secrets.GH_USERNAME }}
@@ -81,7 +104,6 @@ jobs:
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           BASE_URL: https://github.com
           TEST_MODE: full
-          NODE_OPTIONS: --use-system-ca
         run: |
           npm run bddgen
           if [[ "${{ github.run_attempt }}" -gt 1 && -f reports/artifacts/.last-run.json ]]; then
@@ -97,6 +119,29 @@ jobs:
             echo "→ Full mode: running all tests"
             npx playwright test --config=playwright.bdd.config.ts --grep-invert @visual
           fi
+
+      - name: Encrypt auth state for reruns
+        if: always()
+        env:
+          AUTH_CACHE_KEY: ${{ secrets.GH_API_TOKEN }}
+        run: |
+          if [ -f auth/github.json ]; then
+            openssl enc -aes-256-cbc -pbkdf2 -salt \
+              -in auth/github.json \
+              -out auth/github.json.enc \
+              -pass env:AUTH_CACHE_KEY
+            echo "🔐 Auth state encrypted for rerun cache"
+          else
+            echo "ℹ️  No auth state to cache"
+          fi
+
+      - name: Save auth cache
+        if: always()
+        uses: actions/cache/save@v4
+        continue-on-error: true
+        with:
+          path: auth/github.json.enc
+          key: auth-state-${{ github.run_id }}
 
       - name: Upload test run cache
         if: always()
