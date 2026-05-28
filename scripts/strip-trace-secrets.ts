@@ -74,20 +74,29 @@ function sanitizeFile(p: string): boolean {
   }
 }
 
-function sanitizeTrace(zipPath: string): boolean {
-  const tmp = mkdtempSync(join(tmpdir(), 'trace-sanitize-'));
+function sanitizeZip(zipPath: string): boolean {
+  const tmp = mkdtempSync(join(tmpdir(), 'zip-sanitize-'));
+  let modified = false;
   try {
     execSync(`unzip -o "${zipPath}" -d "${tmp}"`, { stdio: 'ignore' });
-    const traceFile = join(tmp, 'trace.trace');
-    if (!existsSync(traceFile)) return false;
 
-    const content = readFileSync(traceFile, 'utf-8');
-    if (!hasSecret(content)) return false;
+    for (const entry of readdirSync(tmp)) {
+      const entryPath = join(tmp, entry);
+      if (!statSync(entryPath).isFile()) continue;
 
-    writeFileSync(traceFile, redactSecrets(content));
-    unlinkSync(zipPath);
-    execSync(`cd "${tmp}" && zip -r "${zipPath}" .`, { stdio: 'ignore' });
-    return true;
+      if (!TEXT_EXTS.has(extname(entry))) continue;
+
+      const content = readFileSync(entryPath, 'utf-8');
+      if (!hasSecret(content)) continue;
+      writeFileSync(entryPath, redactSecrets(content));
+      modified = true;
+    }
+
+    if (modified) {
+      unlinkSync(zipPath);
+      execSync(`cd "${tmp}" && zip -r "${zipPath}" .`, { stdio: 'ignore' });
+    }
+    return modified;
   } finally {
     rmSync(tmp, { recursive: true, force: true });
   }
@@ -100,14 +109,14 @@ if (!existsSync(RESULTS_DIR)) {
 
 console.log(`[sanitize] Scanning ${RESULTS_DIR}...`);
 const files = walk(RESULTS_DIR);
-let traces = 0;
+let zips = 0;
 let filesScanned = 0;
 
 for (const f of files) {
-  if (basename(f) === 'trace.zip') {
-    if (sanitizeTrace(f)) {
+  if (extname(f) === '.zip') {
+    if (sanitizeZip(f)) {
       console.log(`  [sanitize] Stripped secrets from ${basename(f)}`);
-      traces++;
+      zips++;
     }
   } else if (TEXT_EXTS.has(extname(f))) {
     if (sanitizeFile(f)) {
@@ -117,4 +126,4 @@ for (const f of files) {
   }
 }
 
-console.log(`[sanitize] Done — ${traces} trace(s) sanitized, ${filesScanned} file(s) redacted`);
+console.log(`[sanitize] Done — ${zips} zip(s) sanitized, ${filesScanned} file(s) redacted`);
