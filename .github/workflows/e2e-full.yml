@@ -105,6 +105,16 @@ jobs:
             cp -r reports/allure/history/* reports/allure/results/history/
           fi
 
+      - name: Copy Allure Categories
+        if: always()
+        run: cp allure-categories.json reports/allure/results/categories.json 2>/dev/null || true
+
+      - name: Debug Allure History
+        if: always()
+        run: |
+          echo "=== History dir ==="
+          ls -la reports/allure/results/history/ 2>/dev/null || echo "No history dir"
+
       - name: Generate Allure Report
         if: always()
         run: npx allure generate -o reports/allure/report reports/allure/results || true

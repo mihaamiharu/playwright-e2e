@@ -1,0 +1,22 @@
+[
+  {
+    "name": "Product Defects",
+    "matchedStatuses": ["failed"],
+    "messageRegex": ".*expect.*|.*assertion.*|.*Expected.*"
+  },
+  {
+    "name": "Test Infrastructure",
+    "matchedStatuses": ["broken"],
+    "messageRegex": ".*timeout.*|.*ECONNREFUSED.*|.*net::ERR.*"
+  },
+  {
+    "name": "Flaky Tests",
+    "matchedStatuses": ["failed", "broken"],
+    "flaky": true
+  },
+  {
+    "name": "Known Issues",
+    "matchedStatuses": ["failed", "broken"],
+    "messageRegex": ".*known.*|.*skip.*"
+  }
+]
