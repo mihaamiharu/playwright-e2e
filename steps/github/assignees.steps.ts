@@ -4,8 +4,6 @@ import { env } from '../../src/config/env.config';
 
 const { When, Then } = createBdd(test);
 
-let secondUnassignedIssueTitle = '';
-
 When('I assign the issue to myself via the API', async ({ githubAPI, seededProjectIssue }) => {
   await githubAPI.updateIssue(env.github.testRepo, seededProjectIssue.number, {
     assignees: [env.github.username],
@@ -28,7 +26,7 @@ Then('I should see no assignee on the issue', async ({ issuePage }) => {
 
 When(
   'I seed a second unassigned issue on the board',
-  async ({ githubAPI, projectsAPI, sandbox, dataManager }) => {
+  async ({ githubAPI, projectsAPI, sandbox, dataManager, scenarioContext }) => {
     const uniqueId = `unassigned-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
     const title = `e2e-${uniqueId}`;
 
@@ -46,7 +44,7 @@ When(
       await githubAPI.closeIssue(env.github.testRepo, issue.number);
     });
 
-    secondUnassignedIssueTitle = title;
+    scenarioContext.set('secondUnassignedIssueTitle', title);
   },
 );
 
@@ -67,7 +65,9 @@ When(
 
 Then(
   'the second unassigned issue should not be visible on the board',
-  async ({ projectBoardPage }) => {
-    await projectBoardPage.expectCardNotVisible(secondUnassignedIssueTitle);
+  async ({ projectBoardPage, scenarioContext }) => {
+    await projectBoardPage.expectCardNotVisible(
+      scenarioContext.get<string>('secondUnassignedIssueTitle'),
+    );
   },
 );

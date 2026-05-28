@@ -5,9 +5,6 @@ import { env } from '../../src/config/env.config';
 
 const { Given, When, Then } = createBdd(test);
 
-let issueATitle = '';
-let issueBTitle = '';
-
 // ── FLD-01 ──────────────────────────────────────────────────
 
 When(
@@ -58,7 +55,7 @@ Then(
 Given(
   'issue {string} exists with {string} set to {string} in the sandbox project',
   async (
-    { githubAPI, projectsAPI, sandbox, dataManager },
+    { githubAPI, projectsAPI, sandbox, dataManager, scenarioContext },
     issueId: string,
     fieldName: string,
     value: string,
@@ -67,8 +64,8 @@ Given(
     const rand = Math.random().toString(36).slice(2, 6);
     const title = `${issueId}-e2e-${ts}-${rand}`;
 
-    if (issueId === 'A') issueATitle = title;
-    else issueBTitle = title;
+    if (issueId === 'A') scenarioContext.set('issueATitle', title);
+    else scenarioContext.set('issueBTitle', title);
 
     const issue = await githubAPI.createIssue(env.github.testRepo, {
       title,
@@ -128,16 +125,22 @@ When(
 
 Then(
   'custom issue {string} should be visible in the table',
-  async ({ tableViewPage }, issueId: string) => {
-    const title = issueId === 'A' ? issueATitle : issueBTitle;
+  async ({ tableViewPage, scenarioContext }, issueId: string) => {
+    const title =
+      issueId === 'A'
+        ? scenarioContext.get<string>('issueATitle')
+        : scenarioContext.get<string>('issueBTitle');
     await tableViewPage.expectRowVisible(title);
   },
 );
 
 Then(
   'custom issue {string} should not be visible in the table',
-  async ({ tableViewPage }, issueId: string) => {
-    const title = issueId === 'A' ? issueATitle : issueBTitle;
+  async ({ tableViewPage, scenarioContext }, issueId: string) => {
+    const title =
+      issueId === 'A'
+        ? scenarioContext.get<string>('issueATitle')
+        : scenarioContext.get<string>('issueBTitle');
     await tableViewPage.expectRowNotVisible(title);
   },
 );
