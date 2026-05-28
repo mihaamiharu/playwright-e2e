@@ -67,7 +67,7 @@ export const test = mergeTests(githubTest, dataTest, apiTest, pagesTest).extend<
   _allureLabels: [
     // eslint-disable-next-line no-empty-pattern
     async ({}, use, testInfo) => {
-      await attachAllureLabels(testInfo.tags);
+      await attachAllureLabels(testInfo.tags, testInfo);
       await use();
     },
     { auto: true },
