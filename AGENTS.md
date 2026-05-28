@@ -38,10 +38,10 @@ npm run bddgen                  # .feature → .spec.ts only, no run
 features/   → .feature files (Gherkin scenarios)
 steps/      → BDD step definitions (createBdd + Given/When/Then)
 src/
-  fixtures/ → custom test fixtures (playwright-bdd base)
-  pages/    → POMs
-  utils/    → DataManager, REST client, GraphQL client
-  config/   → global-setup.ts, env.config.ts
+  fixtures/ → custom test fixtures (github, project-data, project-api, pages)
+  pages/    → POMs (core, panels, views, filters)
+  utils/    → api/, testing/, auth/, reporting/, accessibility/, ai/
+  config/   → global-setup.ts, setup/, env.config.ts
 ```
 
 No `tests/` directory — everything is BDD.
@@ -51,7 +51,9 @@ No `tests/` directory — everything is BDD.
 | File                        | Extends          | Used by                           |
 | --------------------------- | ---------------- | --------------------------------- |
 | `github.fixture.ts`         | `playwright-bdd` | Login BDD steps (unauthenticated) |
-| `github-project.fixture.ts` | `playwright-bdd` | Project management BDD steps      |
+| `project-data.fixture.ts`   | `playwright-bdd` | Data lifecycle (all tests)        |
+| `project-api.fixture.ts`    | `playwright-bdd` | API clients (authenticated)       |
+| `pages.fixture.ts`          | `playwright-bdd` | POM injection (all steps)         |
 
 `src/fixtures/index.ts` merges fixtures via `mergeTests` and attaches an auto-fixture for Allure labels.
 
@@ -90,14 +92,14 @@ Known inconsistency: `login.steps.ts` error message says "Set `GITHUB_USERNAME`"
 
 ## DataManager — LIFO cleanup queue
 
-`src/utils/data-manager.ts`: fixtures enqueue cleanup callbacks that run in reverse order after the test (pass or fail). One failure doesn't block others. Logs `[seeder]` / `[cleanup]` to console.
+`src/utils/testing/data-manager.ts`: fixtures enqueue cleanup callbacks that run in reverse order after the test (pass or fail). One failure doesn't block others. Logs `[seeder]` / `[cleanup]` to console.
 
 ## API clients
 
 Both use Playwright's built-in `request` fixture (zero extra HTTP deps):
 
-- `GitHubAPI` (`src/utils/api-client.ts`) — REST
-- `GitHubProjectsAPI` (`src/utils/github-projects-api.ts`) — GraphQL (Projects V2)
+- `GitHubAPI` (`src/utils/api/github-rest.ts`) — REST
+- `GitHubProjectsAPI` (`src/utils/api/github-graphql.ts`) — GraphQL (Projects V2)
 
 ## Locator conventions
 
