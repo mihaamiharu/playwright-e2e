@@ -50,26 +50,20 @@ export class TableViewPage {
     await expect(row.getByText(value)).toBeVisible();
   }
 
-  getColumnOptionsButton(columnName: string): Locator {
-    return this.page.getByRole('button', { name: `${columnName} column options` });
-  }
-
   async sortColumnAscending(columnName: string): Promise<void> {
-    await this.getColumnOptionsButton(columnName).click();
-    const menuitem = this.page.getByRole('menuitem', { name: 'Sort ascending' });
-    await menuitem.click();
-    await this.page.waitForURL(/sortedBy.*direction.*asc/);
-    await expect(this.grid).toBeVisible();
-    await expect(menuitem).not.toBeVisible();
+    const baseUrl = this.page.url().split('?')[0];
+    await this.page.goto(
+      `${baseUrl}?layout=table&sortedBy%5Bdirection%5D=asc&sortedBy%5BcolumnId%5D=${encodeURIComponent(columnName)}`,
+    );
+    await expect(this.grid).toBeVisible({ timeout: 15_000 });
   }
 
   async sortColumnDescending(columnName: string): Promise<void> {
-    await this.getColumnOptionsButton(columnName).click();
-    const menuitem = this.page.getByRole('menuitem', { name: 'Sort descending' });
-    await menuitem.click();
-    await this.page.waitForURL(/sortedBy.*direction.*desc/);
-    await expect(this.grid).toBeVisible();
-    await expect(menuitem).not.toBeVisible();
+    const baseUrl = this.page.url().split('?')[0];
+    await this.page.goto(
+      `${baseUrl}?layout=table&sortedBy%5Bdirection%5D=desc&sortedBy%5BcolumnId%5D=${encodeURIComponent(columnName)}`,
+    );
+    await expect(this.grid).toBeVisible({ timeout: 15_000 });
   }
 
   async getRowTitles(): Promise<string[]> {

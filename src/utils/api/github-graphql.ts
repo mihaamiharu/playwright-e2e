@@ -1,5 +1,5 @@
 import type { APIRequestContext } from '@playwright/test';
-import { retry } from './retry';
+import { retry } from '../testing/retry';
 
 /**
  * GraphQL client for GitHub Projects V2.

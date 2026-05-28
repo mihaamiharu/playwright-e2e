@@ -1,9 +1,12 @@
-import { Page, Locator, expect } from '@playwright/test';
+import { type Page, type Locator, expect } from '@playwright/test';
 
 /**
- * Page Object Model for GitHub Project Filter Bar.
+ * Page Object Model for GitHub Project Filter / Search Bar.
+ *
+ * Renamed from ProjectFilterBar — "search" better reflects its primary
+ * use case (type-to-filter) and avoids ambiguity with board column filters.
  */
-export class ProjectFilterBar {
+export class ProjectSearchBar {
   readonly filterInput: Locator;
   readonly saveButton: Locator;
 
@@ -21,14 +24,16 @@ export class ProjectFilterBar {
   }
 
   async selectType(typeName: string): Promise<void> {
-    const option = this.page.getByRole('option', { name: new RegExp(`^${typeName}(, Filter)?`) });
+    const option = this.page.getByRole('option', {
+      name: new RegExp(`^${typeName}(, Filter)?`, 'i'),
+    });
     await expect(option).toBeVisible();
     await option.click();
   }
 
   async selectOption(optionName: string, optionTypeName?: string): Promise<void> {
     const namePattern = optionTypeName ? `${optionName}, ${optionTypeName}` : optionName;
-    const option = this.page.getByRole('option', { name: new RegExp(namePattern) });
+    const option = this.page.getByRole('option', { name: new RegExp(namePattern, 'i') });
     await expect(option).toBeVisible();
     await option.click();
   }

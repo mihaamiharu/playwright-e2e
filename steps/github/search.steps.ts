@@ -54,14 +54,14 @@ When(
 
 Then(
   'the issue with the keyword should be visible on the board',
-  async ({ projectBoardPage, scenarioContext }) => {
-    await projectBoardPage.expectCardVisible(scenarioContext.get<string>('keywordIssueTitle'));
+  async ({ boardView, scenarioContext }) => {
+    await boardView.expectCardVisible(scenarioContext.get<string>('keywordIssueTitle'));
   },
 );
 
 Then(
   'the seeded issue without the keyword should not be visible',
-  async ({ projectBoardPage, seededProjectIssue }) => {
-    await projectBoardPage.expectCardNotVisible(seededProjectIssue.title);
+  async ({ boardView, seededProjectIssue }) => {
+    await boardView.expectCardNotVisible(seededProjectIssue.title);
   },
 );
