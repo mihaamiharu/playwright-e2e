@@ -8,6 +8,8 @@ import { attachAllureLabels } from '../utils/reporting/allure-labels';
 import { env } from '../config/env.config';
 import { ensureAuthCookies } from '../utils/auth/cookies';
 
+const logPrefix = (testInfo: { title: string }) => `[${testInfo.title}]`;
+
 export const test = mergeTests(githubTest, dataTest, apiTest, pagesTest).extend<{
   sandbox: {
     projectId: string;
@@ -22,7 +24,7 @@ export const test = mergeTests(githubTest, dataTest, apiTest, pagesTest).extend<
     await use(page);
   },
 
-  sandbox: async ({ projectsAPI }, use) => {
+  sandbox: async ({ projectsAPI }, use, testInfo) => {
     requireSandbox();
 
     const { projectId, statusFieldId, statusOptions } = await projectsAPI.resolveProject(
@@ -30,15 +32,15 @@ export const test = mergeTests(githubTest, dataTest, apiTest, pagesTest).extend<
       env.github.sandboxProjectNumber,
     );
 
+    const statuses = [...statusOptions.keys()].join(', ');
     console.log(
-      `[sandbox] Resolved project "${env.github.sandboxProject}" (${projectId}), ` +
-        `statuses: ${[...statusOptions.keys()].join(', ')}`,
+      `${logPrefix(testInfo)} [sandbox] Resolved project "${env.github.sandboxProject}" (${projectId}), statuses: ${statuses}`,
     );
 
     await use({ projectId, statusFieldId, statusOptions });
   },
 
-  seededProjectIssue: async ({ githubAPI, projectsAPI, sandbox, dataManager }, use) => {
+  seededProjectIssue: async ({ githubAPI, projectsAPI, sandbox, dataManager }, use, testInfo) => {
     requireSandbox();
 
     const uniqueId = `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
@@ -47,19 +49,19 @@ export const test = mergeTests(githubTest, dataTest, apiTest, pagesTest).extend<
       title,
       body: `🤖 Seeded by Playwright E2E test. Auto-cleaned. Run: ${uniqueId}`,
     });
-    console.log(`[seeder] Created issue #${issue.number}: "${title}"`);
+    console.log(`${logPrefix(testInfo)} [seeder] Created issue #${issue.number}: "${title}"`);
 
     const projectItemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
-    console.log(`[seeder] Added issue #${issue.number} to project ${sandbox.projectId}`);
+    console.log(
+      `${logPrefix(testInfo)} [seeder] Added issue #${issue.number} to project ${sandbox.projectId}`,
+    );
 
-    dataManager.enqueue(async () => {
-      console.log(`[cleanup] Removing issue #${issue.number} from project`);
-      await projectsAPI.removeItemFromProject(sandbox.projectId, projectItemId);
-    });
-    dataManager.enqueue(async () => {
-      console.log(`[cleanup] Closing issue #${issue.number}`);
-      await githubAPI.closeIssue(env.github.testRepo, issue.number);
-    });
+    dataManager.enqueue(`close issue #${issue.number}`, () =>
+      githubAPI.closeIssue(env.github.testRepo, issue.number),
+    );
+    dataManager.enqueue(`remove issue #${issue.number} from project`, () =>
+      projectsAPI.removeItemFromProject(sandbox.projectId, projectItemId),
+    );
 
     await use({ ...issue, projectItemId });
   },

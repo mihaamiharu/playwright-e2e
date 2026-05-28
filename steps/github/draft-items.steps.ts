@@ -15,7 +15,7 @@ When(
     scenarioContext.set('draftItemId', draftItemId);
     scenarioContext.set('draftTitle', draftTitle);
 
-    dataManager.enqueue(async () => {
+    dataManager.enqueue(`remove draft ${draftTitle} from project`, async () => {
       await projectsAPI.removeItemFromProject(sandbox.projectId, draftItemId);
     });
   },
@@ -48,11 +48,11 @@ When(
     const itemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
     scenarioContext.set('issueTitle', issueTitle);
 
-    dataManager.enqueue(async () => {
-      await projectsAPI.removeItemFromProject(sandbox.projectId, itemId);
-    });
-    dataManager.enqueue(async () => {
+    dataManager.enqueue(`close issue #${issue.number}`, async () => {
       await githubAPI.closeIssue(env.github.testRepo, issue.number);
+    });
+    dataManager.enqueue(`remove issue #${issue.number} from project`, async () => {
+      await projectsAPI.removeItemFromProject(sandbox.projectId, itemId);
     });
   },
 );

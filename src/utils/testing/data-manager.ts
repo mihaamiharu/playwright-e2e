@@ -1,45 +1,38 @@
-/**
- * DataManager — guaranteed cleanup queue for E2E test data lifecycle.
- *
- * Every test that creates resources via API enqueues a cleanup task.
- * The DataManager runs ALL enqueued tasks after each test, even if the test fails.
- * This prevents test pollution between runs.
- */
 export class DataManager {
-  private cleanupQueue: Array<() => Promise<void>> = [];
+  private cleanupQueue: Array<{ label: string; fn: () => Promise<void> }> = [];
 
-  /** Enqueue a cleanup function. It WILL run — even if the test throws. */
-  enqueue(fn: () => Promise<void>): void {
-    this.cleanupQueue.push(fn);
+  enqueue(label: string, fn: () => Promise<void>): void {
+    this.cleanupQueue.push({ label, fn });
   }
 
-  /** Run all enqueued cleanup tasks in reverse order (LIFO). */
   async cleanupAll(): Promise<void> {
     if (this.cleanupQueue.length === 0) return;
 
-    console.log(`[cleanup] Running ${this.cleanupQueue.length} task(s)...`);
+    const taskLabels = this.cleanupQueue.map((t, i) => `${i + 1}) ${t.label}`).join(' → ');
+    console.log(`[cleanup] ${this.cleanupQueue.length} task(s): ${taskLabels}`);
 
     const errors: Error[] = [];
+    const start = performance.now();
 
-    // Reverse — cleanup in opposite order of creation (child resources first)
-    for (const fn of this.cleanupQueue.reverse()) {
+    for (const { label, fn } of this.cleanupQueue.reverse()) {
       try {
+        console.log(`[cleanup] ${label}...`);
         await fn();
       } catch (error) {
-        // Don't let one cleanup failure block the rest
         errors.push(error as Error);
       }
     }
 
     this.cleanupQueue = [];
+    const elapsed = ((performance.now() - start) / 1000).toFixed(1);
 
     if (errors.length > 0) {
       console.warn(
-        `DataManager: ${errors.length} cleanup task(s) failed:\n` +
+        `[cleanup] ${errors.length} task(s) failed (${elapsed}s):\n` +
           errors.map((e) => `  - ${e.message}`).join('\n'),
       );
     } else {
-      console.log('[cleanup] Done');
+      console.log(`[cleanup] Done (${elapsed}s)`);
     }
   }
 }
