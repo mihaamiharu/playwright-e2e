@@ -122,6 +122,10 @@ jobs:
             npx playwright test --config=playwright.bdd.config.ts --grep-invert @visual
           fi
 
+      - name: Sanitize traces (strip PAT from artifacts)
+        if: always()
+        run: npx tsx scripts/strip-trace-secrets.ts reports/allure/results
+
       - name: Encrypt auth state for reruns
         if: always()
         env:

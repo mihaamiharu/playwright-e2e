@@ -1,6 +1,7 @@
 import { test as base } from 'playwright-bdd';
 import type { Page } from '@playwright/test';
 import { LoginPage } from '../pages/github/LoginPage';
+import { logged } from './pages.fixture';
 
 /**
  * GitHub-specific test fixtures.
@@ -26,8 +27,7 @@ export const test = base.extend<GitHubFixtures>({
   },
 
   loginPage: async ({ anonymousPage }, use) => {
-    const loginPage = new LoginPage(anonymousPage);
-    await use(loginPage);
+    await use(logged(new LoginPage(anonymousPage), 'LoginPage'));
   },
 });
 

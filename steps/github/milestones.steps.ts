@@ -26,7 +26,7 @@ When(
     scenarioContext.set('milestoneNumber', milestone.number);
     scenarioContext.set('milestoneTitle', milestone.title);
 
-    dataManager.enqueue(async () => {
+    dataManager.enqueue(`delete milestone #${milestone.number}`, async () => {
       await githubAPI.deleteMilestone(env.github.testRepo, milestone.number);
     });
   },
@@ -65,11 +65,11 @@ When(
 
     const projectItemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
 
-    dataManager.enqueue(async () => {
-      await projectsAPI.removeItemFromProject(sandbox.projectId, projectItemId);
-    });
-    dataManager.enqueue(async () => {
+    dataManager.enqueue(`close issue #${issue.number}`, async () => {
       await githubAPI.closeIssue(env.github.testRepo, issue.number);
+    });
+    dataManager.enqueue(`remove issue #${issue.number} from project`, async () => {
+      await projectsAPI.removeItemFromProject(sandbox.projectId, projectItemId);
     });
   },
 );
