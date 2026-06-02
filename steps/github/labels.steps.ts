@@ -2,7 +2,7 @@ import { createBdd } from 'playwright-bdd';
 import { expect } from '@playwright/test';
 import { test } from '../../src/fixtures';
 import { env } from '../../src/config/env.config';
-import { createTestIssueTitle, createTestIssue } from '../../src/utils/testing/factories';
+import { uniqueTestTitle, buildIssueParams } from '../../src/utils/testing/factories';
 
 const { When, Then } = createBdd(test);
 
@@ -32,11 +32,11 @@ Then('I should not see the {string} label on the issue', async ({ labelsPanel },
 When(
   'I seed a second unlabeled issue on the board',
   async ({ githubAPI, projectsAPI, sandbox, dataManager, scenarioContext }) => {
-    const title = createTestIssueTitle('unlabeled');
+    const title = uniqueTestTitle('unlabeled');
 
     const issue = await githubAPI.createIssue(
       env.github.testRepo,
-      createTestIssue({ title, body: `Second issue for label filter test. Run: ${title}` }),
+      buildIssueParams({ title, body: `Second issue for label filter test. Run: ${title}` }),
     );
 
     dataManager.enqueue(`close issue #${issue.number}`, async () => {

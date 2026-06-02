@@ -1,19 +1,19 @@
 import { createBdd } from 'playwright-bdd';
 import { test } from '../../src/fixtures';
 import { env } from '../../src/config/env.config';
-import { createTestIssueTitle, createTestIssue } from '../../src/utils/testing/factories';
+import { uniqueTestTitle, buildIssueParams } from '../../src/utils/testing/factories';
 
 const { Given, Then } = createBdd(test);
 
 Given(
   'a second seeded project issue exists on the kanban board with title prefix {string}',
   async ({ githubAPI, projectsAPI, sandbox, dataManager, scenarioContext }, prefix: string) => {
-    const title = createTestIssueTitle(prefix);
+    const title = uniqueTestTitle(prefix);
     scenarioContext.set('secondRankIssueTitle', title);
 
     const issue = await githubAPI.createIssue(
       env.github.testRepo,
-      createTestIssue({ title, body: 'Ranking test issue' }),
+      buildIssueParams({ title, body: 'Ranking test issue' }),
     );
     dataManager.enqueue(`close issue #${issue.number}`, async () => {
       await githubAPI.closeIssue(env.github.testRepo, issue.number);

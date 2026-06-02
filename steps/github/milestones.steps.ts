@@ -2,7 +2,7 @@ import { createBdd } from 'playwright-bdd';
 import { expect } from '@playwright/test';
 import { test } from '../../src/fixtures';
 import { env } from '../../src/config/env.config';
-import { createTestIssue, createTestMilestone } from '../../src/utils/testing/factories';
+import { buildIssueParams, buildMilestoneParams } from '../../src/utils/testing/factories';
 
 const { When, Then } = createBdd(test);
 
@@ -15,7 +15,7 @@ When('I close the seeded issue via the API', async ({ githubAPI, seededProjectIs
 When(
   'I create a milestone with a due date via the API',
   async ({ githubAPI, dataManager, scenarioContext }) => {
-    const milestone = await githubAPI.createMilestone(env.github.testRepo, createTestMilestone());
+    const milestone = await githubAPI.createMilestone(env.github.testRepo, buildMilestoneParams());
 
     scenarioContext.set('milestoneNumber', milestone.number);
     scenarioContext.set('milestoneTitle', milestone.title);
@@ -49,7 +49,7 @@ When(
 
     const issue = await githubAPI.createIssue(
       env.github.testRepo,
-      createTestIssue({
+      buildIssueParams({
         body: `Second issue for milestone progress test`,
         milestone: milestoneNumber,
       }),

@@ -2,7 +2,7 @@ import { createBdd } from 'playwright-bdd';
 import { expect } from '@playwright/test';
 import { test } from '../../src/fixtures';
 import { env } from '../../src/config/env.config';
-import { createTestIssueTitle, createTestIssue } from '../../src/utils/testing/factories';
+import { uniqueTestTitle, buildIssueParams } from '../../src/utils/testing/factories';
 
 const { Given, When, Then } = createBdd(test);
 
@@ -27,14 +27,14 @@ Then(
 Given(
   'seeded table sort test issues exist with prefixes {string} and {string}',
   async ({ githubAPI, projectsAPI, sandbox, dataManager, scenarioContext }, prefixA, prefixZ) => {
-    const sortTitleA = createTestIssueTitle(prefixA);
-    const sortTitleZ = createTestIssueTitle(prefixZ);
+    const sortTitleA = uniqueTestTitle(prefixA);
+    const sortTitleZ = uniqueTestTitle(prefixZ);
     scenarioContext.set('sortTitleA', sortTitleA);
     scenarioContext.set('sortTitleZ', sortTitleZ);
 
     const issueA = await githubAPI.createIssue(
       env.github.testRepo,
-      createTestIssue({ title: sortTitleA, body: 'Sort test issue' }),
+      buildIssueParams({ title: sortTitleA, body: 'Sort test issue' }),
     );
     dataManager.enqueue(`close issue #${issueA.number}`, async () => {
       await githubAPI.closeIssue(env.github.testRepo, issueA.number);
@@ -46,7 +46,7 @@ Given(
 
     const issueZ = await githubAPI.createIssue(
       env.github.testRepo,
-      createTestIssue({ title: sortTitleZ, body: 'Sort test issue' }),
+      buildIssueParams({ title: sortTitleZ, body: 'Sort test issue' }),
     );
     dataManager.enqueue(`close issue #${issueZ.number}`, async () => {
       await githubAPI.closeIssue(env.github.testRepo, issueZ.number);
@@ -87,14 +87,14 @@ Given(
     statusName,
     labelName,
   ) => {
-    const title = createTestIssueTitle(issueId);
+    const title = uniqueTestTitle(issueId);
 
     if (issueId === 'A') scenarioContext.set('issueATitle', title);
     else scenarioContext.set('issueBTitle', title);
 
     const issue = await githubAPI.createIssue(
       env.github.testRepo,
-      createTestIssue({ title, labels: [labelName], body: `Filter test issue ${issueId}` }),
+      buildIssueParams({ title, labels: [labelName], body: `Filter test issue ${issueId}` }),
     );
     dataManager.enqueue(`close issue #${issue.number}`, async () => {
       await githubAPI.closeIssue(env.github.testRepo, issue.number);
@@ -122,13 +122,13 @@ Given(
     issueId,
     statusName,
   ) => {
-    const title = createTestIssueTitle(issueId);
+    const title = uniqueTestTitle(issueId);
 
     scenarioContext.set('issueBTitle', title);
 
     const issue = await githubAPI.createIssue(
       env.github.testRepo,
-      createTestIssue({ title, labels: [], body: `Filter test issue ${issueId}` }),
+      buildIssueParams({ title, labels: [], body: `Filter test issue ${issueId}` }),
     );
     dataManager.enqueue(`close issue #${issue.number}`, async () => {
       await githubAPI.closeIssue(env.github.testRepo, issue.number);

@@ -7,7 +7,7 @@ import { test as pagesTest } from './pages.fixture';
 import { attachAllureLabels } from '../utils/reporting/allure-labels';
 import { env } from '../config/env.config';
 import { ensureAuthCookies } from '../utils/auth/cookies';
-import { createTestIssue } from '../utils/testing/factories';
+import { buildIssueParams } from '../utils/testing/factories';
 
 const logPrefix = (testInfo: { title: string }) => `[${testInfo.title}]`;
 
@@ -45,7 +45,7 @@ export const test = mergeTests(githubTest, dataTest, apiTest, pagesTest).extend<
     requireSandbox();
 
     const result = await pwTest.step('Fixture: seed project issue', async () => {
-      const params = createTestIssue();
+      const params = buildIssueParams();
       const issue = await githubAPI.createIssue(env.github.testRepo, {
         ...params,
         body: `🤖 Seeded by Playwright E2E test. Auto-cleaned. Run: ${params.title}`,

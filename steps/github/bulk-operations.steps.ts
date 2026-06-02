@@ -2,7 +2,7 @@ import { createBdd } from 'playwright-bdd';
 import { expect } from '@playwright/test';
 import { test } from '../../src/fixtures';
 import { env } from '../../src/config/env.config';
-import { createTestIssue } from '../../src/utils/testing/factories';
+import { buildIssueParams } from '../../src/utils/testing/factories';
 
 const { Given, When, Then } = createBdd(test);
 
@@ -11,7 +11,7 @@ Given(
   async ({ githubAPI, projectsAPI, sandbox, dataManager, scenarioContext }) => {
     const issue = await githubAPI.createIssue(
       env.github.testRepo,
-      createTestIssue({ body: 'Bulk test issue' }),
+      buildIssueParams({ body: 'Bulk test issue' }),
     );
     dataManager.enqueue(`close issue #${issue.number}`, async () => {
       await githubAPI.closeIssue(env.github.testRepo, issue.number);
