@@ -6,7 +6,7 @@ const { When, Then } = createBdd(test);
 
 When(
   'I create a new board view named {string}',
-  async ({ page, scenarioContext }, baseName: string) => {
+  async ({ page, scenarioContext, projectsAPI, sandbox, dataManager }, baseName: string) => {
     const currentViewName = `${baseName} ${Date.now()}`;
     scenarioContext.set('currentViewName', currentViewName);
 
@@ -30,6 +30,19 @@ When(
 
     await dialog.getByRole('button', { name: 'Save' }).click();
     await expect(dialog).not.toBeVisible();
+
+    const views = await projectsAPI.getProjectViews(sandbox.projectId);
+    const createdView = views.find((v) => v.name === currentViewName);
+    if (createdView) {
+      dataManager.enqueue(async () => {
+        console.log(`[cleanup] Deleting view "${currentViewName}"`);
+        await projectsAPI.deleteView(createdView.id);
+      });
+    } else {
+      console.warn(
+        `[cleanup] Could not find view "${currentViewName}" to enqueue cleanup — may need manual removal`,
+      );
+    }
   },
 );
 
