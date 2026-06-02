@@ -48,6 +48,20 @@ export class SavedViews {
     await expect(this.page.getByRole('heading', { level: 2 }).first()).toBeVisible();
   }
 
+  async deleteView(viewName: string): Promise<void> {
+    await this.page.getByRole('tab', { name: viewName }).click();
+    await this.page.waitForURL(/\/views\/\d+/);
+    await expect(this.page.getByRole('heading', { level: 2 }).first()).toBeVisible();
+
+    await this.page.getByRole('button', { name: /View options for/ }).click();
+    await this.page.getByRole('menuitem', { name: 'Delete view' }).click();
+
+    const dialog = this.page.getByRole('alertdialog', { name: 'Delete view?' });
+    await expect(dialog).toBeVisible();
+    await dialog.getByRole('button', { name: 'Delete' }).click();
+    await expect(dialog).not.toBeVisible();
+  }
+
   async assertViewTabSelected(viewName: string): Promise<void> {
     await expect(this.page).toHaveTitle(new RegExp(viewName));
     const tab = this.tabList.getByRole('tab', { name: viewName });

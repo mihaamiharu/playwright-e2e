@@ -510,7 +510,14 @@ export class GitHubProjectsAPI {
     };
   }
 
-  /** Delete a saved view from a project. */
+  /**
+   * Delete a saved view from a project.
+   *
+   * **WARNING:** GitHub's public GraphQL API does NOT expose `deleteProjectV2View`.
+   * This method always fails. Use UI-based deletion via `SavedViews.deleteView()` instead.
+   *
+   * @deprecated GitHub has not shipped this mutation yet. Kept for reference only.
+   */
   async deleteView(viewId: string): Promise<void> {
     const query = `
       mutation($viewId: ID!) {
