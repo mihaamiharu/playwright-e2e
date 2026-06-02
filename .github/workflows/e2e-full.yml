@@ -47,15 +47,23 @@ jobs:
           echo "Attempting to restore results from attempt #$PREV"
           gh run download "${{ github.run_id }}" \
             --name "test-cache-${PREV}" \
-            --dir ./prev-cache 2>/dev/null || echo "No previous cache found — will run full suite"
-          if [ -f ./prev-cache/reports/artifacts/.last-run.json ]; then
+            --dir ./prev-cache || echo "gh run download failed (exit $?)"
+          echo "=== prev-cache file tree ==="
+          find ./prev-cache -type f 2>/dev/null | head -20 || echo "(empty)"
+          LAST_RUN=$(find ./prev-cache -name '.last-run.json' -type f 2>/dev/null | head -1)
+          if [ -n "$LAST_RUN" ]; then
+            echo "Found .last-run.json at: $LAST_RUN"
             mkdir -p reports/artifacts reports/allure/results
-            cp ./prev-cache/reports/artifacts/.last-run.json reports/artifacts/
-            cp -r ./prev-cache/reports/allure/results/* reports/allure/results/ 2>/dev/null || true
+            cp "$LAST_RUN" reports/artifacts/.last-run.json
+            ALLURE_DIR="$(dirname "$(dirname "$LAST_RUN")")/allure/results"
+            if [ -d "$ALLURE_DIR" ]; then
+              cp -r "$ALLURE_DIR"/. reports/allure/results/ 2>/dev/null || true
+              echo "Copied Allure results from $ALLURE_DIR"
+            fi
             echo "Restored previous results successfully"
             ls -la reports/artifacts/.last-run.json
           else
-            echo "No .last-run.json in cache, will run full suite"
+            echo "No .last-run.json found in cache, will run full suite"
           fi
 
       - name: Restore Allure History Cache
