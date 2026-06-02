@@ -18,7 +18,7 @@ export class TableViewPage {
     await this.viewButton.click();
     await this.tableButton.click();
     await this.page.waitForURL(/layout=table/);
-    await expect(this.grid).toBeVisible({ timeout: 15_000 });
+    await expect(this.grid).toBeVisible();
     await this.page.keyboard.press('Escape');
     await expect(this.tableButton).not.toBeVisible();
   }
@@ -38,10 +38,8 @@ export class TableViewPage {
   }
 
   async expectRowVisible(issueTitle: string): Promise<void> {
-    await expect(this.grid).toBeVisible({ timeout: 10_000 });
-
     try {
-      await expect(this.getRow(issueTitle).first()).toBeVisible({ timeout: 5_000 });
+      await expect(this.getRow(issueTitle).first()).toBeVisible();
       return;
     } catch {
       // row may not have propagated from GraphQL yet — reload and retry
@@ -49,8 +47,8 @@ export class TableViewPage {
 
     await expect(async () => {
       await this.page.reload();
-      await expect(this.grid).toBeVisible({ timeout: 10_000 });
-      await expect(this.getRow(issueTitle).first()).toBeVisible({ timeout: 10_000 });
+      await expect(this.grid).toBeVisible();
+      await expect(this.getRow(issueTitle).first()).toBeVisible();
     }).toPass({ timeout: 30_000 });
   }
 
@@ -70,7 +68,7 @@ export class TableViewPage {
     await this.page.goto(
       `${baseUrl}?layout=table&sortedBy%5Bdirection%5D=asc&sortedBy%5BcolumnId%5D=${encodeURIComponent(columnName)}`,
     );
-    await expect(this.grid).toBeVisible({ timeout: 15_000 });
+    await expect(this.grid).toBeVisible();
   }
 
   async sortColumnDescending(columnName: string): Promise<void> {
@@ -78,7 +76,7 @@ export class TableViewPage {
     await this.page.goto(
       `${baseUrl}?layout=table&sortedBy%5Bdirection%5D=desc&sortedBy%5BcolumnId%5D=${encodeURIComponent(columnName)}`,
     );
-    await expect(this.grid).toBeVisible({ timeout: 15_000 });
+    await expect(this.grid).toBeVisible();
   }
 
   async getRowTitles(): Promise<string[]> {

@@ -56,9 +56,7 @@ When(
 Then(
   'both seeded issues should appear in the {string} column',
   async ({ page, projectsAPI, sandbox, seededProjectIssue, scenarioContext }, columnName) => {
-    await expect(page.getByRole('heading', { name: columnName, level: 2 })).toBeVisible({
-      timeout: 15000,
-    });
+    await expect(page.getByRole('heading', { name: columnName, level: 2 })).toBeVisible();
 
     await expect(async () => {
       const secondId = scenarioContext.get<string>('secondIssueProjectItemId');

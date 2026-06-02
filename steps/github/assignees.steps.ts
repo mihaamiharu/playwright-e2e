@@ -1,4 +1,5 @@
 import { createBdd } from 'playwright-bdd';
+import { expect } from '@playwright/test';
 import { test } from '../../src/fixtures';
 import { env } from '../../src/config/env.config';
 
@@ -56,10 +57,7 @@ When(
     await projectFilterBar.selectOption(assigneeFilter);
 
     await page.waitForURL(/filterQuery=assignee/);
-    await page
-      .getByRole('heading', { level: 2 })
-      .first()
-      .waitFor({ state: 'visible', timeout: 15000 });
+    await expect(page.getByRole('heading', { level: 2 }).first()).toBeVisible();
   },
 );
 

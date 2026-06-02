@@ -27,7 +27,7 @@ export class LoginPage {
 
   async navigate(): Promise<void> {
     await this.page.goto(this.url, { waitUntil: 'domcontentloaded' });
-    await expect(this.usernameInput).toBeVisible({ timeout: 10_000 });
+    await expect(this.usernameInput).toBeVisible();
   }
 
   async login(username: string, password: string): Promise<void> {
@@ -58,6 +58,6 @@ export class LoginPage {
   // ── Assertions ────────────────────────────────────────
 
   async expectValidationError(message: string): Promise<void> {
-    await expect(this.errorMessage).toContainText(message, { timeout: 10_000 });
+    await expect(this.errorMessage).toContainText(message);
   }
 }

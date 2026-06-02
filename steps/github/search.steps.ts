@@ -1,5 +1,6 @@
 import { createBdd } from 'playwright-bdd';
 import { expect } from '@playwright/test';
+import { type Locator } from '@playwright/test';
 import { test } from '../../src/fixtures';
 import { env } from '../../src/config/env.config';
 
@@ -40,19 +41,20 @@ When(
     await projectFilterBar.selectType('Title');
     await page.waitForURL(/filterQuery=title/);
 
-    const input = (await projectFilterBar.filterInput.isVisible())
-      ? projectFilterBar.filterInput
-      : page.getByRole('combobox').first();
+    let input: Locator;
+    try {
+      await expect(projectFilterBar.filterInput).toBeVisible({ timeout: 3_000 });
+      input = projectFilterBar.filterInput;
+    } catch {
+      input = page.getByRole('combobox').first();
+    }
     await expect(input).toHaveValue('title:');
 
     await projectFilterBar.typeSearch(keyword);
     await projectFilterBar.save();
 
     await page.waitForURL(new RegExp(keyword));
-    await page
-      .getByRole('heading', { level: 2 })
-      .first()
-      .waitFor({ state: 'visible', timeout: 15000 });
+    await expect(page.getByRole('heading', { level: 2 }).first()).toBeVisible();
   },
 );
 
