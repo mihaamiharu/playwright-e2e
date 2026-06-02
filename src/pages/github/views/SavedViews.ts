@@ -18,10 +18,7 @@ export class SavedViews {
     await this.page.getByRole('tab', { name: 'New view' }).click();
     await this.page.getByRole('menuitem', { name: 'Board' }).click();
     await this.page.waitForURL(/\/views\/\d+/);
-    await this.page
-      .getByRole('heading', { level: 2 })
-      .first()
-      .waitFor({ state: 'visible', timeout: 15_000 });
+    await expect(this.page.getByRole('heading', { level: 2 }).first()).toBeVisible();
     await this.renameView(viewName);
   }
 
@@ -30,7 +27,7 @@ export class SavedViews {
     await this.page.getByRole('menuitem', { name: 'Rename view' }).click();
 
     const dialog = this.page.getByRole('dialog', { name: 'Rename view' });
-    await dialog.waitFor({ state: 'visible', timeout: 10_000 });
+    await expect(dialog).toBeVisible();
 
     const textbox = dialog.getByRole('textbox', { name: 'View name' });
     await textbox.clear();
@@ -43,24 +40,32 @@ export class SavedViews {
   async switchToView(viewName: string): Promise<void> {
     await this.page.getByRole('tab', { name: viewName }).click();
     await this.page.waitForURL(/\/views\/\d+/);
-    await this.page
-      .getByRole('heading', { level: 2 })
-      .first()
-      .waitFor({ state: 'visible', timeout: 15_000 });
+    await expect(this.page.getByRole('heading', { level: 2 }).first()).toBeVisible();
   }
 
   async refreshView(): Promise<void> {
     await this.page.reload();
-    await this.page
-      .getByRole('heading', { level: 2 })
-      .first()
-      .waitFor({ state: 'visible', timeout: 15_000 });
+    await expect(this.page.getByRole('heading', { level: 2 }).first()).toBeVisible();
+  }
+
+  async deleteView(viewName: string): Promise<void> {
+    await this.page.getByRole('tab', { name: viewName }).click();
+    await this.page.waitForURL(/\/views\/\d+/);
+    await expect(this.page.getByRole('heading', { level: 2 }).first()).toBeVisible();
+
+    await this.page.getByRole('button', { name: /View options for/ }).click();
+    await this.page.getByRole('menuitem', { name: 'Delete view' }).click();
+
+    const dialog = this.page.getByRole('alertdialog', { name: 'Delete view?' });
+    await expect(dialog).toBeVisible();
+    await dialog.getByRole('button', { name: 'Delete' }).click();
+    await expect(dialog).not.toBeVisible();
   }
 
   async assertViewTabSelected(viewName: string): Promise<void> {
     await expect(this.page).toHaveTitle(new RegExp(viewName));
     const tab = this.tabList.getByRole('tab', { name: viewName });
-    await expect(tab).toHaveAttribute('aria-selected', 'true', { timeout: 10_000 });
+    await expect(tab).toHaveAttribute('aria-selected', 'true');
   }
 
   async applyStatusFilter(value: string): Promise<void> {

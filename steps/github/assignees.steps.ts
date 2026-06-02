@@ -1,4 +1,5 @@
 import { createBdd } from 'playwright-bdd';
+import { expect } from '@playwright/test';
 import { test } from '../../src/fixtures';
 import { env } from '../../src/config/env.config';
 
@@ -35,11 +36,11 @@ When(
       body: `Second unassigned issue for assignee filter test. Run: ${uniqueId}`,
     });
 
-    const projectItemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
-
     dataManager.enqueue(`close issue #${issue.number}`, async () => {
       await githubAPI.closeIssue(env.github.testRepo, issue.number);
     });
+
+    const projectItemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
     dataManager.enqueue(`remove issue #${issue.number} from project`, async () => {
       await projectsAPI.removeItemFromProject(sandbox.projectId, projectItemId);
     });
@@ -56,10 +57,7 @@ When(
     await projectFilterBar.selectOption(assigneeFilter);
 
     await page.waitForURL(/filterQuery=assignee/);
-    await page
-      .getByRole('heading', { level: 2 })
-      .first()
-      .waitFor({ state: 'visible', timeout: 15000 });
+    await expect(page.getByRole('heading', { level: 2 }).first()).toBeVisible();
   },
 );
 

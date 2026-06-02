@@ -16,9 +16,10 @@ export class ProjectSearchBar {
   }
 
   async open(): Promise<void> {
-    if (await this.filterInput.isVisible()) {
+    try {
+      await expect(this.filterInput).toBeVisible({ timeout: 3_000 });
       await this.filterInput.click();
-    } else {
+    } catch {
       await this.page.getByRole('combobox').first().click();
     }
   }

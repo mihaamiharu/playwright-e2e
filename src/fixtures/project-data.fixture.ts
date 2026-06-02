@@ -8,8 +8,7 @@ export type ProjectDataFixtures = {
 };
 
 export const test = base.extend<ProjectDataFixtures>({
-  // eslint-disable-next-line no-empty-pattern
-  dataManager: async ({}, use) => {
+  dataManager: async ({ page: _page }, use) => {
     const dm = new DataManager();
     await use(dm);
     await dm.cleanupAll();

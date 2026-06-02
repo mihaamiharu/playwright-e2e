@@ -51,14 +51,15 @@ export const test = mergeTests(githubTest, dataTest, apiTest, pagesTest).extend<
     });
     console.log(`${logPrefix(testInfo)} [seeder] Created issue #${issue.number}: "${title}"`);
 
+    dataManager.enqueue(`close issue #${issue.number}`, () =>
+      githubAPI.closeIssue(env.github.testRepo, issue.number),
+    );
+
     const projectItemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
     console.log(
       `${logPrefix(testInfo)} [seeder] Added issue #${issue.number} to project ${sandbox.projectId}`,
     );
 
-    dataManager.enqueue(`close issue #${issue.number}`, () =>
-      githubAPI.closeIssue(env.github.testRepo, issue.number),
-    );
     dataManager.enqueue(`remove issue #${issue.number} from project`, () =>
       projectsAPI.removeItemFromProject(sandbox.projectId, projectItemId),
     );

@@ -15,13 +15,13 @@ Given(
       title,
       body: 'Bulk test issue',
     });
+    dataManager.enqueue(`close issue #${issue.number}`, async () => {
+      await githubAPI.closeIssue(env.github.testRepo, issue.number);
+    });
     const projectItemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
 
     scenarioContext.set('secondIssueProjectItemId', projectItemId);
 
-    dataManager.enqueue(`close issue #${issue.number}`, async () => {
-      await githubAPI.closeIssue(env.github.testRepo, issue.number);
-    });
     dataManager.enqueue(`remove issue #${issue.number} from project`, async () => {
       await projectsAPI.removeItemFromProject(sandbox.projectId, projectItemId);
     });
@@ -56,9 +56,7 @@ When(
 Then(
   'both seeded issues should appear in the {string} column',
   async ({ page, projectsAPI, sandbox, seededProjectIssue, scenarioContext }, columnName) => {
-    await expect(page.getByRole('heading', { name: columnName, level: 2 })).toBeVisible({
-      timeout: 15000,
-    });
+    await expect(page.getByRole('heading', { name: columnName, level: 2 })).toBeVisible();
 
     await expect(async () => {
       const secondId = scenarioContext.get<string>('secondIssueProjectItemId');
@@ -67,6 +65,6 @@ Then(
       const item2 = items.find((i) => i.id === secondId);
       expect(item1?.status).toBe(columnName);
       expect(item2?.status).toBe(columnName);
-    }).toPass({ timeout: 15000 });
+    }).toPass({ timeout: 10_000 });
   },
 );

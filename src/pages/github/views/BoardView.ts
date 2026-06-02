@@ -15,11 +15,12 @@ export class BoardView {
   }
 
   async expectCardVisible(title: string): Promise<void> {
-    await this.firstHeading.waitFor({ state: 'visible', timeout: 15_000 });
     const card = this.page.getByRole('button', { name: new RegExp(title) });
 
     try {
-      await expect(card.first()).toBeVisible({ timeout: 5_000 });
+      await this.page.keyboard.press('End');
+      await this.page.waitForTimeout(200);
+      await expect(card.first()).toBeVisible();
       return;
     } catch {
       // card may not have propagated from GraphQL yet — reload and retry
@@ -27,16 +28,18 @@ export class BoardView {
 
     await expect(async () => {
       await this.page.reload();
-      await this.firstHeading.waitFor({ state: 'visible', timeout: 10_000 });
+      await expect(this.firstHeading).toBeVisible();
+      await this.page.keyboard.press('End');
+      await this.page.waitForTimeout(200);
       const refreshedCard = this.page.getByRole('button', { name: new RegExp(title) });
-      await expect(refreshedCard.first()).toBeVisible({ timeout: 10_000 });
-    }).toPass({ timeout: 30_000 });
+      await expect(refreshedCard.first()).toBeVisible();
+    }).toPass({ timeout: 15_000 });
   }
 
   async expectCardNotVisible(title: string): Promise<void> {
     await expect(async () => {
       const card = this.page.getByRole('button', { name: new RegExp(title) });
       await expect(card.first()).not.toBeVisible({ timeout: 3_000 });
-    }).toPass({ timeout: 20_000 });
+    }).toPass({ timeout: 10_000 });
   }
 }

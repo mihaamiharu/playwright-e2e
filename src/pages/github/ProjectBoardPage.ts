@@ -18,7 +18,7 @@ export class ProjectBoardPage {
 
   async navigate(): Promise<void> {
     await this.page.goto(this.viewPath);
-    await this.firstHeading.waitFor({ state: 'visible', timeout: 15_000 });
+    await expect(this.firstHeading).toBeVisible();
   }
 
   getDraggableCard(title: string): Locator {
@@ -27,19 +27,21 @@ export class ProjectBoardPage {
       .filter({ hasText: new RegExp(title) });
   }
 
+  // data-board-column is a stable framework attribute, not a hashed CSS class.
   getColumn(columnName: string): Locator {
     return this.page.locator(`[data-board-column="${columnName}"]`);
   }
 
   async dragCardToColumn(cardTitle: string, toColumn: string): Promise<void> {
     await this.page.reload();
-    await this.firstHeading.waitFor({ state: 'visible', timeout: 15_000 });
-
-    const card = this.getDraggableCard(cardTitle);
-    await expect(card).toBeVisible();
+    await expect(this.firstHeading).toBeVisible();
 
     const targetHeading = this.page.getByRole('heading', { name: toColumn, level: 2 });
     await expect(targetHeading).toBeVisible();
+    await targetHeading.scrollIntoViewIfNeeded();
+
+    const card = this.getDraggableCard(cardTitle);
+    await expect(card).toBeVisible();
 
     const column = this.getColumn(toColumn);
 

@@ -20,9 +20,9 @@ export default defineConfig({
   testDir,
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
+  retries: process.env.CI ? 1 : 0,
   workers: process.env.CI ? 2 : undefined,
-  timeout: 60_000,
+  timeout: 20_000,
   expect: {
     timeout: 10_000,
     toHaveScreenshot: {

@@ -71,6 +71,9 @@ Given(
       title,
       body: `Custom field filter test issue ${issueId}`,
     });
+    dataManager.enqueue(`close issue #${issue.number}`, async () => {
+      await githubAPI.closeIssue(env.github.testRepo, issue.number);
+    });
     const itemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
 
     const fields = await projectsAPI.getFields(sandbox.projectId);
@@ -97,9 +100,6 @@ Given(
 
     await projectsAPI.setFieldValue(sandbox.projectId, itemId, field.id, fieldValue);
 
-    dataManager.enqueue(`close issue #${issue.number}`, async () => {
-      await githubAPI.closeIssue(env.github.testRepo, issue.number);
-    });
     dataManager.enqueue(`remove issue #${issue.number} from project`, async () => {
       await projectsAPI.removeItemFromProject(sandbox.projectId, itemId);
     });

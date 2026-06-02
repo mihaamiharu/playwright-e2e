@@ -63,11 +63,11 @@ When(
 
     scenarioContext.set('secondMilestoneIssueNumber', issue.number);
 
-    const projectItemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
-
     dataManager.enqueue(`close issue #${issue.number}`, async () => {
       await githubAPI.closeIssue(env.github.testRepo, issue.number);
     });
+
+    const projectItemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
     dataManager.enqueue(`remove issue #${issue.number} from project`, async () => {
       await projectsAPI.removeItemFromProject(sandbox.projectId, projectItemId);
     });
@@ -78,14 +78,12 @@ When('I navigate to the milestone page', async ({ page, scenarioContext }) => {
   const milestoneNumber = scenarioContext.get<number>('milestoneNumber');
   const milestoneTitle = scenarioContext.get<string>('milestoneTitle');
   await page.goto(`/${env.github.testRepo}/milestone/${milestoneNumber}`);
-  await page
-    .getByRole('heading', { name: milestoneTitle, level: 2 })
-    .waitFor({ state: 'visible', timeout: 15000 });
+  await expect(page.getByRole('heading', { name: milestoneTitle, level: 2 })).toBeVisible();
 });
 
 Then('I should see the milestone progress bar showing partial completion', async ({ page }) => {
   const progressBar = page.locator('[role="progressbar"]');
-  await progressBar.waitFor({ state: 'visible', timeout: 20000 });
+  await expect(progressBar).toBeVisible({ timeout: 20_000 });
 
   let isFirst = true;
   await expect(async () => {
@@ -127,7 +125,7 @@ Then('the milestone should show completed status and full progress', async ({ pa
   await expect(page.getByTestId('milestone-status')).toHaveText(/Closed/);
 
   const progressBar = page.locator('[role="progressbar"]');
-  await progressBar.waitFor({ state: 'visible', timeout: 20000 });
+  await expect(progressBar).toBeVisible({ timeout: 20_000 });
 
   let isFirst = true;
   await expect(async () => {

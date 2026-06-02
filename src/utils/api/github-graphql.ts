@@ -92,7 +92,10 @@ export class GitHubProjectsAPI {
           data: { query, variables },
         }),
       {
-        retryable: (err) => /TIMEDOUT|ETIMEDOUT|socket hang up/i.test(err.message),
+        retryable: (err) =>
+          /TIMEDOUT|ETIMEDOUT|socket hang up|rate limit|RATE_LIMITED|retry after/i.test(
+            err.message,
+          ),
         onRetry: (err, attempt, max) =>
           console.warn(`[retry] GraphQL timeout (${attempt}/${max}) — ${err.message}`),
       },
@@ -507,7 +510,14 @@ export class GitHubProjectsAPI {
     };
   }
 
-  /** Delete a saved view from a project. */
+  /**
+   * Delete a saved view from a project.
+   *
+   * **WARNING:** GitHub's public GraphQL API does NOT expose `deleteProjectV2View`.
+   * This method always fails. Use UI-based deletion via `SavedViews.deleteView()` instead.
+   *
+   * @deprecated GitHub has not shipped this mutation yet. Kept for reference only.
+   */
   async deleteView(viewId: string): Promise<void> {
     const query = `
       mutation($viewId: ID!) {

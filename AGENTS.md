@@ -28,7 +28,9 @@ npm run bddgen                  # .feature → .spec.ts only, no run
 - Generates from `features/` into `.features-gen/` (gitignored)
 - Steps: `['steps/**/*.ts', 'src/fixtures/index.ts']`
 - `fullyParallel: false` — tests run serially (data lifecycle depends on sequential order)
-- `retries: process.env.CI ? 2 : 0` — up to 2 intra-run retries in CI, zero locally
+- `retries: process.env.CI ? 1 : 0` — up to 1 intra-run retry in CI, zero locally
+- `workers: process.env.CI ? 2 : undefined`
+- `timeout: 20_000` — 20s per test
 - `forbidOnly: !!process.env.CI` — `.only` is blocked in CI to prevent accidentally skipping tests
 - `outputDir: 'reports/artifacts'` — Playwright writes `.last-run.json` here (used by `--last-failed`)
 

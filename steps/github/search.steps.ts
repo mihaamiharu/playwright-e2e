@@ -1,5 +1,6 @@
 import { createBdd } from 'playwright-bdd';
 import { expect } from '@playwright/test';
+import { type Locator } from '@playwright/test';
 import { test } from '../../src/fixtures';
 import { env } from '../../src/config/env.config';
 
@@ -17,11 +18,11 @@ Given(
       title,
       body: 'Search test issue',
     });
-    const projectItemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
-
     dataManager.enqueue(`close issue #${issue.number}`, async () => {
       await githubAPI.closeIssue(env.github.testRepo, issue.number);
     });
+    const projectItemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
+
     dataManager.enqueue(`remove issue #${issue.number} from project`, async () => {
       await projectsAPI.removeItemFromProject(sandbox.projectId, projectItemId);
     });
@@ -30,29 +31,27 @@ Given(
 
 When(
   'I search the project by title for the unique keyword',
-  async ({ page, projectFilterBar, boardView, scenarioContext }) => {
+  async ({ page, projectFilterBar, scenarioContext }) => {
     const keyword = scenarioContext.get<string>('searchKeyword');
-    const title = scenarioContext.get<string>('keywordIssueTitle');
-
-    await boardView.expectCardVisible(title);
 
     await projectFilterBar.open();
     await projectFilterBar.selectType('Title');
     await page.waitForURL(/filterQuery=title/);
 
-    const input = (await projectFilterBar.filterInput.isVisible())
-      ? projectFilterBar.filterInput
-      : page.getByRole('combobox').first();
+    let input: Locator;
+    try {
+      await expect(projectFilterBar.filterInput).toBeVisible({ timeout: 3_000 });
+      input = projectFilterBar.filterInput;
+    } catch {
+      input = page.getByRole('combobox').first();
+    }
     await expect(input).toHaveValue('title:');
 
     await projectFilterBar.typeSearch(keyword);
     await projectFilterBar.save();
 
     await page.waitForURL(new RegExp(keyword));
-    await page
-      .getByRole('heading', { level: 2 })
-      .first()
-      .waitFor({ state: 'visible', timeout: 15000 });
+    await expect(page.getByRole('heading', { level: 2 }).first()).toBeVisible();
   },
 );
 

@@ -27,6 +27,8 @@ Then(
 );
 
 Then('the seeded issue should reappear on the board', async ({ page, seededProjectIssue }) => {
-  const card = page.getByRole('button', { name: new RegExp(seededProjectIssue.title) });
-  await expect(card.first()).toBeVisible({ timeout: 15000 });
+  await expect(async () => {
+    const card = page.getByRole('button', { name: new RegExp(seededProjectIssue.title) });
+    await expect(card.first()).toBeVisible();
+  }).toPass({ timeout: 10_000 });
 });
