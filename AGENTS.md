@@ -76,22 +76,21 @@ No `tests/` directory — everything is BDD.
 
 All env vars use the `GH_` prefix (not `GITHUB_`):
 
-| Variable                    | Purpose                                                      |
-| --------------------------- | ------------------------------------------------------------ |
-| `GH_USERNAME`               | GitHub test account                                          |
-| `GH_PASSWORD`               | GitHub test password                                         |
-| `GH_API_TOKEN`              | Personal access token                                        |
-| `GH_TEST_REPO`              | Repo for test issues (e.g. `owner/repo`)                     |
-| `GH_TEST_REPO_OWNER`        | Owner of test repo                                           |
-| `GH_TEST_REPO_NAME`         | Name of test repo (without owner/)                           |
-| `GH_PROJECT_SANDBOX`        | Persistent sandbox project name                              |
-| `GH_PROJECT_SANDBOX_NUMBER` | Sandbox project number (URL slug)                            |
-| `GMAIL_ADDRESS`             | Gmail for device verification                                |
-| `GMAIL_APP_PASSWORD`        | 16-char app password (not regular password)                  |
-| `BASE_URL`                  | Defaults to `https://github.com`                             |
-| `TEST_MODE`                 | `read-only` (safe no-auth) or `full` (authenticated + write) |
-
-Known inconsistency: `login.steps.ts` error message says "Set `GITHUB_USERNAME`" but the actual env var is `GH_USERNAME`.
+| Variable                    | Purpose                                                            |
+| --------------------------- | ------------------------------------------------------------------ |
+| `GH_USERNAME`               | GitHub test account                                                |
+| `GH_PASSWORD`               | GitHub test password                                               |
+| `GH_API_TOKEN`              | Personal access token                                              |
+| `GH_TEST_REPO`              | Repo for test issues (e.g. `owner/repo`)                           |
+| `GH_TEST_REPO_OWNER`        | Owner of test repo                                                 |
+| `GH_TEST_REPO_NAME`         | Name of test repo (without owner/)                                 |
+| `GH_PROJECT_SANDBOX`        | Persistent sandbox project name                                    |
+| `GH_PROJECT_SANDBOX_NUMBER` | Sandbox project number (URL slug)                                  |
+| `GMAIL_ADDRESS`             | Gmail for device verification                                      |
+| `GMAIL_APP_PASSWORD`        | 16-char app password (not regular password)                        |
+| `BASE_URL`                  | Defaults to `https://github.com`                                   |
+| `TEST_MODE`                 | `read-only` (safe no-auth) or `full` (authenticated + write)       |
+| `NODE_OPTIONS`              | Must be `--use-system-ca` in CI (HTTPS to GitHub fails without it) |
 
 Known inconsistency: `login.steps.ts` error message says "Set `GITHUB_USERNAME`" but the actual env var is `GH_USERNAME`.
 
