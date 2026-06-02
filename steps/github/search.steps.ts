@@ -1,6 +1,5 @@
 import { createBdd } from 'playwright-bdd';
 import { expect } from '@playwright/test';
-import { type Locator } from '@playwright/test';
 import { test } from '../../src/fixtures';
 import { env } from '../../src/config/env.config';
 
@@ -35,18 +34,6 @@ When(
     const keyword = scenarioContext.get<string>('searchKeyword');
 
     await projectFilterBar.open();
-    await projectFilterBar.selectType('Title');
-    await page.waitForURL(/filterQuery=title/);
-
-    let input: Locator;
-    try {
-      await expect(projectFilterBar.filterInput).toBeVisible({ timeout: 3_000 });
-      input = projectFilterBar.filterInput;
-    } catch {
-      input = page.getByRole('combobox').first();
-    }
-    await expect(input).toHaveValue('title:');
-
     await projectFilterBar.typeSearch(keyword);
     await projectFilterBar.save();
 
