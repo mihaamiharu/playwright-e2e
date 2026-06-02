@@ -22,9 +22,7 @@ export class ProjectBoardPage {
   }
 
   getDraggableCard(title: string): Locator {
-    return this.page
-      .locator('[aria-roledescription="draggable"]')
-      .filter({ hasText: new RegExp(title) });
+    return this.page.getByRole('button').filter({ hasText: new RegExp(title) });
   }
 
   // data-board-column is a stable framework attribute, not a hashed CSS class.
