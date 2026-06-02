@@ -33,8 +33,11 @@ export class ProjectSearchBar {
 
   async selectOption(optionName: string, optionTypeName?: string): Promise<void> {
     const namePattern = optionTypeName ? `${optionName}, ${optionTypeName}` : optionName;
+    await expect(async () => {
+      const option = this.page.getByRole('option', { name: new RegExp(namePattern, 'i') });
+      await expect(option).toBeVisible({ timeout: 3_000 });
+    }).toPass({ timeout: 15_000 });
     const option = this.page.getByRole('option', { name: new RegExp(namePattern, 'i') });
-    await expect(option).toBeVisible();
     await option.click();
   }
 

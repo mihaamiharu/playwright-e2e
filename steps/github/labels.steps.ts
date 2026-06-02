@@ -53,7 +53,9 @@ When(
 
 When(
   'I filter the board by the label {string}',
-  async ({ page, projectFilterBar }, label: string) => {
+  async ({ page, projectFilterBar, boardView, seededProjectIssue }, label: string) => {
+    await boardView.expectCardVisible(seededProjectIssue.title);
+
     await projectFilterBar.open();
     await projectFilterBar.selectType('Label');
     await page.waitForURL(/filterQuery=label/);
