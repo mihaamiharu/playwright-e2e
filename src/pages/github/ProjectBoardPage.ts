@@ -36,11 +36,12 @@ export class ProjectBoardPage {
     await this.page.reload();
     await expect(this.firstHeading).toBeVisible();
 
-    const card = this.getDraggableCard(cardTitle);
-    await expect(card).toBeVisible();
-
     const targetHeading = this.page.getByRole('heading', { name: toColumn, level: 2 });
     await expect(targetHeading).toBeVisible();
+    await targetHeading.scrollIntoViewIfNeeded();
+
+    const card = this.getDraggableCard(cardTitle);
+    await expect(card).toBeVisible();
 
     const column = this.getColumn(toColumn);
 

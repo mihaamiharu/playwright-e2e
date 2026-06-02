@@ -39,10 +39,10 @@ Given(
       title: sortTitleA,
       body: 'Sort test issue',
     });
-    const itemIdA = await projectsAPI.addIssueToProject(sandbox.projectId, issueA.node_id);
     dataManager.enqueue(`close issue #${issueA.number}`, async () => {
       await githubAPI.closeIssue(env.github.testRepo, issueA.number);
     });
+    const itemIdA = await projectsAPI.addIssueToProject(sandbox.projectId, issueA.node_id);
     dataManager.enqueue(`remove issue #${issueA.number} from project`, async () => {
       await projectsAPI.removeItemFromProject(sandbox.projectId, itemIdA);
     });
@@ -51,10 +51,10 @@ Given(
       title: sortTitleZ,
       body: 'Sort test issue',
     });
-    const itemIdZ = await projectsAPI.addIssueToProject(sandbox.projectId, issueZ.node_id);
     dataManager.enqueue(`close issue #${issueZ.number}`, async () => {
       await githubAPI.closeIssue(env.github.testRepo, issueZ.number);
     });
+    const itemIdZ = await projectsAPI.addIssueToProject(sandbox.projectId, issueZ.node_id);
     dataManager.enqueue(`remove issue #${issueZ.number} from project`, async () => {
       await projectsAPI.removeItemFromProject(sandbox.projectId, itemIdZ);
     });
@@ -102,6 +102,9 @@ Given(
       labels: [labelName],
       body: `Filter test issue ${issueId}`,
     });
+    dataManager.enqueue(`close issue #${issue.number}`, async () => {
+      await githubAPI.closeIssue(env.github.testRepo, issue.number);
+    });
     const itemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
 
     const optionId = sandbox.statusOptions.get(statusName);
@@ -112,9 +115,6 @@ Given(
     }
     await projectsAPI.moveItemToStatus(sandbox.projectId, itemId, sandbox.statusFieldId, optionId);
 
-    dataManager.enqueue(`close issue #${issue.number}`, async () => {
-      await githubAPI.closeIssue(env.github.testRepo, issue.number);
-    });
     dataManager.enqueue(`remove issue #${issue.number} from project`, async () => {
       await projectsAPI.removeItemFromProject(sandbox.projectId, itemId);
     });
@@ -139,6 +139,9 @@ Given(
       labels: [],
       body: `Filter test issue ${issueId}`,
     });
+    dataManager.enqueue(`close issue #${issue.number}`, async () => {
+      await githubAPI.closeIssue(env.github.testRepo, issue.number);
+    });
     const itemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
 
     const optionId = sandbox.statusOptions.get(statusName);
@@ -149,9 +152,6 @@ Given(
     }
     await projectsAPI.moveItemToStatus(sandbox.projectId, itemId, sandbox.statusFieldId, optionId);
 
-    dataManager.enqueue(`close issue #${issue.number}`, async () => {
-      await githubAPI.closeIssue(env.github.testRepo, issue.number);
-    });
     dataManager.enqueue(`remove issue #${issue.number} from project`, async () => {
       await projectsAPI.removeItemFromProject(sandbox.projectId, itemId);
     });

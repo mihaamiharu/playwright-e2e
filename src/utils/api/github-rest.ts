@@ -129,7 +129,7 @@ export class GitHubAPI {
     );
 
     if (!response.ok()) {
-      console.warn(
+      throw new Error(
         `Failed to close issue #${issueNumber}: ${response.status()} ${await response.text()}`,
       );
     }

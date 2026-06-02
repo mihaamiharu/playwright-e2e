@@ -39,6 +39,10 @@ export class TableViewPage {
 
   async expectRowVisible(issueTitle: string): Promise<void> {
     try {
+      await this.grid.evaluate((el) => {
+        el.scrollTop = el.scrollHeight;
+      });
+      await this.page.waitForTimeout(300);
       await expect(this.getRow(issueTitle).first()).toBeVisible();
       return;
     } catch {
@@ -48,6 +52,10 @@ export class TableViewPage {
     await expect(async () => {
       await this.page.reload();
       await expect(this.grid).toBeVisible();
+      await this.grid.evaluate((el) => {
+        el.scrollTop = el.scrollHeight;
+      });
+      await this.page.waitForTimeout(400);
       await expect(this.getRow(issueTitle).first()).toBeVisible();
     }).toPass({ timeout: 30_000 });
   }
@@ -80,6 +88,10 @@ export class TableViewPage {
   }
 
   async getRowTitles(): Promise<string[]> {
+    await this.grid.evaluate((el) => {
+      el.scrollTop = el.scrollHeight;
+    });
+    await this.page.waitForTimeout(300);
     const titleLinks = this.page.getByRole('rowheader').getByRole('link');
     return titleLinks.allTextContents();
   }

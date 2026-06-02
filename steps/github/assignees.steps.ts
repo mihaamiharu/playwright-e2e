@@ -36,11 +36,11 @@ When(
       body: `Second unassigned issue for assignee filter test. Run: ${uniqueId}`,
     });
 
-    const projectItemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
-
     dataManager.enqueue(`close issue #${issue.number}`, async () => {
       await githubAPI.closeIssue(env.github.testRepo, issue.number);
     });
+
+    const projectItemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
     dataManager.enqueue(`remove issue #${issue.number} from project`, async () => {
       await projectsAPI.removeItemFromProject(sandbox.projectId, projectItemId);
     });

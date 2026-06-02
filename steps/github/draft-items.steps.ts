@@ -45,12 +45,13 @@ When(
       body: 'Converted from draft',
     });
 
-    const itemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
-    scenarioContext.set('issueTitle', issueTitle);
-
     dataManager.enqueue(`close issue #${issue.number}`, async () => {
       await githubAPI.closeIssue(env.github.testRepo, issue.number);
     });
+
+    const itemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
+    scenarioContext.set('issueTitle', issueTitle);
+
     dataManager.enqueue(`remove issue #${issue.number} from project`, async () => {
       await projectsAPI.removeItemFromProject(sandbox.projectId, itemId);
     });

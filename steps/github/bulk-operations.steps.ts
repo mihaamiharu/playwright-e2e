@@ -15,13 +15,13 @@ Given(
       title,
       body: 'Bulk test issue',
     });
+    dataManager.enqueue(`close issue #${issue.number}`, async () => {
+      await githubAPI.closeIssue(env.github.testRepo, issue.number);
+    });
     const projectItemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
 
     scenarioContext.set('secondIssueProjectItemId', projectItemId);
 
-    dataManager.enqueue(`close issue #${issue.number}`, async () => {
-      await githubAPI.closeIssue(env.github.testRepo, issue.number);
-    });
     dataManager.enqueue(`remove issue #${issue.number} from project`, async () => {
       await projectsAPI.removeItemFromProject(sandbox.projectId, projectItemId);
     });
