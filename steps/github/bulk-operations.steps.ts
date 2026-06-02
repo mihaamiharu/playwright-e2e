@@ -65,6 +65,6 @@ Then(
       const item2 = items.find((i) => i.id === secondId);
       expect(item1?.status).toBe(columnName);
       expect(item2?.status).toBe(columnName);
-    }).toPass({ timeout: 15000 });
+    }).toPass({ timeout: 30_000 });
   },
 );

@@ -90,7 +90,7 @@ jobs:
       - name: Decrypt auth state (rerun only)
         if: github.run_attempt > 1
         env:
-          AUTH_CACHE_KEY: ${{ secrets.GITHUB_TOKEN }}
+          AUTH_CACHE_KEY: ${{ secrets.GH_API_TOKEN }}
         run: |
           if [ -f auth/github.json.enc ]; then
             mkdir -p auth
@@ -140,7 +140,7 @@ jobs:
       - name: Encrypt auth state for reruns
         if: always()
         env:
-          AUTH_CACHE_KEY: ${{ secrets.GITHUB_TOKEN }}
+          AUTH_CACHE_KEY: ${{ secrets.GH_API_TOKEN }}
         run: |
           if [ -f auth/github.json ]; then
             openssl enc -aes-256-cbc -pbkdf2 -salt \
