@@ -8,13 +8,12 @@ const { Given, When, Then } = createBdd(test);
 Given(
   'a second project issue exists with a unique search keyword in the title',
   async ({ githubAPI, projectsAPI, sandbox, dataManager, scenarioContext }) => {
-    const keyword = `SRCH-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-    const title = `e2e-${keyword}`;
+    const keyword = `e2e-SRCH-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
     scenarioContext.set('searchKeyword', keyword);
-    scenarioContext.set('keywordIssueTitle', title);
+    scenarioContext.set('keywordIssueTitle', keyword);
 
     const issue = await githubAPI.createIssue(env.github.testRepo, {
-      title,
+      title: keyword,
       body: 'Search test issue',
     });
     dataManager.enqueue(`close issue #${issue.number}`, async () => {

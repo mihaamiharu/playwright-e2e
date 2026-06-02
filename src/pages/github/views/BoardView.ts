@@ -18,8 +18,6 @@ export class BoardView {
     const card = this.page.getByRole('button', { name: new RegExp(title) });
 
     try {
-      await this.page.keyboard.press('End');
-      await this.page.waitForTimeout(200);
       await expect(card.first()).toBeVisible();
       return;
     } catch {
@@ -29,8 +27,6 @@ export class BoardView {
     await expect(async () => {
       await this.page.reload();
       await expect(this.firstHeading).toBeVisible();
-      await this.page.keyboard.press('End');
-      await this.page.waitForTimeout(200);
       const refreshedCard = this.page.getByRole('button', { name: new RegExp(title) });
       await expect(refreshedCard.first()).toBeVisible();
     }).toPass({ timeout: 15_000 });
