@@ -4,8 +4,8 @@ import { env } from '../../src/config/env.config';
 
 const { When, Then } = createBdd(test);
 
-When('I add the label {string} via the UI', async ({ issuePage }, label: string) => {
-  await issuePage.addLabel(label);
+When('I add the label {string} via the UI', async ({ labelsPanel }, label: string) => {
+  await labelsPanel.addLabel(label);
 });
 
 When(
@@ -15,16 +15,16 @@ When(
   },
 );
 
-When('I remove the label {string} via the UI', async ({ issuePage }, label: string) => {
-  await issuePage.removeLabel(label);
+When('I remove the label {string} via the UI', async ({ labelsPanel }, label: string) => {
+  await labelsPanel.removeLabel(label);
 });
 
-Then('I should see the {string} label on the issue', async ({ issuePage }, label: string) => {
-  await issuePage.expectLabelVisible(label);
+Then('I should see the {string} label on the issue', async ({ labelsPanel }, label: string) => {
+  await labelsPanel.expectLabelVisible(label);
 });
 
-Then('I should not see the {string} label on the issue', async ({ issuePage }, label: string) => {
-  await issuePage.expectLabelNotVisible(label);
+Then('I should not see the {string} label on the issue', async ({ labelsPanel }, label: string) => {
+  await labelsPanel.expectLabelNotVisible(label);
 });
 
 When(
@@ -40,11 +40,11 @@ When(
 
     const projectItemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
 
-    dataManager.enqueue(async () => {
-      await projectsAPI.removeItemFromProject(sandbox.projectId, projectItemId);
-    });
-    dataManager.enqueue(async () => {
+    dataManager.enqueue(`close issue #${issue.number}`, async () => {
       await githubAPI.closeIssue(env.github.testRepo, issue.number);
+    });
+    dataManager.enqueue(`remove issue #${issue.number} from project`, async () => {
+      await projectsAPI.removeItemFromProject(sandbox.projectId, projectItemId);
     });
 
     scenarioContext.set('secondUnlabeledIssueTitle', title);
@@ -71,16 +71,14 @@ When(
 
 Then(
   'the seeded issue should be visible on the board',
-  async ({ projectBoardPage, seededProjectIssue }) => {
-    await projectBoardPage.expectCardVisible(seededProjectIssue.title);
+  async ({ boardView, seededProjectIssue }) => {
+    await boardView.expectCardVisible(seededProjectIssue.title);
   },
 );
 
 Then(
   'the second unlabeled issue should not be visible on the board',
-  async ({ projectBoardPage, scenarioContext }) => {
-    await projectBoardPage.expectCardNotVisible(
-      scenarioContext.get<string>('secondUnlabeledIssueTitle'),
-    );
+  async ({ boardView, scenarioContext }) => {
+    await boardView.expectCardNotVisible(scenarioContext.get<string>('secondUnlabeledIssueTitle'));
   },
 );

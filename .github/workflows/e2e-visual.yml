@@ -19,11 +19,17 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: lts/*
+          node-version: '20'
           cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
@@ -42,7 +48,6 @@ jobs:
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           BASE_URL: https://github.com
           TEST_MODE: full
-          NODE_OPTIONS: --use-system-ca
         run: npm run bddgen && npx playwright test --config=playwright.bdd.config.ts --grep @visual
 
       - name: Generate Allure Report

@@ -11,7 +11,7 @@ Feature: Issue CRUD
     Then I should see the issue heading
     And I should see the issue number in the header
 
-  @P1
+  @P1 @CWF
   Scenario: ISS-02 — Update issue description and verify in detail view
     Given a seeded project issue exists on the kanban board
     When I update the issue description to "Updated by E2E test: new description"

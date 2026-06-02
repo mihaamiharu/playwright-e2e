@@ -14,7 +14,7 @@ When(
     const field = fields.find((f) => f.name === fieldName);
     if (!field) throw new Error(`Field "${fieldName}" not found`);
 
-    let fieldValue: import('../../src/utils/github-projects-api').ItemFieldValue;
+    let fieldValue: import('../../src/utils/api/github-graphql').ItemFieldValue;
 
     if (field.options) {
       // SingleSelect
@@ -77,7 +77,7 @@ Given(
     const field = fields.find((f) => f.name === fieldName);
     if (!field) throw new Error(`Field "${fieldName}" not found`);
 
-    let fieldValue: import('../../src/utils/github-projects-api').ItemFieldValue;
+    let fieldValue: import('../../src/utils/api/github-graphql').ItemFieldValue;
 
     if (field.options) {
       const option = field.options.find((o) => o.name === value);
@@ -97,11 +97,11 @@ Given(
 
     await projectsAPI.setFieldValue(sandbox.projectId, itemId, field.id, fieldValue);
 
-    dataManager.enqueue(async () => {
-      await projectsAPI.removeItemFromProject(sandbox.projectId, itemId);
-    });
-    dataManager.enqueue(async () => {
+    dataManager.enqueue(`close issue #${issue.number}`, async () => {
       await githubAPI.closeIssue(env.github.testRepo, issue.number);
+    });
+    dataManager.enqueue(`remove issue #${issue.number} from project`, async () => {
+      await projectsAPI.removeItemFromProject(sandbox.projectId, itemId);
     });
   },
 );

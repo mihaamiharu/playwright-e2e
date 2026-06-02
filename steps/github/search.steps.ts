@@ -19,11 +19,11 @@ Given(
     });
     const projectItemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
 
-    dataManager.enqueue(async () => {
-      await projectsAPI.removeItemFromProject(sandbox.projectId, projectItemId);
-    });
-    dataManager.enqueue(async () => {
+    dataManager.enqueue(`close issue #${issue.number}`, async () => {
       await githubAPI.closeIssue(env.github.testRepo, issue.number);
+    });
+    dataManager.enqueue(`remove issue #${issue.number} from project`, async () => {
+      await projectsAPI.removeItemFromProject(sandbox.projectId, projectItemId);
     });
   },
 );
@@ -54,14 +54,14 @@ When(
 
 Then(
   'the issue with the keyword should be visible on the board',
-  async ({ projectBoardPage, scenarioContext }) => {
-    await projectBoardPage.expectCardVisible(scenarioContext.get<string>('keywordIssueTitle'));
+  async ({ boardView, scenarioContext }) => {
+    await boardView.expectCardVisible(scenarioContext.get<string>('keywordIssueTitle'));
   },
 );
 
 Then(
   'the seeded issue without the keyword should not be visible',
-  async ({ projectBoardPage, seededProjectIssue }) => {
-    await projectBoardPage.expectCardNotVisible(seededProjectIssue.title);
+  async ({ boardView, seededProjectIssue }) => {
+    await boardView.expectCardNotVisible(seededProjectIssue.title);
   },
 );

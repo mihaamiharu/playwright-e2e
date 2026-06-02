@@ -34,7 +34,20 @@ export default defineConfig({
   outputDir: 'reports/artifacts',
   reporter: [
     ['html', { outputFolder: 'reports/playwright' }],
-    ['allure-playwright', { resultsDir: 'reports/allure/results' }],
+    [
+      'allure-playwright',
+      {
+        resultsDir: 'reports/allure/results',
+        environmentInfo: {
+          Browser: 'Chromium',
+          OS: process.platform,
+          NodeVersion: process.version,
+          BaseURL: process.env.BASE_URL || 'https://github.com',
+          TestMode: process.env.TEST_MODE || 'full',
+          CI: process.env.CI ? 'true' : 'false',
+        },
+      },
+    ],
     ['line'],
   ],
   use: {

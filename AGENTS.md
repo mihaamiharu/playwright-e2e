@@ -38,20 +38,26 @@ npm run bddgen                  # .feature → .spec.ts only, no run
 features/   → .feature files (Gherkin scenarios)
 steps/      → BDD step definitions (createBdd + Given/When/Then)
 src/
-  fixtures/ → custom test fixtures (playwright-bdd base)
-  pages/    → POMs
-  utils/    → DataManager, REST client, GraphQL client
-  config/   → global-setup.ts, env.config.ts
+  fixtures/ → custom test fixtures (github, project-data, project-api, pages)
+  pages/    → POMs (core, panels, views, filters)
+  utils/    → api/, testing/, auth/, reporting/, accessibility/, ai/
+  config/   → global-setup.ts, setup/, env.config.ts
 ```
 
 No `tests/` directory — everything is BDD.
 
 ## Fixtures (src/fixtures/)
 
-| File                        | Extends          | Used by                           |
-| --------------------------- | ---------------- | --------------------------------- |
-| `github.fixture.ts`         | `playwright-bdd` | Login BDD steps (unauthenticated) |
-| `github-project.fixture.ts` | `playwright-bdd` | Project management BDD steps      |
+| File                      | Extends          | Used by                           |
+| ------------------------- | ---------------- | --------------------------------- |
+| `github.fixture.ts`       | `playwright-bdd` | Login BDD steps (unauthenticated) |
+| `project-data.fixture.ts` | `playwright-bdd` | Data lifecycle (all tests)        |
+| `project-api.fixture.ts`  | `playwright-bdd` | API clients (authenticated)       |
+| `pages.fixture.ts`        | `playwright-bdd` | POM injection (all steps)         |
+
+`src/fixtures/index.ts` merges fixtures via `mergeTests` and attaches an auto-fixture for Allure labels.
+
+`src/fixtures/index.ts` merges fixtures via `mergeTests` and attaches an auto-fixture for Allure labels.
 
 `src/fixtures/index.ts` merges fixtures via `mergeTests` and attaches an auto-fixture for Allure labels.
 
@@ -70,34 +76,35 @@ No `tests/` directory — everything is BDD.
 
 All env vars use the `GH_` prefix (not `GITHUB_`):
 
-| Variable | Purpose |
-|----------|---------|
-| `GH_USERNAME` | GitHub test account |
-| `GH_PASSWORD` | GitHub test password |
-| `GH_API_TOKEN` | Personal access token |
-| `GH_TEST_REPO` | Repo for test issues (e.g. `owner/repo`) |
-| `GH_TEST_REPO_OWNER` | Owner of test repo |
-| `GH_TEST_REPO_NAME` | Name of test repo (without owner/) |
-| `GH_PROJECT_SANDBOX` | Persistent sandbox project name |
-| `GH_PROJECT_SANDBOX_NUMBER` | Sandbox project number (URL slug) |
-| `GMAIL_ADDRESS` | Gmail for device verification |
-| `GMAIL_APP_PASSWORD` | 16-char app password (not regular password) |
-| `BASE_URL` | Defaults to `https://github.com` |
-| `TEST_MODE` | `read-only` (safe no-auth) or `full` (authenticated + write) |
-| `NODE_OPTIONS` | Must be `--use-system-ca` in CI (HTTPS to GitHub fails without it) |
+| Variable                    | Purpose                                                      |
+| --------------------------- | ------------------------------------------------------------ |
+| `GH_USERNAME`               | GitHub test account                                          |
+| `GH_PASSWORD`               | GitHub test password                                         |
+| `GH_API_TOKEN`              | Personal access token                                        |
+| `GH_TEST_REPO`              | Repo for test issues (e.g. `owner/repo`)                     |
+| `GH_TEST_REPO_OWNER`        | Owner of test repo                                           |
+| `GH_TEST_REPO_NAME`         | Name of test repo (without owner/)                           |
+| `GH_PROJECT_SANDBOX`        | Persistent sandbox project name                              |
+| `GH_PROJECT_SANDBOX_NUMBER` | Sandbox project number (URL slug)                            |
+| `GMAIL_ADDRESS`             | Gmail for device verification                                |
+| `GMAIL_APP_PASSWORD`        | 16-char app password (not regular password)                  |
+| `BASE_URL`                  | Defaults to `https://github.com`                             |
+| `TEST_MODE`                 | `read-only` (safe no-auth) or `full` (authenticated + write) |
+
+Known inconsistency: `login.steps.ts` error message says "Set `GITHUB_USERNAME`" but the actual env var is `GH_USERNAME`.
 
 Known inconsistency: `login.steps.ts` error message says "Set `GITHUB_USERNAME`" but the actual env var is `GH_USERNAME`.
 
 ## DataManager — LIFO cleanup queue
 
-`src/utils/data-manager.ts`: fixtures enqueue cleanup callbacks that run in reverse order after the test (pass or fail). One failure doesn't block others. Logs `[seeder]` / `[cleanup]` to console.
+`src/utils/testing/data-manager.ts`: fixtures enqueue cleanup callbacks that run in reverse order after the test (pass or fail). One failure doesn't block others. Logs `[seeder]` / `[cleanup]` to console.
 
 ## API clients
 
 Both use Playwright's built-in `request` fixture (zero extra HTTP deps):
 
-- `GitHubAPI` (`src/utils/api-client.ts`) — REST
-- `GitHubProjectsAPI` (`src/utils/github-projects-api.ts`) — GraphQL (Projects V2)
+- `GitHubAPI` (`src/utils/api/github-rest.ts`) — REST
+- `GitHubProjectsAPI` (`src/utils/api/github-graphql.ts`) — GraphQL (Projects V2)
 
 ## Locator conventions
 
@@ -105,12 +112,12 @@ Role-based only (no CSS selectors — GitHub hashes class names). Use `exact: tr
 
 ## CI workflows (.github/workflows/)
 
-| Workflow | Trigger | Purpose |
-|----------|---------|---------|
-| `ci.yml` | PR to main, push to main | Typecheck, lint, format check, bddgen |
-| `e2e-full.yml` | Schedule (Sun 1AM UTC), manual | Full BDD suite (excludes @visual), Allure report to GH Pages |
-| `e2e-debug.yml` | Manual (with tag input) | Filtered tests by Gherkin tag, configurable trace/video |
-| `e2e-visual.yml` | Manual | Visual regression (`@visual` tag only) |
+| Workflow         | Trigger                        | Purpose                                                      |
+| ---------------- | ------------------------------ | ------------------------------------------------------------ |
+| `ci.yml`         | PR to main, push to main       | Typecheck, lint, format check, bddgen                        |
+| `e2e-full.yml`   | Schedule (Sun 1AM UTC), manual | Full BDD suite (excludes @visual), Allure report to GH Pages |
+| `e2e-debug.yml`  | Manual (with tag input)        | Filtered tests by Gherkin tag, configurable trace/video      |
+| `e2e-visual.yml` | Manual                         | Visual regression (`@visual` tag only)                       |
 
 ### Rerun-failed-only (e2e-full.yml)
 

@@ -40,11 +40,11 @@ Given(
       body: 'Sort test issue',
     });
     const itemIdA = await projectsAPI.addIssueToProject(sandbox.projectId, issueA.node_id);
-    dataManager.enqueue(async () => {
-      await projectsAPI.removeItemFromProject(sandbox.projectId, itemIdA);
-    });
-    dataManager.enqueue(async () => {
+    dataManager.enqueue(`close issue #${issueA.number}`, async () => {
       await githubAPI.closeIssue(env.github.testRepo, issueA.number);
+    });
+    dataManager.enqueue(`remove issue #${issueA.number} from project`, async () => {
+      await projectsAPI.removeItemFromProject(sandbox.projectId, itemIdA);
     });
 
     const issueZ = await githubAPI.createIssue(env.github.testRepo, {
@@ -52,11 +52,11 @@ Given(
       body: 'Sort test issue',
     });
     const itemIdZ = await projectsAPI.addIssueToProject(sandbox.projectId, issueZ.node_id);
-    dataManager.enqueue(async () => {
-      await projectsAPI.removeItemFromProject(sandbox.projectId, itemIdZ);
-    });
-    dataManager.enqueue(async () => {
+    dataManager.enqueue(`close issue #${issueZ.number}`, async () => {
       await githubAPI.closeIssue(env.github.testRepo, issueZ.number);
+    });
+    dataManager.enqueue(`remove issue #${issueZ.number} from project`, async () => {
+      await projectsAPI.removeItemFromProject(sandbox.projectId, itemIdZ);
     });
   },
 );
@@ -112,11 +112,11 @@ Given(
     }
     await projectsAPI.moveItemToStatus(sandbox.projectId, itemId, sandbox.statusFieldId, optionId);
 
-    dataManager.enqueue(async () => {
-      await projectsAPI.removeItemFromProject(sandbox.projectId, itemId);
-    });
-    dataManager.enqueue(async () => {
+    dataManager.enqueue(`close issue #${issue.number}`, async () => {
       await githubAPI.closeIssue(env.github.testRepo, issue.number);
+    });
+    dataManager.enqueue(`remove issue #${issue.number} from project`, async () => {
+      await projectsAPI.removeItemFromProject(sandbox.projectId, itemId);
     });
   },
 );
@@ -149,11 +149,11 @@ Given(
     }
     await projectsAPI.moveItemToStatus(sandbox.projectId, itemId, sandbox.statusFieldId, optionId);
 
-    dataManager.enqueue(async () => {
-      await projectsAPI.removeItemFromProject(sandbox.projectId, itemId);
-    });
-    dataManager.enqueue(async () => {
+    dataManager.enqueue(`close issue #${issue.number}`, async () => {
       await githubAPI.closeIssue(env.github.testRepo, issue.number);
+    });
+    dataManager.enqueue(`remove issue #${issue.number} from project`, async () => {
+      await projectsAPI.removeItemFromProject(sandbox.projectId, itemId);
     });
   },
 );

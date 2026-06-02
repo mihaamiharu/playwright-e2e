@@ -11,6 +11,9 @@ reports/
 auth/*.json
 !auth/.gitkeep
 
+# Data / attachment directories (may contain traces with API tokens)
+data/
+
 # BDD generated files (playwright-bdd)
 .features-gen/
 

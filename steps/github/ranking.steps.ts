@@ -18,19 +18,19 @@ Given(
     });
     const itemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
 
-    dataManager.enqueue(async () => {
-      await projectsAPI.removeItemFromProject(sandbox.projectId, itemId);
-    });
-    dataManager.enqueue(async () => {
+    dataManager.enqueue(`close issue #${issue.number}`, async () => {
       await githubAPI.closeIssue(env.github.testRepo, issue.number);
+    });
+    dataManager.enqueue(`remove issue #${issue.number} from project`, async () => {
+      await projectsAPI.removeItemFromProject(sandbox.projectId, itemId);
     });
   },
 );
 
 Then(
   'both the {string} and seeded issues should appear in the {string} column',
-  async ({ projectBoardPage, seededProjectIssue, scenarioContext }) => {
-    await projectBoardPage.expectCardVisible(seededProjectIssue.title);
-    await projectBoardPage.expectCardVisible(scenarioContext.get<string>('secondRankIssueTitle'));
+  async ({ boardView, seededProjectIssue, scenarioContext }) => {
+    await boardView.expectCardVisible(seededProjectIssue.title);
+    await boardView.expectCardVisible(scenarioContext.get<string>('secondRankIssueTitle'));
   },
 );

@@ -16,12 +16,12 @@ When('I unassign the issue via the API', async ({ githubAPI, seededProjectIssue 
   });
 });
 
-Then('I should see myself as the assignee on the issue', async ({ issuePage }) => {
-  await issuePage.expectAssignee(env.github.username);
+Then('I should see myself as the assignee on the issue', async ({ assigneePanel }) => {
+  await assigneePanel.expectAssignee(env.github.username);
 });
 
-Then('I should see no assignee on the issue', async ({ issuePage }) => {
-  await issuePage.expectNoAssignee(env.github.username);
+Then('I should see no assignee on the issue', async ({ assigneePanel }) => {
+  await assigneePanel.expectNoAssignee(env.github.username);
 });
 
 When(
@@ -37,11 +37,11 @@ When(
 
     const projectItemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
 
-    dataManager.enqueue(async () => {
-      await projectsAPI.removeItemFromProject(sandbox.projectId, projectItemId);
-    });
-    dataManager.enqueue(async () => {
+    dataManager.enqueue(`close issue #${issue.number}`, async () => {
       await githubAPI.closeIssue(env.github.testRepo, issue.number);
+    });
+    dataManager.enqueue(`remove issue #${issue.number} from project`, async () => {
+      await projectsAPI.removeItemFromProject(sandbox.projectId, projectItemId);
     });
 
     scenarioContext.set('secondUnassignedIssueTitle', title);
@@ -65,9 +65,7 @@ When(
 
 Then(
   'the second unassigned issue should not be visible on the board',
-  async ({ projectBoardPage, scenarioContext }) => {
-    await projectBoardPage.expectCardNotVisible(
-      scenarioContext.get<string>('secondUnassignedIssueTitle'),
-    );
+  async ({ boardView, scenarioContext }) => {
+    await boardView.expectCardNotVisible(scenarioContext.get<string>('secondUnassignedIssueTitle'));
   },
 );
