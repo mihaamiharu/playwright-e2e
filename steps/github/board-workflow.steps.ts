@@ -23,7 +23,7 @@ When(
       const items = await projectsAPI.getItems(sandbox.projectId);
       const item = items.find((i) => i.id === seededProjectIssue.projectItemId);
       expect(item?.status).toBe(statusName);
-    }).toPass({ timeout: 30_000 });
+    }).toPass({ timeout: 10_000 });
 
     // Let the GraphQL mutation fully propagate before sending the next one
     await page.waitForTimeout(1000);
@@ -46,7 +46,7 @@ Then(
       const item = items.find((i) => i.id === seededProjectIssue.projectItemId);
       if (!item) throw new Error(`Issue item ${seededProjectIssue.projectItemId} not found`);
       expect(item.status).toBe(columnName);
-    }).toPass({ timeout: 30_000 });
+    }).toPass({ timeout: 10_000 });
   },
 );
 

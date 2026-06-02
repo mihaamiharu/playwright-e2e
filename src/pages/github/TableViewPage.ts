@@ -57,13 +57,13 @@ export class TableViewPage {
       });
       await this.page.waitForTimeout(400);
       await expect(this.getRow(issueTitle).first()).toBeVisible();
-    }).toPass({ timeout: 30_000 });
+    }).toPass({ timeout: 15_000 });
   }
 
   async expectRowNotVisible(issueTitle: string): Promise<void> {
     await expect(async () => {
       await expect(this.getRow(issueTitle).first()).not.toBeVisible({ timeout: 3_000 });
-    }).toPass({ timeout: 20_000 });
+    }).toPass({ timeout: 10_000 });
   }
 
   async expectRowValue(issueTitle: string, value: string): Promise<void> {

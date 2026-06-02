@@ -33,13 +33,13 @@ export class BoardView {
       await this.page.waitForTimeout(200);
       const refreshedCard = this.page.getByRole('button', { name: new RegExp(title) });
       await expect(refreshedCard.first()).toBeVisible();
-    }).toPass({ timeout: 30_000 });
+    }).toPass({ timeout: 15_000 });
   }
 
   async expectCardNotVisible(title: string): Promise<void> {
     await expect(async () => {
       const card = this.page.getByRole('button', { name: new RegExp(title) });
       await expect(card.first()).not.toBeVisible({ timeout: 3_000 });
-    }).toPass({ timeout: 20_000 });
+    }).toPass({ timeout: 10_000 });
   }
 }
