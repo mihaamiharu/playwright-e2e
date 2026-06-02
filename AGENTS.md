@@ -61,6 +61,8 @@ No `tests/` directory — everything is BDD.
 
 `src/fixtures/index.ts` merges fixtures via `mergeTests` and attaches an auto-fixture for Allure labels.
 
+`src/fixtures/index.ts` merges fixtures via `mergeTests` and attaches an auto-fixture for Allure labels.
+
 ## Auth setup (global-setup.ts)
 
 `src/config/global-setup.ts` runs once before all tests:

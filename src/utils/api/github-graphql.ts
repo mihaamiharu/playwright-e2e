@@ -58,6 +58,13 @@ export interface DraftConversionResult {
   issueNodeId: string;
 }
 
+/** A saved view on a GitHub Project V2. */
+export interface ProjectView {
+  id: string;
+  name: string;
+  number: number;
+}
+
 interface GraphQLResponse<T> {
   data?: T;
   errors?: Array<{ message: string }>;
@@ -298,6 +305,37 @@ export class GitHubProjectsAPI {
     }));
   }
 
+  // ── View queries ─────────────────────────────────────
+
+  /** List all saved views in a project. */
+  async getProjectViews(projectId: string): Promise<ProjectView[]> {
+    const query = `
+      query($projectId: ID!) {
+        node(id: $projectId) {
+          ... on ProjectV2 {
+            views(first: 20) {
+              nodes {
+                id
+                name
+                number
+              }
+            }
+          }
+        }
+      }
+    `;
+
+    const data = await this.graphql<{
+      node: {
+        views: {
+          nodes: Array<{ id: string; name: string; number: number }>;
+        };
+      };
+    }>(query, { projectId });
+
+    return data.node.views.nodes;
+  }
+
   // ── Item mutations ──────────────────────────────────
 
   /** Add an issue to a project. `contentId` is the issue's node_id from REST API. */
@@ -467,6 +505,19 @@ export class GitHubProjectsAPI {
       issueNumber: data.convertProjectV2DraftIssueItemToIssue.issue.number,
       issueNodeId: data.convertProjectV2DraftIssueItemToIssue.issue.id,
     };
+  }
+
+  /** Delete a saved view from a project. */
+  async deleteView(viewId: string): Promise<void> {
+    const query = `
+      mutation($viewId: ID!) {
+        deleteProjectV2View(input: { projectV2ViewId: $viewId }) {
+          projectV2View { id }
+        }
+      }
+    `;
+
+    await this.graphql(query, { viewId });
   }
 
   /** Get the GraphQL node ID for a repository. */

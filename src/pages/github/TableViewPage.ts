@@ -72,11 +72,13 @@ export class TableViewPage {
   }
 
   async expectRowBefore(firstTitle: string, secondTitle: string): Promise<void> {
-    const titles = await this.getRowTitles();
-    const firstIdx = titles.findIndex((t) => t.includes(firstTitle));
-    const secondIdx = titles.findIndex((t) => t.includes(secondTitle));
-    expect(firstIdx).not.toBe(-1);
-    expect(secondIdx).not.toBe(-1);
-    expect(firstIdx).toBeLessThan(secondIdx);
+    await expect(async () => {
+      const titles = await this.getRowTitles();
+      const firstIdx = titles.findIndex((t) => t.includes(firstTitle));
+      const secondIdx = titles.findIndex((t) => t.includes(secondTitle));
+      expect(firstIdx).not.toBe(-1);
+      expect(secondIdx).not.toBe(-1);
+      expect(firstIdx).toBeLessThan(secondIdx);
+    }).toPass({ timeout: 15_000 });
   }
 }
