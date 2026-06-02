@@ -2,6 +2,7 @@ import { createBdd } from 'playwright-bdd';
 import { expect } from '@playwright/test';
 import { test } from '../../src/fixtures';
 import { env } from '../../src/config/env.config';
+import { uniqueTestTitle, buildIssueParams } from '../../src/utils/testing/factories';
 
 const { Given, When, Then } = createBdd(test);
 
@@ -60,17 +61,15 @@ Given(
     fieldName: string,
     value: string,
   ) => {
-    const ts = Date.now();
-    const rand = Math.random().toString(36).slice(2, 6);
-    const title = `${issueId}-e2e-${ts}-${rand}`;
+    const title = uniqueTestTitle(issueId);
 
     if (issueId === 'A') scenarioContext.set('issueATitle', title);
     else scenarioContext.set('issueBTitle', title);
 
-    const issue = await githubAPI.createIssue(env.github.testRepo, {
-      title,
-      body: `Custom field filter test issue ${issueId}`,
-    });
+    const issue = await githubAPI.createIssue(
+      env.github.testRepo,
+      buildIssueParams({ title, body: `Custom field filter test issue ${issueId}` }),
+    );
     dataManager.enqueue(`close issue #${issue.number}`, async () => {
       await githubAPI.closeIssue(env.github.testRepo, issue.number);
     });

@@ -2,6 +2,7 @@ import { createBdd } from 'playwright-bdd';
 import { expect } from '@playwright/test';
 import { test } from '../../src/fixtures';
 import { env } from '../../src/config/env.config';
+import { buildIssueParams, buildMilestoneParams } from '../../src/utils/testing/factories';
 
 const { When, Then } = createBdd(test);
 
@@ -14,14 +15,7 @@ When('I close the seeded issue via the API', async ({ githubAPI, seededProjectIs
 When(
   'I create a milestone with a due date via the API',
   async ({ githubAPI, dataManager, scenarioContext }) => {
-    const uniqueId = `milestone-${Date.now()}`;
-    const title = `e2e-${uniqueId}`;
-    const dueDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-
-    const milestone = await githubAPI.createMilestone(env.github.testRepo, {
-      title,
-      due_on: dueDate,
-    });
+    const milestone = await githubAPI.createMilestone(env.github.testRepo, buildMilestoneParams());
 
     scenarioContext.set('milestoneNumber', milestone.number);
     scenarioContext.set('milestoneTitle', milestone.title);
@@ -52,14 +46,14 @@ When(
   'I seed a second issue on the board linked to the milestone',
   async ({ githubAPI, projectsAPI, sandbox, dataManager, scenarioContext }) => {
     const milestoneNumber = scenarioContext.get<number>('milestoneNumber');
-    const uniqueId = `mil-issue-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-    const title = `e2e-${uniqueId}`;
 
-    const issue = await githubAPI.createIssue(env.github.testRepo, {
-      title,
-      body: `Second issue for milestone progress test. Run: ${uniqueId}`,
-      milestone: milestoneNumber,
-    });
+    const issue = await githubAPI.createIssue(
+      env.github.testRepo,
+      buildIssueParams({
+        body: `Second issue for milestone progress test`,
+        milestone: milestoneNumber,
+      }),
+    );
 
     scenarioContext.set('secondMilestoneIssueNumber', issue.number);
 

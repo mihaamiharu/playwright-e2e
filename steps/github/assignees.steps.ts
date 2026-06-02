@@ -2,6 +2,7 @@ import { createBdd } from 'playwright-bdd';
 import { expect } from '@playwright/test';
 import { test } from '../../src/fixtures';
 import { env } from '../../src/config/env.config';
+import { uniqueTestTitle, buildIssueParams } from '../../src/utils/testing/factories';
 
 const { When, Then } = createBdd(test);
 
@@ -28,13 +29,15 @@ Then('I should see no assignee on the issue', async ({ assigneePanel }) => {
 When(
   'I seed a second unassigned issue on the board',
   async ({ githubAPI, projectsAPI, sandbox, dataManager, scenarioContext }) => {
-    const uniqueId = `unassigned-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-    const title = `e2e-${uniqueId}`;
+    const title = uniqueTestTitle('unassigned');
 
-    const issue = await githubAPI.createIssue(env.github.testRepo, {
-      title,
-      body: `Second unassigned issue for assignee filter test. Run: ${uniqueId}`,
-    });
+    const issue = await githubAPI.createIssue(
+      env.github.testRepo,
+      buildIssueParams({
+        title,
+        body: `Second unassigned issue for assignee filter test. Run: ${title}`,
+      }),
+    );
 
     dataManager.enqueue(`close issue #${issue.number}`, async () => {
       await githubAPI.closeIssue(env.github.testRepo, issue.number);

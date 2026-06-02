@@ -1,64 +1,20 @@
-import type { APIRequestContext } from '@playwright/test';
+import { test, type APIRequestContext } from '@playwright/test';
+import { z } from 'zod';
+import {
+  GitHubIssueSchema,
+  GitHubLabelSchema,
+  GitHubCommentSchema,
+  GitHubMilestoneSchema,
+  CreateIssueParamsSchema,
+  UpdateIssueParamsSchema,
+} from './schemas/rest';
 
-/**
- * Typed wrapper around GitHub's REST API for test data lifecycle.
- * Uses Playwright's built-in `request` fixture — no extra dependencies.
- */
-
-// ── Types ─────────────────────────────────────────────────
-
-export interface CreateIssueParams {
-  title: string;
-  body?: string;
-  labels?: string[];
-  assignees?: string[];
-  milestone?: number;
-}
-
-export interface UpdateIssueParams {
-  title?: string;
-  body?: string;
-  state?: 'open' | 'closed';
-  labels?: string[];
-  assignees?: string[];
-  milestone?: number;
-}
-
-export interface GitHubIssue {
-  number: number;
-  node_id: string;
-  html_url: string;
-  title: string;
-  body: string;
-  state: string;
-  labels: GitHubLabel[];
-}
-
-export interface GitHubLabel {
-  name: string;
-  color: string;
-  description?: string;
-}
-
-export interface GitHubComment {
-  id: number;
-  node_id: string;
-  body: string;
-  html_url: string;
-}
-
-export interface GitHubMilestone {
-  number: number;
-  title: string;
-  description: string;
-  due_on: string | null;
-  open_issues: number;
-  closed_issues: number;
-  state: 'open' | 'closed';
-  html_url: string;
-}
-
-// ── Client ────────────────────────────────────────────────
+export type CreateIssueParams = z.infer<typeof CreateIssueParamsSchema>;
+export type UpdateIssueParams = z.infer<typeof UpdateIssueParamsSchema>;
+export type GitHubIssue = z.infer<typeof GitHubIssueSchema>;
+export type GitHubLabel = z.infer<typeof GitHubLabelSchema>;
+export type GitHubComment = z.infer<typeof GitHubCommentSchema>;
+export type GitHubMilestone = z.infer<typeof GitHubMilestoneSchema>;
 
 export class GitHubAPI {
   private baseUrl = 'https://api.github.com';
@@ -73,241 +29,271 @@ export class GitHubAPI {
     return { Authorization: `Bearer ${this.token}` };
   }
 
-  // ── Issues ──────────────────────────────────────────
-
-  /** Create an issue in the given repo. Returns the created issue (includes node_id). */
   async createIssue(repo: string, params: CreateIssueParams): Promise<GitHubIssue> {
-    const response = await this.request.post(`${this.baseUrl}/repos/${repo}/issues`, {
-      headers: this.authHeaders(),
-      data: {
-        title: params.title,
-        body: params.body || 'Created by Playwright E2E test',
-        labels: params.labels || [],
-        assignees: params.assignees || [],
-        ...(params.milestone ? { milestone: params.milestone } : {}),
-      },
+    return test.step(`GitHub REST: create issue "${params.title}"`, async () => {
+      const valid = CreateIssueParamsSchema.parse(params);
+
+      const response = await this.request.post(`${this.baseUrl}/repos/${repo}/issues`, {
+        headers: this.authHeaders(),
+        data: {
+          title: valid.title,
+          body: valid.body || 'Created by Playwright E2E test',
+          labels: valid.labels || [],
+          assignees: valid.assignees || [],
+          ...(valid.milestone ? { milestone: valid.milestone } : {}),
+        },
+      });
+
+      if (!response.ok()) {
+        throw new Error(`Failed to create issue: ${response.status()} ${await response.text()}`);
+      }
+
+      const issue = GitHubIssueSchema.parse(await response.json());
+
+      test.info().annotations.push({
+        type: 'Resource Link',
+        description: `Issue #${issue.number}: ${issue.html_url}`,
+      });
+
+      await test.info().attach('api-response', {
+        body: JSON.stringify(issue, null, 2),
+        contentType: 'application/json',
+      });
+
+      return issue;
     });
-
-    if (!response.ok()) {
-      throw new Error(`Failed to create issue: ${response.status()} ${await response.text()}`);
-    }
-
-    return response.json();
   }
 
-  /** Update an issue's title, body, state, labels, or assignees. */
   async updateIssue(
     repo: string,
     issueNumber: number,
     params: UpdateIssueParams,
   ): Promise<GitHubIssue> {
-    const response = await this.request.patch(
-      `${this.baseUrl}/repos/${repo}/issues/${issueNumber}`,
-      {
-        headers: this.authHeaders(),
-        data: params,
-      },
-    );
+    return test.step(`GitHub REST: update issue #${issueNumber}`, async () => {
+      const valid = UpdateIssueParamsSchema.parse(params);
 
-    if (!response.ok()) {
-      throw new Error(
-        `Failed to update issue #${issueNumber}: ${response.status()} ${await response.text()}`,
+      const response = await this.request.patch(
+        `${this.baseUrl}/repos/${repo}/issues/${issueNumber}`,
+        { headers: this.authHeaders(), data: valid },
       );
-    }
 
-    return response.json();
-  }
+      if (!response.ok()) {
+        throw new Error(
+          `Failed to update issue #${issueNumber}: ${response.status()} ${await response.text()}`,
+        );
+      }
 
-  /** Close an issue (soft-delete — GitHub doesn't allow true deletion via REST). */
-  async closeIssue(repo: string, issueNumber: number): Promise<void> {
-    const response = await this.request.patch(
-      `${this.baseUrl}/repos/${repo}/issues/${issueNumber}`,
-      {
-        headers: this.authHeaders(),
-        data: { state: 'closed' },
-      },
-    );
-
-    if (!response.ok()) {
-      throw new Error(
-        `Failed to close issue #${issueNumber}: ${response.status()} ${await response.text()}`,
-      );
-    }
-  }
-
-  /** Get an issue by number. */
-  async getIssue(repo: string, issueNumber: number): Promise<GitHubIssue> {
-    const response = await this.request.get(`${this.baseUrl}/repos/${repo}/issues/${issueNumber}`, {
-      headers: this.authHeaders(),
+      return GitHubIssueSchema.parse(await response.json());
     });
-
-    if (!response.ok()) {
-      throw new Error(
-        `Failed to get issue #${issueNumber}: ${response.status()} ${await response.text()}`,
-      );
-    }
-
-    return response.json();
   }
 
-  /** List open issues for a repo. */
+  async closeIssue(repo: string, issueNumber: number): Promise<void> {
+    return test.step(`GitHub REST: close issue #${issueNumber}`, async () => {
+      const response = await this.request.patch(
+        `${this.baseUrl}/repos/${repo}/issues/${issueNumber}`,
+        { headers: this.authHeaders(), data: { state: 'closed' } },
+      );
+
+      if (!response.ok()) {
+        throw new Error(
+          `Failed to close issue #${issueNumber}: ${response.status()} ${await response.text()}`,
+        );
+      }
+    });
+  }
+
+  async getIssue(repo: string, issueNumber: number): Promise<GitHubIssue> {
+    return test.step(`GitHub REST: get issue #${issueNumber}`, async () => {
+      const response = await this.request.get(
+        `${this.baseUrl}/repos/${repo}/issues/${issueNumber}`,
+        { headers: this.authHeaders() },
+      );
+
+      if (!response.ok()) {
+        throw new Error(
+          `Failed to get issue #${issueNumber}: ${response.status()} ${await response.text()}`,
+        );
+      }
+
+      return GitHubIssueSchema.parse(await response.json());
+    });
+  }
+
   async listIssues(repo: string, state: 'open' | 'closed' = 'open'): Promise<GitHubIssue[]> {
-    const response = await this.request.get(
-      `${this.baseUrl}/repos/${repo}/issues?state=${state}&per_page=10`,
-      { headers: this.authHeaders() },
-    );
+    return test.step(`GitHub REST: list ${state} issues`, async () => {
+      const response = await this.request.get(
+        `${this.baseUrl}/repos/${repo}/issues?state=${state}&per_page=10`,
+        { headers: this.authHeaders() },
+      );
 
-    if (!response.ok()) {
-      throw new Error(`Failed to list issues: ${response.status()} ${await response.text()}`);
-    }
+      if (!response.ok()) {
+        throw new Error(`Failed to list issues: ${response.status()} ${await response.text()}`);
+      }
 
-    return response.json();
+      return z.array(GitHubIssueSchema).parse(await response.json());
+    });
   }
 
-  // ── Labels ──────────────────────────────────────────
-
-  /** Add one or more labels to an issue. Returns the full label list. */
   async addLabels(repo: string, issueNumber: number, labels: string[]): Promise<GitHubLabel[]> {
-    const response = await this.request.post(
-      `${this.baseUrl}/repos/${repo}/issues/${issueNumber}/labels`,
-      {
-        headers: this.authHeaders(),
-        data: { labels },
-      },
-    );
-
-    if (!response.ok()) {
-      throw new Error(
-        `Failed to add labels to issue #${issueNumber}: ${response.status()} ${await response.text()}`,
+    return test.step(`GitHub REST: add labels [${labels.join(', ')}] to issue #${issueNumber}`, async () => {
+      const response = await this.request.post(
+        `${this.baseUrl}/repos/${repo}/issues/${issueNumber}/labels`,
+        { headers: this.authHeaders(), data: { labels } },
       );
-    }
 
-    return response.json();
+      if (!response.ok()) {
+        throw new Error(
+          `Failed to add labels to issue #${issueNumber}: ${response.status()} ${await response.text()}`,
+        );
+      }
+
+      return z.array(GitHubLabelSchema).parse(await response.json());
+    });
   }
 
-  /** Remove a label from an issue. */
   async removeLabel(repo: string, issueNumber: number, label: string): Promise<void> {
-    const response = await this.request.delete(
-      `${this.baseUrl}/repos/${repo}/issues/${issueNumber}/labels/${encodeURIComponent(label)}`,
-      { headers: this.authHeaders() },
-    );
-
-    if (!response.ok()) {
-      console.warn(
-        `Failed to remove label "${label}" from issue #${issueNumber}: ${response.status()}`,
+    return test.step(`GitHub REST: remove label "${label}" from issue #${issueNumber}`, async () => {
+      const response = await this.request.delete(
+        `${this.baseUrl}/repos/${repo}/issues/${issueNumber}/labels/${encodeURIComponent(label)}`,
+        { headers: this.authHeaders() },
       );
-    }
+
+      if (!response.ok()) {
+        console.warn(
+          `Failed to remove label "${label}" from issue #${issueNumber}: ${response.status()}`,
+        );
+      }
+    });
   }
 
-  // ── Comments ────────────────────────────────────────
-
-  /** Add a comment to an issue. */
   async addComment(repo: string, issueNumber: number, body: string): Promise<GitHubComment> {
-    const response = await this.request.post(
-      `${this.baseUrl}/repos/${repo}/issues/${issueNumber}/comments`,
-      {
-        headers: this.authHeaders(),
-        data: { body },
-      },
-    );
-
-    if (!response.ok()) {
-      throw new Error(
-        `Failed to add comment to issue #${issueNumber}: ${response.status()} ${await response.text()}`,
+    return test.step(`GitHub REST: add comment to issue #${issueNumber}`, async () => {
+      const response = await this.request.post(
+        `${this.baseUrl}/repos/${repo}/issues/${issueNumber}/comments`,
+        { headers: this.authHeaders(), data: { body } },
       );
-    }
 
-    return response.json();
+      if (!response.ok()) {
+        throw new Error(
+          `Failed to add comment to issue #${issueNumber}: ${response.status()} ${await response.text()}`,
+        );
+      }
+
+      const comment = GitHubCommentSchema.parse(await response.json());
+
+      test.info().annotations.push({
+        type: 'Resource Link',
+        description: `Comment #${comment.id}: ${comment.html_url}`,
+      });
+
+      await test.info().attach('api-response', {
+        body: JSON.stringify(comment, null, 2),
+        contentType: 'application/json',
+      });
+
+      return comment;
+    });
   }
 
-  // ── Milestones ──────────────────────────────────────
-
-  /** Create a milestone in the given repo. */
   async createMilestone(
     repo: string,
     params: { title: string; description?: string; due_on?: string },
   ): Promise<GitHubMilestone> {
-    const response = await this.request.post(`${this.baseUrl}/repos/${repo}/milestones`, {
-      headers: this.authHeaders(),
-      data: params,
+    return test.step(`GitHub REST: create milestone "${params.title}"`, async () => {
+      const response = await this.request.post(`${this.baseUrl}/repos/${repo}/milestones`, {
+        headers: this.authHeaders(),
+        data: params,
+      });
+
+      if (!response.ok()) {
+        throw new Error(
+          `Failed to create milestone: ${response.status()} ${await response.text()}`,
+        );
+      }
+
+      const milestone = GitHubMilestoneSchema.parse(await response.json());
+
+      test.info().annotations.push({
+        type: 'Resource Link',
+        description: `Milestone #${milestone.number}: ${milestone.html_url}`,
+      });
+
+      await test.info().attach('api-response', {
+        body: JSON.stringify(milestone, null, 2),
+        contentType: 'application/json',
+      });
+
+      return milestone;
     });
-
-    if (!response.ok()) {
-      throw new Error(`Failed to create milestone: ${response.status()} ${await response.text()}`);
-    }
-
-    return response.json();
   }
 
-  /** Get a milestone by number. */
   async getMilestone(repo: string, milestoneNumber: number): Promise<GitHubMilestone> {
-    const response = await this.request.get(
-      `${this.baseUrl}/repos/${repo}/milestones/${milestoneNumber}`,
-      { headers: this.authHeaders() },
-    );
-
-    if (!response.ok()) {
-      throw new Error(
-        `Failed to get milestone #${milestoneNumber}: ${response.status()} ${await response.text()}`,
+    return test.step(`GitHub REST: get milestone #${milestoneNumber}`, async () => {
+      const response = await this.request.get(
+        `${this.baseUrl}/repos/${repo}/milestones/${milestoneNumber}`,
+        { headers: this.authHeaders() },
       );
-    }
 
-    return response.json();
+      if (!response.ok()) {
+        throw new Error(
+          `Failed to get milestone #${milestoneNumber}: ${response.status()} ${await response.text()}`,
+        );
+      }
+
+      return GitHubMilestoneSchema.parse(await response.json());
+    });
   }
 
-  /** Delete a milestone by number. */
   async deleteMilestone(repo: string, milestoneNumber: number): Promise<void> {
-    const response = await this.request.delete(
-      `${this.baseUrl}/repos/${repo}/milestones/${milestoneNumber}`,
-      { headers: this.authHeaders() },
-    );
-
-    if (!response.ok()) {
-      console.warn(
-        `Failed to delete milestone #${milestoneNumber}: ${response.status()} ${await response.text()}`,
+    return test.step(`GitHub REST: delete milestone #${milestoneNumber}`, async () => {
+      const response = await this.request.delete(
+        `${this.baseUrl}/repos/${repo}/milestones/${milestoneNumber}`,
+        { headers: this.authHeaders() },
       );
-    }
+
+      if (!response.ok()) {
+        console.warn(
+          `Failed to delete milestone #${milestoneNumber}: ${response.status()} ${await response.text()}`,
+        );
+      }
+    });
   }
 
-  /** Update a milestone (title, description, due_on, or state). */
   async updateMilestone(
     repo: string,
     milestoneNumber: number,
     params: { title?: string; description?: string; due_on?: string; state?: 'open' | 'closed' },
   ): Promise<GitHubMilestone> {
-    const response = await this.request.patch(
-      `${this.baseUrl}/repos/${repo}/milestones/${milestoneNumber}`,
-      {
-        headers: this.authHeaders(),
-        data: params,
-      },
-    );
-
-    if (!response.ok()) {
-      throw new Error(
-        `Failed to update milestone #${milestoneNumber}: ${response.status()} ${await response.text()}`,
+    return test.step(`GitHub REST: update milestone #${milestoneNumber}`, async () => {
+      const response = await this.request.patch(
+        `${this.baseUrl}/repos/${repo}/milestones/${milestoneNumber}`,
+        { headers: this.authHeaders(), data: params },
       );
-    }
 
-    return response.json();
+      if (!response.ok()) {
+        throw new Error(
+          `Failed to update milestone #${milestoneNumber}: ${response.status()} ${await response.text()}`,
+        );
+      }
+
+      return GitHubMilestoneSchema.parse(await response.json());
+    });
   }
 
-  /** Update an existing comment. */
   async updateComment(repo: string, commentId: number, body: string): Promise<GitHubComment> {
-    const response = await this.request.patch(
-      `${this.baseUrl}/repos/${repo}/issues/comments/${commentId}`,
-      {
-        headers: this.authHeaders(),
-        data: { body },
-      },
-    );
-
-    if (!response.ok()) {
-      throw new Error(
-        `Failed to update comment #${commentId}: ${response.status()} ${await response.text()}`,
+    return test.step(`GitHub REST: update comment #${commentId}`, async () => {
+      const response = await this.request.patch(
+        `${this.baseUrl}/repos/${repo}/issues/comments/${commentId}`,
+        { headers: this.authHeaders(), data: { body } },
       );
-    }
 
-    return response.json();
+      if (!response.ok()) {
+        throw new Error(
+          `Failed to update comment #${commentId}: ${response.status()} ${await response.text()}`,
+        );
+      }
+
+      return GitHubCommentSchema.parse(await response.json());
+    });
   }
 }
