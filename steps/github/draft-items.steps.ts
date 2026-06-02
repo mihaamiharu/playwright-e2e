@@ -2,14 +2,14 @@ import { createBdd } from 'playwright-bdd';
 import { expect } from '@playwright/test';
 import { test } from '../../src/fixtures';
 import { env } from '../../src/config/env.config';
+import { createTestIssueTitle, createTestIssue } from '../../src/utils/testing/factories';
 
 const { When, Then } = createBdd(test);
 
 When(
   'I create a draft issue with title {string} via the API',
   async ({ projectsAPI, sandbox, dataManager, scenarioContext }, title: string) => {
-    const uniqueId = `draft-${Date.now()}`;
-    const draftTitle = `e2e-${uniqueId} ${title}`;
+    const draftTitle = createTestIssueTitle('draft', title);
 
     const draftItemId = await projectsAPI.addDraftIssue(sandbox.projectId, draftTitle);
     scenarioContext.set('draftItemId', draftItemId);
@@ -37,13 +37,12 @@ Then(
 When(
   'I create a full issue with the same title via the API',
   async ({ githubAPI, projectsAPI, sandbox, dataManager, scenarioContext }) => {
-    const uniqueId = `draft-convert-${Date.now()}`;
-    const issueTitle = `e2e-${uniqueId} - Converted issue`;
+    const issueTitle = createTestIssueTitle('draft-convert', 'Converted issue');
 
-    const issue = await githubAPI.createIssue(env.github.testRepo, {
-      title: issueTitle,
-      body: 'Converted from draft',
-    });
+    const issue = await githubAPI.createIssue(
+      env.github.testRepo,
+      createTestIssue({ title: issueTitle, body: 'Converted from draft' }),
+    );
 
     dataManager.enqueue(`close issue #${issue.number}`, async () => {
       await githubAPI.closeIssue(env.github.testRepo, issue.number);
