@@ -15,11 +15,20 @@ export class BoardView {
   }
 
   async expectCardVisible(title: string): Promise<void> {
+    const card = this.page.getByRole('button', { name: new RegExp(title) });
+
+    try {
+      await expect(card.first()).toBeVisible();
+      return;
+    } catch {
+      // card may not have propagated from GraphQL yet — reload and retry
+    }
+
     await expect(async () => {
       await this.page.reload();
       await expect(this.firstHeading).toBeVisible();
-      const card = this.page.getByRole('button', { name: new RegExp(title) });
-      await expect(card.first()).toBeVisible();
+      const refreshedCard = this.page.getByRole('button', { name: new RegExp(title) });
+      await expect(refreshedCard.first()).toBeVisible();
     }).toPass({ timeout: 30_000 });
   }
 

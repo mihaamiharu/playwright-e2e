@@ -38,6 +38,13 @@ export class TableViewPage {
   }
 
   async expectRowVisible(issueTitle: string): Promise<void> {
+    try {
+      await expect(this.getRow(issueTitle).first()).toBeVisible();
+      return;
+    } catch {
+      // row may not have propagated from GraphQL yet — reload and retry
+    }
+
     await expect(async () => {
       await this.page.reload();
       await expect(this.grid).toBeVisible();
