@@ -38,11 +38,26 @@ export class TableViewPage {
   }
 
   async expectRowVisible(issueTitle: string): Promise<void> {
-    await expect(this.getRow(issueTitle).first()).toBeVisible();
+    await expect(this.grid).toBeVisible({ timeout: 10_000 });
+
+    try {
+      await expect(this.getRow(issueTitle).first()).toBeVisible({ timeout: 5_000 });
+      return;
+    } catch {
+      // row may not have propagated from GraphQL yet — reload and retry
+    }
+
+    await expect(async () => {
+      await this.page.reload();
+      await expect(this.grid).toBeVisible({ timeout: 10_000 });
+      await expect(this.getRow(issueTitle).first()).toBeVisible({ timeout: 10_000 });
+    }).toPass({ timeout: 30_000 });
   }
 
   async expectRowNotVisible(issueTitle: string): Promise<void> {
-    await expect(this.getRow(issueTitle).first()).not.toBeVisible();
+    await expect(async () => {
+      await expect(this.getRow(issueTitle).first()).not.toBeVisible({ timeout: 3_000 });
+    }).toPass({ timeout: 20_000 });
   }
 
   async expectRowValue(issueTitle: string, value: string): Promise<void> {

@@ -30,8 +30,12 @@ Given(
 
 When(
   'I search the project by title for the unique keyword',
-  async ({ page, projectFilterBar, scenarioContext }) => {
+  async ({ page, projectFilterBar, boardView, scenarioContext }) => {
     const keyword = scenarioContext.get<string>('searchKeyword');
+    const title = scenarioContext.get<string>('keywordIssueTitle');
+
+    await boardView.expectCardVisible(title);
+
     await projectFilterBar.open();
     await projectFilterBar.selectType('Title');
     await page.waitForURL(/filterQuery=title/);

@@ -10,6 +10,10 @@ permissions:
   contents: write
   actions: read
 
+concurrency:
+  group: e2e-full-${{ github.ref_name }}
+  cancel-in-progress: false
+
 jobs:
   e2e:
     name: Run E2E Tests
@@ -23,19 +27,21 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
 
       - name: Cache Playwright browsers
+        id: playwright-cache
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
           key: playwright-chromium-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
       - name: Install Playwright Chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps chromium
 
       - name: Restore previous run results (rerun only)
@@ -70,10 +76,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: reports/allure/history
-          key: allure-history-${{ github.ref_name }}-${{ github.run_id }}
-          restore-keys: |
-            allure-history-${{ github.ref_name }}-
-            allure-history-
+          key: allure-history-${{ github.ref_name }}
 
       - name: Restore auth state (rerun only)
         if: github.run_attempt > 1
@@ -87,7 +90,7 @@ jobs:
       - name: Decrypt auth state (rerun only)
         if: github.run_attempt > 1
         env:
-          AUTH_CACHE_KEY: ${{ secrets.GH_API_TOKEN }}
+          AUTH_CACHE_KEY: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if [ -f auth/github.json.enc ]; then
             mkdir -p auth
@@ -137,7 +140,7 @@ jobs:
       - name: Encrypt auth state for reruns
         if: always()
         env:
-          AUTH_CACHE_KEY: ${{ secrets.GH_API_TOKEN }}
+          AUTH_CACHE_KEY: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if [ -f auth/github.json ]; then
             openssl enc -aes-256-cbc -pbkdf2 -salt \
@@ -152,7 +155,6 @@ jobs:
       - name: Save auth cache
         if: always()
         uses: actions/cache/save@v4
-        continue-on-error: true
         with:
           path: auth/github.json.enc
           key: auth-state-${{ github.run_id }}-${{ github.run_attempt }}
@@ -203,7 +205,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: reports/allure/history
-          key: allure-history-${{ github.ref_name }}-${{ github.run_id }}
+          key: allure-history-${{ github.ref_name }}
 
       - name: Deploy Allure Report to GitHub Pages
         if: always() && github.ref == 'refs/heads/main'
