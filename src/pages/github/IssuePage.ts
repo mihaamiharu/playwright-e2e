@@ -1,4 +1,5 @@
 import { Page, Locator, expect } from '@playwright/test';
+import { waitForGitHubNavigation } from '../../utils/testing/wait-helpers';
 
 /**
  * Page Object Model for GitHub Issue Details Page.
@@ -17,6 +18,7 @@ export class IssuePage {
 
   async navigateTo(repo: string, issueNumber: number): Promise<void> {
     await this.page.goto(`/${repo}/issues/${issueNumber}`);
+    await waitForGitHubNavigation(this.page);
   }
 
   async expectHeading(title: string): Promise<void> {

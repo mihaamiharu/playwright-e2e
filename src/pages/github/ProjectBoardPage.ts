@@ -1,4 +1,5 @@
 import { Page, Locator, expect } from '@playwright/test';
+import { waitForGitHubNavigation } from '../../utils/testing/wait-helpers';
 
 /**
  * Page Object Model for GitHub Project Kanban Board.
@@ -18,6 +19,7 @@ export class ProjectBoardPage {
 
   async navigate(): Promise<void> {
     await this.page.goto(this.viewPath);
+    await waitForGitHubNavigation(this.page);
     await expect(this.firstHeading).toBeVisible();
   }
 
@@ -34,6 +36,7 @@ export class ProjectBoardPage {
 
   async dragCardToColumn(cardTitle: string, toColumn: string): Promise<void> {
     await this.page.reload();
+    await waitForGitHubNavigation(this.page);
     await expect(this.firstHeading).toBeVisible();
 
     const targetHeading = this.page.getByRole('heading', { name: toColumn, level: 2 });
