@@ -88,7 +88,6 @@ All env vars use the `GH_` prefix (not `GITHUB_`):
 | `TEST_MODE`                 | `read-only` (safe no-auth) or `full` (authenticated + write)       |
 | `NODE_OPTIONS`              | Must be `--use-system-ca` in CI (HTTPS to GitHub fails without it) |
 
-
 ## DataManager — LIFO cleanup queue
 
 `src/utils/testing/data-manager.ts`: fixtures enqueue cleanup callbacks that run in reverse order after the test (pass or fail). One failure doesn't block others. Logs `[seeder]` / `[cleanup]` to console.
