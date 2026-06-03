@@ -19,7 +19,7 @@ export class ProjectBoardPage {
   }
 
   async navigate(filterQuery?: string): Promise<void> {
-    await this.page.goto(this.viewPath);
+    await this.page.goto(this.viewPath, { waitUntil: 'domcontentloaded' });
     await waitForGitHubNavigation(this.page);
     await expect(this.firstHeading).toBeVisible();
 

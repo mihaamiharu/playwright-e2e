@@ -17,7 +17,7 @@ export class IssuePage {
   }
 
   async navigateTo(repo: string, issueNumber: number): Promise<void> {
-    await this.page.goto(`/${repo}/issues/${issueNumber}`);
+    await this.page.goto(`/${repo}/issues/${issueNumber}`, { waitUntil: 'domcontentloaded' });
     await waitForGitHubNavigation(this.page);
   }
 

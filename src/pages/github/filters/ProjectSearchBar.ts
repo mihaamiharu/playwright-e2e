@@ -25,6 +25,13 @@ export class ProjectSearchBar {
   }
 
   async selectType(typeName: string): Promise<void> {
+    // Clear the filter first — GitHub's filter dropdown only shows type
+    // options when the combobox is empty; if a search value is already set
+    // (e.g. from BoardPage.navigate with a filterQuery), clicking just
+    // focuses the input without opening the type picker.
+    await this.filterInput.clear();
+    await this.filterInput.click();
+
     const option = this.page.getByRole('option', {
       name: new RegExp(`^${typeName}(, Filter)?`, 'i'),
     });
