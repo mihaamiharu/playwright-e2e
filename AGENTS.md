@@ -59,12 +59,6 @@ No `tests/` directory — everything is BDD.
 
 `src/fixtures/index.ts` merges fixtures via `mergeTests` and attaches an auto-fixture for Allure labels.
 
-`src/fixtures/index.ts` merges fixtures via `mergeTests` and attaches an auto-fixture for Allure labels.
-
-`src/fixtures/index.ts` merges fixtures via `mergeTests` and attaches an auto-fixture for Allure labels.
-
-`src/fixtures/index.ts` merges fixtures via `mergeTests` and attaches an auto-fixture for Allure labels.
-
 ## Auth setup (global-setup.ts)
 
 `src/config/global-setup.ts` runs once before all tests:
@@ -94,7 +88,6 @@ All env vars use the `GH_` prefix (not `GITHUB_`):
 | `TEST_MODE`                 | `read-only` (safe no-auth) or `full` (authenticated + write)       |
 | `NODE_OPTIONS`              | Must be `--use-system-ca` in CI (HTTPS to GitHub fails without it) |
 
-Known inconsistency: `login.steps.ts` error message says "Set `GITHUB_USERNAME`" but the actual env var is `GH_USERNAME`.
 
 ## DataManager — LIFO cleanup queue
 
@@ -137,4 +130,3 @@ When you click "Re-run failed jobs" in GitHub on `e2e-full.yml`:
 - `imap` is an unusual devDependency — only used by global-setup for device verification codes
 - `test.use()` at module level breaks BDD codegen — use it inside `Before` hooks or fixture definitions only
 - `NODE_OPTIONS: --use-system-ca` is **required in CI** — HTTPS requests to GitHub fail without it
-- `npm run test:bdd` and `npm run test:bdd:headed` from README don't exist in package.json
