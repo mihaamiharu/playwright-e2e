@@ -8,6 +8,7 @@ Feature: In-Project Search
   Background:
     Given a seeded project issue exists on the kanban board
 
+  @P1 @search
   Scenario: SRCH-01 — Search issues within project by keyword → verify matching results shown
     Given a second project issue exists with a unique search keyword in the title
     When I navigate to the kanban view

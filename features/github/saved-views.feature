@@ -8,6 +8,7 @@ Feature: Saved Views
   Background:
     Given a seeded project issue exists on the kanban board
 
+  @P2 @views
   Scenario: VIEW-01 — Create saved view with filter and verify persistence after reload
     When I navigate to the kanban view
     And I create a new board view named "E2E Test View"
@@ -16,6 +17,7 @@ Feature: Saved Views
     Then the current view should show filter "Status" with value "Backlog"
     And the created view tab should be visible
 
+  @P2 @views
   Scenario: VIEW-02 — Switch between saved views and verify correct view is displayed
     When I navigate to the kanban view
     And I switch to the "Priority board" view

@@ -8,19 +8,19 @@ Feature: GitHub Login
   Background:
     Given I am on the GitHub login page
 
-  @P0
+  @P0 @smoke @login
   Scenario: Login with valid credentials
     When I enter valid credentials
     And I submit the login form
     Then I should be redirected to the dashboard
 
-  @P1 @noauth @smoke
+  @P1 @noauth @login
   Scenario: Login fails with wrong password
     When I enter username "test-user" and password "wrong-password"
     And I submit the login form
     Then I should see an error message "Incorrect username or password"
 
-  @P1 @noauth
+  @P1 @noauth @login
   Scenario: Login fails with empty credentials
     When I submit the form without entering credentials
     Then the form should not submit

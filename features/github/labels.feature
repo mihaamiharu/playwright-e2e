@@ -8,11 +8,13 @@ Feature: Labels & Metadata
   Background:
     Given a seeded project issue exists on the kanban board
 
+  @P1 @labels
   Scenario: LBL-01 — Add label via UI and verify it renders
     When I navigate to the issue page
     And I add the label "bug" via the UI
     Then I should see the "bug" label on the issue
 
+  @P1 @labels
   Scenario: LBL-02 — Add multiple labels via UI and verify all render
     When I navigate to the issue page
     And I add the label "bug" via the UI
@@ -20,12 +22,14 @@ Feature: Labels & Metadata
     Then I should see the "bug" label on the issue
     And I should see the "enhancement" label on the issue
 
+  @P1 @labels
   Scenario: LBL-03 — Remove label via UI and verify it disappears
     When I add the label "bug" via the API
     And I navigate to the issue page
     And I remove the label "bug" via the UI
     Then I should not see the "bug" label on the issue
 
+  @P1 @labels
   Scenario: LBL-04 — Filter board by label and verify only matching issues shown
     When I add the label "bug" via the API
     And I seed a second unlabeled issue on the board

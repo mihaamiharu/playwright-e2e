@@ -8,6 +8,7 @@ Feature: Auto-Workflows
   Background:
     Given a seeded project issue exists on the kanban board
 
+  @P2 @workflows
   Scenario: WFLOW-01 — Close issue via API and verify auto-workflow moves it to Done
     When I close the seeded issue for the workflow via the API
     Then the seeded issue should be moved to "Done" by the auto-workflow
