@@ -8,11 +8,10 @@ const { Given, When, Then } = createBdd(test);
 
 Given(
   'a second seeded project issue exists on the kanban board',
-  async ({ githubAPI, projectsAPI, sandbox, dataManager, scenarioContext }) => {
-    const issue = await githubAPI.createIssue(
-      env.github.testRepo,
-      buildIssueParams({ body: 'Bulk test issue' }),
-    );
+  async ({ githubAPI, projectsAPI, sandbox, dataManager, scenarioContext, scenarioId }) => {
+    const params = buildIssueParams({ body: 'Bulk test issue' });
+    params.title = `${params.title} [${scenarioId}]`;
+    const issue = await githubAPI.createIssue(env.github.testRepo, params);
     dataManager.enqueue(`close issue #${issue.number}`, async () => {
       await githubAPI.closeIssue(env.github.testRepo, issue.number);
     });

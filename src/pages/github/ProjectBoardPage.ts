@@ -1,5 +1,6 @@
 import { Page, Locator, expect } from '@playwright/test';
 import { waitForGitHubNavigation } from '../../utils/testing/wait-helpers';
+import { ProjectSearchBar } from './filters/ProjectSearchBar';
 
 /**
  * Page Object Model for GitHub Project Kanban Board.
@@ -17,10 +18,18 @@ export class ProjectBoardPage {
     this.firstHeading = page.getByRole('heading', { level: 2 }).first();
   }
 
-  async navigate(): Promise<void> {
+  async navigate(filterQuery?: string): Promise<void> {
     await this.page.goto(this.viewPath);
     await waitForGitHubNavigation(this.page);
     await expect(this.firstHeading).toBeVisible();
+
+    if (filterQuery) {
+      const searchBar = new ProjectSearchBar(this.page);
+      await searchBar.filterInput.fill(filterQuery);
+      await this.page.keyboard.press('Enter');
+      // Wait for the board to finish refreshing after search
+      await this.page.waitForTimeout(500);
+    }
   }
 
   getDraggableCard(title: string): Locator {

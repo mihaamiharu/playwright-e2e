@@ -30,8 +30,8 @@ When(
   },
 );
 
-When('I navigate to the kanban view', async ({ projectBoardPage }) => {
-  await projectBoardPage.navigate();
+When('I navigate to the kanban view', async ({ projectBoardPage, scenarioId }) => {
+  await projectBoardPage.navigate(`"${scenarioId}"`);
 });
 
 Then(

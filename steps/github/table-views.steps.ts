@@ -26,9 +26,13 @@ Then(
 
 Given(
   'seeded table sort test issues exist with prefixes {string} and {string}',
-  async ({ githubAPI, projectsAPI, sandbox, dataManager, scenarioContext }, prefixA, prefixZ) => {
-    const sortTitleA = uniqueTestTitle(prefixA);
-    const sortTitleZ = uniqueTestTitle(prefixZ);
+  async (
+    { githubAPI, projectsAPI, sandbox, dataManager, scenarioContext, scenarioId },
+    prefixA,
+    prefixZ,
+  ) => {
+    const sortTitleA = `${uniqueTestTitle(prefixA)} [${scenarioId}]`;
+    const sortTitleZ = `${uniqueTestTitle(prefixZ)} [${scenarioId}]`;
     scenarioContext.set('sortTitleA', sortTitleA);
     scenarioContext.set('sortTitleZ', sortTitleZ);
 
@@ -82,12 +86,12 @@ Then(
 Given(
   'issue {string} exists with status {string} and label {string} in the sandbox project',
   async (
-    { githubAPI, projectsAPI, sandbox, dataManager, scenarioContext },
+    { githubAPI, projectsAPI, sandbox, dataManager, scenarioContext, scenarioId },
     issueId,
     statusName,
     labelName,
   ) => {
-    const title = uniqueTestTitle(issueId);
+    const title = `${uniqueTestTitle(issueId)} [${scenarioId}]`;
 
     if (issueId === 'A') scenarioContext.set('issueATitle', title);
     else scenarioContext.set('issueBTitle', title);
@@ -118,11 +122,11 @@ Given(
 Given(
   'issue {string} exists with status {string} and no label in the sandbox project',
   async (
-    { githubAPI, projectsAPI, sandbox, dataManager, scenarioContext },
+    { githubAPI, projectsAPI, sandbox, dataManager, scenarioContext, scenarioId },
     issueId,
     statusName,
   ) => {
-    const title = uniqueTestTitle(issueId);
+    const title = `${uniqueTestTitle(issueId)} [${scenarioId}]`;
 
     scenarioContext.set('issueBTitle', title);
 
