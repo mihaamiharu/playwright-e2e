@@ -48,3 +48,12 @@ export const env = {
     return this.hasGitHubToken && !!(this.github.testRepo && this.github.sandboxProject);
   },
 };
+
+const REQUIRED_VARS = ['GH_USERNAME', 'GH_PASSWORD', 'GH_API_TOKEN', 'GH_TEST_REPO'] as const;
+
+export function validateEnv() {
+  const missing = REQUIRED_VARS.filter((v) => !process.env[v]);
+  if (env.testMode === 'full' && missing.length > 0) {
+    throw new Error(`Missing required env vars: ${missing.join(', ')}\nSee .env.example`);
+  }
+}

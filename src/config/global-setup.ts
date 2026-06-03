@@ -3,15 +3,23 @@ import dotenv from 'dotenv';
 import * as fs from 'fs';
 import { fetchVerificationCode } from './setup/imap-poller';
 import { ensureSandboxFields } from './setup/sandbox-bootstrap';
+import { validateEnv } from './env.config';
 
 dotenv.config();
 
 const AUTH_FILE = 'auth/github.json';
 
 async function globalSetup(_config: FullConfig) {
+  validateEnv();
+
   if (fs.existsSync(AUTH_FILE)) {
-    console.log('✅ Auth state found — skipping login');
-    return;
+    const stats = fs.statSync(AUTH_FILE);
+    const ageMs = Date.now() - stats.mtimeMs;
+    if (ageMs < 24 * 60 * 60 * 1000) {
+      console.log('✅ Valid auth state found — skipping login');
+      return;
+    }
+    console.log('⚠️ Auth state is older than 24 hours — re-authenticating');
   }
 
   const username = process.env.GH_USERNAME;
