@@ -49,6 +49,7 @@ export default defineConfig({
       },
     ],
     ['line'],
+    ['./src/utils/reporting/cleanup-reporter.ts'],
   ],
   use: {
     baseURL: process.env.BASE_URL || 'https://github.com',
