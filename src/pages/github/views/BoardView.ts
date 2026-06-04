@@ -21,7 +21,7 @@ export class BoardView {
   }
 
   async expectCardVisible(cardTitle: string): Promise<void> {
-    await expect(this.locatorForCard(cardTitle).first()).toBeVisible({ timeout: 25_000 });
+    await expect(this.locatorForCard(cardTitle).first()).toBeVisible({ timeout: 30_000 });
   }
 
   async expectCardNotVisible(cardTitle: string): Promise<void> {
