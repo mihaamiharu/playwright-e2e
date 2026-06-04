@@ -6,6 +6,10 @@ import { uniqueTestTitle, buildIssueParams } from '../../src/utils/testing/facto
 
 const { Given, When, Then } = createBdd(test);
 
+When('I navigate to the table view', async ({ tableViewPage, scenarioId }) => {
+  await tableViewPage.navigate(`"${scenarioId}"`);
+});
+
 When('I switch to the table layout view', async ({ tableViewPage }) => {
   await tableViewPage.ensureTableLayout();
 });
