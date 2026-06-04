@@ -7,7 +7,6 @@ import { ProjectSearchBar } from './filters/ProjectSearchBar';
  */
 export class ProjectBoardPage {
   readonly viewPath: string;
-  readonly firstHeading: Locator;
 
   constructor(
     public readonly page: Page,
@@ -15,7 +14,6 @@ export class ProjectBoardPage {
     projectNumber: string,
   ) {
     this.viewPath = `/users/${repoOwner}/projects/${projectNumber}/views/1`;
-    this.firstHeading = page.getByRole('heading', { level: 2 }).first();
   }
 
   /**
@@ -24,13 +22,17 @@ export class ProjectBoardPage {
    * or previous tests may have left the layout in table mode.
    */
   private async ensureBoardLayout(): Promise<void> {
-    const isBoard = await this.firstHeading.isVisible({ timeout: 1_000 }).catch(() => false);
+    const isBoard = await this.page
+      .locator('[data-board-column]')
+      .first()
+      .isVisible({ timeout: 1_000 })
+      .catch(() => false);
     if (isBoard) return;
 
     await this.page.getByRole('button', { name: /View$/ }).click();
     await this.page.getByRole('button', { name: /Board/ }).click();
     await this.page.waitForURL(/layout=board/);
-    await expect(this.firstHeading).toBeVisible({ timeout: 20_000 });
+    await expect(this.page.locator('[data-board-column]').first()).toBeVisible({ timeout: 20_000 });
   }
 
   async navigate(filterQuery?: string): Promise<void> {

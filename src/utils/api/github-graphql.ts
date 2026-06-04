@@ -226,7 +226,7 @@ export class GitHubProjectsAPI {
         query($projectId: ID!) {
           node(id: $projectId) {
             ... on ProjectV2 {
-              items(first: 50) {
+              items(first: 100) {
                 nodes {
                   id
                   type

@@ -74,6 +74,13 @@ export const test = mergeTests(githubTest, dataTest, apiTest, pagesTest).extend<
         `${logPrefix(testInfo)} [seeder] Added issue #${issue.number} to project ${sandbox.projectId}`,
       );
 
+      const backlogOptionId = sandbox.statusOptions.get('Backlog');
+      if (backlogOptionId) {
+        await projectsAPI.setFieldValue(sandbox.projectId, projectItemId, sandbox.statusFieldId, {
+          singleSelectOptionId: backlogOptionId,
+        });
+      }
+
       dataManager.enqueue(`remove issue #${issue.number} from project`, () =>
         projectsAPI.removeItemFromProject(sandbox.projectId, projectItemId),
       );
