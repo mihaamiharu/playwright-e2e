@@ -50,6 +50,9 @@ export class ProjectSearchBar {
   }
 
   async typeSearch(text: string): Promise<void> {
+    // Clear any existing filter value first — same reasoning as selectType:
+    // an existing value causes text to concatenate instead of replacing.
+    await this.filterInput.clear();
     await this.page.keyboard.type(text);
   }
 
