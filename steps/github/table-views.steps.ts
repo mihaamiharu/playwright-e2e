@@ -7,7 +7,7 @@ import { uniqueTestTitle, buildIssueParams } from '../../src/utils/testing/facto
 const { Given, When, Then } = createBdd(test);
 
 When('I switch to the table layout view', async ({ tableViewPage }) => {
-  await tableViewPage.switchToTableLayout();
+  await tableViewPage.ensureTableLayout();
 });
 
 Then(

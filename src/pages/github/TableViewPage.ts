@@ -10,7 +10,7 @@ export class TableViewPage {
 
   constructor(public readonly page: Page) {
     this.viewButton = page.getByRole('button', { name: /View$/ });
-    this.tableButton = page.getByRole('button', { name: 'Table' });
+    this.tableButton = page.getByRole('menuitem', { name: 'Table' });
     this.grid = page.getByRole('grid');
   }
 
@@ -20,6 +20,16 @@ export class TableViewPage {
     await expect(this.grid).toBeVisible({ timeout: 10_000 });
     await this.page.keyboard.press('Escape');
     await expect(this.tableButton).not.toBeVisible();
+  }
+
+  async ensureTableLayout(): Promise<void> {
+    const isTable = await this.grid.isVisible({ timeout: 1_000 }).catch(() => false);
+    if (isTable) return;
+
+    await this.viewButton.click();
+    await expect(this.tableButton).toBeVisible({ timeout: 5_000 });
+    await this.tableButton.click();
+    await expect(this.grid).toBeVisible({ timeout: 10_000 });
   }
 
   getColumnHeader(name: string): Locator {
