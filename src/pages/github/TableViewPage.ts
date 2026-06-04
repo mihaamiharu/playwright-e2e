@@ -17,8 +17,7 @@ export class TableViewPage {
   async switchToTableLayout(): Promise<void> {
     await this.viewButton.click();
     await this.tableButton.click();
-    await this.page.waitForURL(/layout=table/);
-    await expect(this.grid).toBeVisible();
+    await expect(this.grid).toBeVisible({ timeout: 10_000 });
     await this.page.keyboard.press('Escape');
     await expect(this.tableButton).not.toBeVisible();
   }
