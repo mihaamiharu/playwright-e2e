@@ -36,8 +36,8 @@ Then(
 
 When(
   'I create a full issue with the same title via the API',
-  async ({ githubAPI, projectsAPI, sandbox, dataManager, scenarioContext }) => {
-    const issueTitle = uniqueTestTitle('draft-convert', 'Converted issue');
+  async ({ githubAPI, projectsAPI, sandbox, dataManager, scenarioContext, scenarioId }) => {
+    const issueTitle = `${uniqueTestTitle('draft-convert', 'Converted issue')} [${scenarioId}]`;
 
     const issue = await githubAPI.createIssue(
       env.github.testRepo,

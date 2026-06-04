@@ -15,22 +15,8 @@ export class BoardView {
   }
 
   async expectCardVisible(title: string): Promise<void> {
-    // Fast path — card may already be rendered after navigation
     const card = this.page.getByRole('button', { name: new RegExp(title) });
-    try {
-      await expect(card.first()).toBeVisible({ timeout: 3_000 });
-      return;
-    } catch {
-      // card may not have propagated from GraphQL yet — wait and retry
-    }
-
-    // Slow path — wait for GraphQL data to load.  Each retry waits up to 5s
-    // for the element.  Avoids page.reload which resets the render cycle and
-    // re-enters the same race condition.
-    await expect(async () => {
-      const retried = this.page.getByRole('button', { name: new RegExp(title) });
-      await expect(retried.first()).toBeVisible({ timeout: 5_000 });
-    }).toPass({ timeout: 15_000 });
+    await expect(card.first()).toBeVisible({ timeout: 15_000 });
   }
 
   async expectCardNotVisible(title: string): Promise<void> {

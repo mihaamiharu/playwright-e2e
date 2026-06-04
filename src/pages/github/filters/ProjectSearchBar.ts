@@ -58,6 +58,15 @@ export class ProjectSearchBar {
 
   async save(): Promise<void> {
     await this.saveButton.click();
+    // If a "Save filters for Backlog?" confirm dialog appears, accept it
+    try {
+      await expect(
+        this.page.getByRole('button', { name: 'Save', exact: true }).first(),
+      ).toBeVisible({ timeout: 2_000 });
+      await this.page.keyboard.press('Enter');
+    } catch {
+      // No dialog appeared — continue
+    }
   }
 
   async close(hiddenOptionLocator: Locator): Promise<void> {
