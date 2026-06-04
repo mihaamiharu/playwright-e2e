@@ -11,7 +11,7 @@ Feature: Draft Items
   @P2 @drafts
   Scenario: DRFT-01 — Create draft item on board and verify it appears without issue number
     When I create a draft issue with title "Draft test item" via the API
-    And I navigate to the kanban view
+    And I navigate to the kanban board
     Then the draft issue should be visible on the board without an issue number
 
   @P2 @drafts

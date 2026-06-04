@@ -42,8 +42,10 @@ export class ProjectBoardPage {
   }
 
   // data-board-column is a stable framework attribute, not a hashed CSS class.
+  // Priority-grouped views may render hidden duplicates — .first() avoids
+  // strict-mode violations when interacting with the column.
   getColumn(columnName: string): Locator {
-    return this.page.locator(`[data-board-column="${columnName}"]`);
+    return this.page.locator(`[data-board-column="${columnName}"]`).first();
   }
 
   async dragCardToColumn(cardTitle: string, toColumn: string): Promise<void> {

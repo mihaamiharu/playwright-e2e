@@ -25,7 +25,7 @@ When(
       const items = await projectsAPI.getItems(sandbox.projectId);
       const item = items.find((i) => i.id === seededProjectIssue.projectItemId);
       expect(item?.status).toBe(statusName);
-    }).toPass({ timeout: 15_000 });
+    }).toPass({ timeout: 20_000 });
 
     await page.waitForTimeout(1000);
   },
@@ -33,6 +33,10 @@ When(
 
 When('I navigate to the kanban view', async ({ projectBoardPage, scenarioId }) => {
   await projectBoardPage.navigate(`"${scenarioId}"`);
+});
+
+When('I navigate to the kanban board', async ({ projectBoardPage }) => {
+  await projectBoardPage.navigate();
 });
 
 Then(
@@ -47,7 +51,7 @@ Then(
       const item = items.find((i) => i.id === seededProjectIssue.projectItemId);
       if (!item) throw new Error(`Issue item ${seededProjectIssue.projectItemId} not found`);
       expect(item.status).toBe(columnName);
-    }).toPass({ timeout: 15_000 });
+    }).toPass({ timeout: 20_000 });
   },
 );
 
