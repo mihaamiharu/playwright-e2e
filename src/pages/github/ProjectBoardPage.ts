@@ -14,15 +14,29 @@ export class ProjectBoardPage {
     repoOwner: string,
     projectNumber: string,
   ) {
-    this.viewPath = `/users/${repoOwner}/projects/${projectNumber}/views/2`;
+    this.viewPath = `/users/${repoOwner}/projects/${projectNumber}/views/1`;
     this.firstHeading = page.getByRole('heading', { level: 2 }).first();
+  }
+
+  /**
+   * If the view is in table layout, switch it to board/kanban layout.
+   * Handles GitHub's view layout persistence — view defaults can change
+   * or previous tests may have left the layout in table mode.
+   */
+  private async ensureBoardLayout(): Promise<void> {
+    const isBoard = await this.firstHeading.isVisible({ timeout: 1_000 }).catch(() => false);
+    if (isBoard) return;
+
+    await this.page.getByRole('button', { name: /View$/ }).click();
+    await this.page.getByRole('button', { name: /Board/ }).click();
+    await this.page.waitForURL(/layout=board/);
+    await expect(this.firstHeading).toBeVisible({ timeout: 20_000 });
   }
 
   async navigate(filterQuery?: string): Promise<void> {
     await this.page.goto(this.viewPath, { waitUntil: 'domcontentloaded' });
     await waitForGitHubNavigation(this.page);
-    // Board column headings are loaded via GraphQL — give them time to render
-    await expect(this.firstHeading).toBeVisible({ timeout: 20_000 });
+    await this.ensureBoardLayout();
 
     if (filterQuery) {
       const searchBar = new ProjectSearchBar(this.page);
@@ -51,7 +65,7 @@ export class ProjectBoardPage {
   async dragCardToColumn(cardTitle: string, toColumn: string): Promise<void> {
     await this.page.reload();
     await waitForGitHubNavigation(this.page);
-    await expect(this.firstHeading).toBeVisible({ timeout: 20_000 });
+    await this.ensureBoardLayout();
 
     const targetHeading = this.page.getByRole('heading', { name: toColumn, level: 2 });
     await expect(targetHeading).toBeVisible({ timeout: 20_000 });

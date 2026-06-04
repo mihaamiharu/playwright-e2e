@@ -9,7 +9,7 @@ export class TableViewPage {
   readonly grid: Locator;
 
   constructor(public readonly page: Page) {
-    this.viewButton = page.getByRole('button', { name: 'View', exact: true });
+    this.viewButton = page.getByRole('button', { name: /View$/ });
     this.tableButton = page.getByRole('button', { name: 'Table' });
     this.grid = page.getByRole('grid');
   }
