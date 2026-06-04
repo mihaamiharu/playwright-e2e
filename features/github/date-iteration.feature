@@ -12,8 +12,7 @@ Feature: Date & Iteration Fields
   Scenario: TDATE-01 — Set date field and verify it renders in table view
     When I set the "Target date" field to "2026-12-31" on the seeded issue via the API
     And the "Target date" field value should be "2026-12-31" on the seeded issue via the API
-    And I navigate to the kanban view
-    And I switch to the table layout view
+    And I navigate to the table view
     Then the seeded issue should appear as a row in the table
 
   @P2 @iteration

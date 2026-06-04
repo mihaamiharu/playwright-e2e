@@ -59,8 +59,6 @@ When(
 
     await projectFilterBar.open();
     await projectFilterBar.selectType('Label');
-    await page.waitForURL(/filterQuery=label/);
-
     await projectFilterBar.selectOption(label, 'Label');
     await projectFilterBar.save();
     await page.waitForURL(/filterQuery=label/);
