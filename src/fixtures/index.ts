@@ -1,4 +1,4 @@
-import { mergeTests, test as pwTest } from '@playwright/test';
+import { mergeTests, test as pwTest, expect } from '@playwright/test';
 import type { GitHubIssue } from '../utils/api/github-rest';
 import { test as githubTest } from './github.fixture';
 import { test as dataTest } from './project-data.fixture';
@@ -73,6 +73,18 @@ export const test = mergeTests(githubTest, dataTest, apiTest, pagesTest).extend<
       console.log(
         `${logPrefix(testInfo)} [seeder] Added issue #${issue.number} to project ${sandbox.projectId}`,
       );
+
+      // Wait for GraphQL eventual consistency — newly added items may not
+      // appear in getItems queries for several seconds.  Waiting during
+      // fixture setup avoids timeouts in test steps that poll for status
+      // or assert card visibility on the board.
+      await pwTest.step('Fixture: wait for GraphQL consistency', async () => {
+        await expect(async () => {
+          const items = await projectsAPI.getItems(sandbox.projectId);
+          const item = items.find((i) => i.id === projectItemId);
+          expect(item).toBeDefined();
+        }).toPass({ timeout: 10_000 });
+      });
 
       dataManager.enqueue(`remove issue #${issue.number} from project`, () =>
         projectsAPI.removeItemFromProject(sandbox.projectId, projectItemId),
