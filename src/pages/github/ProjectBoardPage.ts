@@ -47,7 +47,9 @@ export class ProjectBoardPage {
     }
   }
 
-  private regexEscape(s: string) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+  private regexEscape(s: string) {
+    return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
 
   getDraggableCard(title: string): Locator {
     return this.page

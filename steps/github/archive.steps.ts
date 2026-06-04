@@ -27,7 +27,9 @@ function cardButton(page: import('@playwright/test').Page, title: string) {
 Then(
   'the seeded issue should not be visible in any column',
   async ({ page, seededProjectIssue }) => {
-    await expect(cardButton(page, seededProjectIssue.title).first()).not.toBeVisible({ timeout: 15000 });
+    await expect(cardButton(page, seededProjectIssue.title).first()).not.toBeVisible({
+      timeout: 15000,
+    });
   },
 );
 

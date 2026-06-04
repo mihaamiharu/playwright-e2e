@@ -42,7 +42,7 @@ Then(
         headers: { Authorization: `Bearer ${ghToken}`, 'Content-Type': 'application/json' },
         data: { query, variables: { projectId: 'PVT_kwHOAuZFts4BXfFn' } },
       });
-      const json = await res.json() as { data: { node: { items: { nodes: DraftNode[] } } } };
+      const json = (await res.json()) as { data: { node: { items: { nodes: DraftNode[] } } } };
       const nodes: DraftNode[] = json?.data?.node?.items?.nodes ?? [];
       expect(nodes.length).toBeGreaterThan(0);
       const draft = nodes.find((n) => n.content?.title === draftTitle);
