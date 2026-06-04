@@ -32,10 +32,12 @@ export class ProjectBoardPage {
     }
   }
 
+  private regexEscape(s: string) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
   getDraggableCard(title: string): Locator {
     return this.page
       .locator('[aria-roledescription="draggable"]')
-      .filter({ hasText: new RegExp(title) });
+      .filter({ hasText: new RegExp(this.regexEscape(title)) });
   }
 
   // data-board-column is a stable framework attribute, not a hashed CSS class.

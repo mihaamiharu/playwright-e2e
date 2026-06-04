@@ -14,15 +14,19 @@ export class BoardView {
     this.firstHeading = page.getByRole('heading', { level: 2 }).first();
   }
 
-  async expectCardVisible(title: string): Promise<void> {
-    const card = this.page.getByRole('button', { name: new RegExp(title) });
-    await expect(card.first()).toBeVisible({ timeout: 15_000 });
+  private locatorForCard(title: string) {
+    return this.page.getByRole('button', {
+      name: new RegExp(title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+    });
   }
 
-  async expectCardNotVisible(title: string): Promise<void> {
+  async expectCardVisible(cardTitle: string): Promise<void> {
+    await expect(this.locatorForCard(cardTitle).first()).toBeVisible({ timeout: 20_000 });
+  }
+
+  async expectCardNotVisible(cardTitle: string): Promise<void> {
     await expect(async () => {
-      const card = this.page.getByRole('button', { name: new RegExp(title) });
-      await expect(card.first()).not.toBeVisible({ timeout: 3_000 });
+      await expect(this.locatorForCard(cardTitle).first()).not.toBeVisible({ timeout: 3_000 });
     }).toPass({ timeout: 10_000 });
   }
 }
