@@ -50,6 +50,10 @@ jobs:
           TEST_MODE: full
         run: npm run bddgen && npx playwright test --config=playwright.bdd.config.ts --grep @visual
 
+      - name: Sanitize traces (strip PAT from artifacts)
+        if: always()
+        run: npx tsx scripts/strip-trace-secrets.ts reports/allure/results reports/artifacts
+
       - name: Generate Allure Report
         if: always()
         run: npx allure generate -o reports/allure/report reports/allure/results || true

@@ -135,7 +135,7 @@ jobs:
 
       - name: Sanitize traces (strip PAT from artifacts)
         if: always()
-        run: npx tsx scripts/strip-trace-secrets.ts reports/allure/results
+        run: npx tsx scripts/strip-trace-secrets.ts reports/allure/results reports/artifacts
 
       - name: Encrypt auth state for reruns
         if: always()

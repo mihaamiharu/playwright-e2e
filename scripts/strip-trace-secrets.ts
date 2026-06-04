@@ -12,7 +12,7 @@ import { join, extname, basename, resolve } from 'node:path';
 import { execSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 
-const RESULTS_DIR = process.argv[2] || 'reports/allure/results';
+const DIRS = process.argv.slice(2).length > 0 ? process.argv.slice(2) : ['reports/allure/results'];
 
 const SECRET_PATTERNS = [
   /ghp_[0-9a-zA-Z]{36}/g,
@@ -108,28 +108,43 @@ function sanitizeZip(zipPath: string): boolean {
   }
 }
 
-if (!existsSync(RESULTS_DIR)) {
-  console.log(`[sanitize] Directory not found: ${RESULTS_DIR}`);
-  process.exit(0);
-}
+function scanDir(dir: string): { zips: number; files: number } {
+  if (!existsSync(dir)) {
+    console.log(`[sanitize] Directory not found: ${dir}`);
+    return { zips: 0, files: 0 };
+  }
 
-console.log(`[sanitize] Scanning ${RESULTS_DIR}...`);
-const files = walk(RESULTS_DIR);
-let zips = 0;
-let filesScanned = 0;
+  console.log(`[sanitize] Scanning ${dir}...`);
+  const files = walk(dir);
+  let zips = 0;
+  let filesScanned = 0;
 
-for (const f of files) {
-  if (extname(f) === '.zip') {
-    if (sanitizeZip(f)) {
-      console.log(`  [sanitize] Stripped secrets from ${basename(f)}`);
-      zips++;
-    }
-  } else if (TEXT_EXTS.has(extname(f))) {
-    if (sanitizeFile(f)) {
-      console.log(`  [sanitize] Redacted secrets in ${basename(f)}`);
-      filesScanned++;
+  for (const f of files) {
+    if (extname(f) === '.zip') {
+      if (sanitizeZip(f)) {
+        console.log(`  [sanitize] Stripped secrets from ${basename(f)}`);
+        zips++;
+      }
+    } else if (TEXT_EXTS.has(extname(f))) {
+      if (sanitizeFile(f)) {
+        console.log(`  [sanitize] Redacted secrets in ${basename(f)}`);
+        filesScanned++;
+      }
     }
   }
+
+  return { zips, files: filesScanned };
 }
 
-console.log(`[sanitize] Done — ${zips} zip(s) sanitized, ${filesScanned} file(s) redacted`);
+let totalZips = 0;
+let totalFiles = 0;
+
+for (const dir of DIRS) {
+  const { zips, files } = scanDir(dir);
+  totalZips += zips;
+  totalFiles += files;
+}
+
+console.log(
+  `[sanitize] Done — ${totalZips} zip(s) sanitized, ${totalFiles} file(s) redacted across ${DIRS.length} director${DIRS.length === 1 ? 'y' : 'ies'}`,
+);
