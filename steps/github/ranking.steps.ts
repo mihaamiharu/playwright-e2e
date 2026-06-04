@@ -7,8 +7,8 @@ const { Given, Then } = createBdd(test);
 
 Given(
   'a second seeded project issue exists on the kanban board with title prefix {string}',
-  async ({ githubAPI, projectsAPI, sandbox, dataManager, scenarioContext }, prefix: string) => {
-    const title = uniqueTestTitle(prefix);
+  async ({ githubAPI, projectsAPI, sandbox, dataManager, scenarioContext, scenarioId }, prefix: string) => {
+    const title = `${uniqueTestTitle(prefix)} [${scenarioId}]`;
     scenarioContext.set('secondRankIssueTitle', title);
 
     const issue = await githubAPI.createIssue(

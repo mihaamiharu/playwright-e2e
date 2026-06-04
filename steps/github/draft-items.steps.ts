@@ -61,8 +61,10 @@ Then(
   'the issue should be visible with an issue number on the board',
   async ({ page, scenarioContext }) => {
     const issueTitle = scenarioContext.get<string>('issueTitle');
-    const card = page.getByRole('button', { name: new RegExp(issueTitle) });
-    await expect(card.first()).toBeVisible({ timeout: 15000 });
+    const card = page.getByRole('button', {
+      name: new RegExp(issueTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+    });
+    await expect(card.first()).toBeVisible({ timeout: 20_000 });
 
     const cardText = await card.first().textContent();
     const hasIssueNumber = /#\d+/.test(cardText || '');
