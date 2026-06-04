@@ -31,18 +31,24 @@ Then(
     // Verify via GraphQL API using Playwright's page-level request context.
     const query = `query($projectId:ID!){node(id:$projectId){...on ProjectV2{items(first:50){nodes{id type content{...on DraftIssue{title}...on Issue{number title}}}}}}}`;
 
+    interface DraftNode {
+      id: string;
+      type: string;
+      content: { title: string; number?: number };
+    }
+
     await expect(async () => {
       const res = await page.request.post('https://api.github.com/graphql', {
         headers: { Authorization: `Bearer ${ghToken}`, 'Content-Type': 'application/json' },
         data: { query, variables: { projectId: 'PVT_kwHOAuZFts4BXfFn' } },
       });
-      const json: any = await res.json();
-      const nodes: Array<any> = json?.data?.node?.items?.nodes ?? [];
+      const json = await res.json() as { data: { node: { items: { nodes: DraftNode[] } } } };
+      const nodes: DraftNode[] = json?.data?.node?.items?.nodes ?? [];
       expect(nodes.length).toBeGreaterThan(0);
-      const draft = nodes.find((n: any) => n.content?.title === draftTitle);
+      const draft = nodes.find((n) => n.content?.title === draftTitle);
       expect(draft).toBeDefined();
-      expect(draft.type).toBe('DRAFT_ISSUE');
-      expect(draft.content?.number).toBeUndefined();
+      expect(draft!.type).toBe('DRAFT_ISSUE');
+      expect(draft!.content?.number).toBeUndefined();
     }).toPass({ timeout: 20_000 });
   },
 );
