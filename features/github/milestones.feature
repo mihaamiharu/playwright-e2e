@@ -8,12 +8,14 @@ Feature: Milestones
   Background:
     Given a seeded project issue exists on the kanban board
 
+  @P1 @milestones
   Scenario: MIL-01 — Create milestone with due date and verify in issue sidebar
     When I create a milestone with a due date via the API
     And I link the seeded issue to the milestone via the API
     And I navigate to the issue page
     Then I should see the milestone name in the issue sidebar
 
+  @P1 @milestones
   Scenario: MIL-02 — Link issues to milestone and verify progress bar
     When I create a milestone with a due date via the API
     And I link the seeded issue to the milestone via the API
@@ -22,7 +24,7 @@ Feature: Milestones
     And I navigate to the milestone page
     Then I should see the milestone progress bar showing partial completion
 
-  @P2
+  @P2 @milestones
   Scenario: MIL-03 — Close milestone and verify "Completed" status and 100% progress
     When I create a milestone with a due date via the API
     And I link the seeded issue to the milestone via the API

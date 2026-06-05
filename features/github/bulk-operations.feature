@@ -8,6 +8,7 @@ Feature: Bulk Operations
   Background:
     Given a seeded project issue exists on the kanban board
 
+  @P1 @bulk
   Scenario: BULK-01 — Seed multiple issues → bulk update status via API → verify all changed
     Given a second seeded project issue exists on the kanban board
     When I bulk move both seeded issues to "In progress" via the API

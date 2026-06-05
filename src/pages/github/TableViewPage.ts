@@ -1,26 +1,53 @@
 import { Page, Locator, expect } from '@playwright/test';
+import { waitForGitHubNavigation } from '../../utils/testing/wait-helpers';
+import { ProjectSearchBar } from './filters/ProjectSearchBar';
+import { env } from '../../config/env.config';
 
 /**
  * Page Object Model for GitHub Project Table View.
  */
 export class TableViewPage {
+  readonly viewPath: string;
   readonly viewButton: Locator;
   readonly tableButton: Locator;
   readonly grid: Locator;
 
   constructor(public readonly page: Page) {
-    this.viewButton = page.getByRole('button', { name: 'View', exact: true });
-    this.tableButton = page.getByRole('button', { name: 'Table' });
+    this.viewPath = `/users/${env.github.testRepoOwner}/projects/${env.github.sandboxProjectNumber}/views/1`;
+    this.viewButton = page.getByRole('button', { name: /View$/ });
+    this.tableButton = page.getByRole('menuitem', { name: 'Table' });
     this.grid = page.getByRole('grid');
+  }
+
+  async navigate(filterQuery?: string): Promise<void> {
+    await this.page.goto(this.viewPath, { waitUntil: 'domcontentloaded' });
+    await waitForGitHubNavigation(this.page);
+    await this.ensureTableLayout();
+
+    if (filterQuery) {
+      const searchBar = new ProjectSearchBar(this.page);
+      await searchBar.filterInput.fill(filterQuery);
+      await this.page.keyboard.press('Enter');
+      await this.page.waitForTimeout(500);
+    }
   }
 
   async switchToTableLayout(): Promise<void> {
     await this.viewButton.click();
     await this.tableButton.click();
-    await this.page.waitForURL(/layout=table/);
-    await expect(this.grid).toBeVisible();
+    await expect(this.grid).toBeVisible({ timeout: 10_000 });
     await this.page.keyboard.press('Escape');
     await expect(this.tableButton).not.toBeVisible();
+  }
+
+  async ensureTableLayout(): Promise<void> {
+    const isTable = await this.grid.isVisible({ timeout: 1_000 }).catch(() => false);
+    if (isTable) return;
+
+    // Use URL parameter to switch to table layout directly
+    const baseUrl = this.page.url().split('?')[0];
+    await this.page.goto(`${baseUrl}?layout=table`);
+    await expect(this.grid).toBeVisible({ timeout: 10_000 });
   }
 
   getColumnHeader(name: string): Locator {

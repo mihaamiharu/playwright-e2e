@@ -25,6 +25,13 @@ export class ProjectSearchBar {
   }
 
   async selectType(typeName: string): Promise<void> {
+    // Clear the filter first — GitHub's filter dropdown only shows type
+    // options when the combobox is empty; if a search value is already set
+    // (e.g. from BoardPage.navigate with a filterQuery), clicking just
+    // focuses the input without opening the type picker.
+    await this.filterInput.clear();
+    await this.filterInput.click();
+
     const option = this.page.getByRole('option', {
       name: new RegExp(`^${typeName}(, Filter)?`, 'i'),
     });
@@ -43,11 +50,23 @@ export class ProjectSearchBar {
   }
 
   async typeSearch(text: string): Promise<void> {
+    // Clear any existing filter value first — same reasoning as selectType:
+    // an existing value causes text to concatenate instead of replacing.
+    await this.filterInput.clear();
     await this.page.keyboard.type(text);
   }
 
   async save(): Promise<void> {
     await this.saveButton.click();
+    // If a "Save filters for Backlog?" confirm dialog appears, accept it
+    try {
+      await expect(
+        this.page.getByRole('button', { name: 'Save', exact: true }).first(),
+      ).toBeVisible({ timeout: 2_000 });
+      await this.page.keyboard.press('Enter');
+    } catch {
+      // No dialog appeared — continue
+    }
   }
 
   async close(hiddenOptionLocator: Locator): Promise<void> {

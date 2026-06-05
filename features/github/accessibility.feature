@@ -8,14 +8,17 @@ Feature: Accessibility Checks (WCAG)
   Background:
     Given a seeded project issue exists on the kanban board
 
+  @P2 @a11y
   Scenario: A11Y-01 — Board kanban view has no critical WCAG violations
     When I navigate to the kanban view
     Then the page has no critical WCAG violations except "nested-interactive"
 
+  @P2 @a11y
   Scenario: A11Y-02 — Issue detail page has no critical WCAG violations
     When I navigate to the issue page
     Then the page has no critical WCAG violations
 
+  @P2 @a11y
   Scenario: A11Y-03 — Table layout view has no critical WCAG violations
     When I navigate to the kanban view
     And I switch to the table layout view

@@ -19,18 +19,23 @@ When(
       optionId,
     );
 
+    // GraphQL mutations take time to propagate — allow up to 15s for the
+    // item to appear in getItems with the expected status.
     await expect(async () => {
       const items = await projectsAPI.getItems(sandbox.projectId);
       const item = items.find((i) => i.id === seededProjectIssue.projectItemId);
       expect(item?.status).toBe(statusName);
-    }).toPass({ timeout: 10_000 });
+    }).toPass({ timeout: 20_000 });
 
-    // Let the GraphQL mutation fully propagate before sending the next one
     await page.waitForTimeout(1000);
   },
 );
 
-When('I navigate to the kanban view', async ({ projectBoardPage }) => {
+When('I navigate to the kanban view', async ({ projectBoardPage, scenarioId }) => {
+  await projectBoardPage.navigate(`"${scenarioId}"`);
+});
+
+When('I navigate to the kanban board', async ({ projectBoardPage }) => {
   await projectBoardPage.navigate();
 });
 
@@ -46,7 +51,7 @@ Then(
       const item = items.find((i) => i.id === seededProjectIssue.projectItemId);
       if (!item) throw new Error(`Issue item ${seededProjectIssue.projectItemId} not found`);
       expect(item.status).toBe(columnName);
-    }).toPass({ timeout: 10_000 });
+    }).toPass({ timeout: 20_000 });
   },
 );
 

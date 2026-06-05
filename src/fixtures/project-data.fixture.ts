@@ -9,10 +9,14 @@ export type ProjectDataFixtures = {
 };
 
 export const test = base.extend<ProjectDataFixtures>({
-  dataManager: async ({ page: _page }, use) => {
+  dataManager: async ({ page: _page }, use, testInfo) => {
     const dm = new DataManager();
     await use(dm);
-    await pwTest.step('DataManager: LIFO cleanup', () => dm.cleanupAll());
+    const result = await pwTest.step('DataManager: LIFO cleanup', () => dm.cleanupAll());
+    await testInfo.attach('cleanup-log', {
+      body: result.logs,
+      contentType: 'text/plain',
+    });
   },
 
   // eslint-disable-next-line no-empty-pattern

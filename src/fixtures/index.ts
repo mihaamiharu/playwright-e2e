@@ -17,9 +17,15 @@ export const test = mergeTests(githubTest, dataTest, apiTest, pagesTest).extend<
     statusFieldId: string;
     statusOptions: Map<string, string>;
   };
+  scenarioId: string;
   seededProjectIssue: GitHubIssue & { projectItemId: string };
   _allureLabels: void;
 }>({
+  // eslint-disable-next-line no-empty-pattern
+  scenarioId: async ({}, use) => {
+    await use(crypto.randomUUID().split('-')[0]); // 8-char unique ID per scenario
+  },
+
   page: async ({ page }, use) => {
     await ensureAuthCookies(page.context());
     await use(page);
@@ -41,11 +47,16 @@ export const test = mergeTests(githubTest, dataTest, apiTest, pagesTest).extend<
     await use({ projectId, statusFieldId, statusOptions });
   },
 
-  seededProjectIssue: async ({ githubAPI, projectsAPI, sandbox, dataManager }, use, testInfo) => {
+  seededProjectIssue: async (
+    { githubAPI, projectsAPI, sandbox, dataManager, scenarioId },
+    use,
+    testInfo,
+  ) => {
     requireSandbox();
 
     const result = await pwTest.step('Fixture: seed project issue', async () => {
       const params = buildIssueParams();
+      params.title = `${params.title} [${scenarioId}]`; // Append scenarioId for filtering
       const issue = await githubAPI.createIssue(env.github.testRepo, {
         ...params,
         body: `🤖 Seeded by Playwright E2E test. Auto-cleaned. Run: ${params.title}`,
@@ -62,6 +73,13 @@ export const test = mergeTests(githubTest, dataTest, apiTest, pagesTest).extend<
       console.log(
         `${logPrefix(testInfo)} [seeder] Added issue #${issue.number} to project ${sandbox.projectId}`,
       );
+
+      const backlogOptionId = sandbox.statusOptions.get('Backlog');
+      if (backlogOptionId) {
+        await projectsAPI.setFieldValue(sandbox.projectId, projectItemId, sandbox.statusFieldId, {
+          singleSelectOptionId: backlogOptionId,
+        });
+      }
 
       dataManager.enqueue(`remove issue #${issue.number} from project`, () =>
         projectsAPI.removeItemFromProject(sandbox.projectId, projectItemId),

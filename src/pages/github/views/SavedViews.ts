@@ -14,11 +14,17 @@ export class SavedViews {
     this.tabList = page.getByRole('tablist');
   }
 
+  private async waitForViewReady(): Promise<void> {
+    await expect(this.tabList.getByRole('tab', { selected: true }).first()).toBeVisible({
+      timeout: 10_000,
+    });
+  }
+
   async createBoardView(viewName: string): Promise<void> {
     await this.page.getByRole('tab', { name: 'New view' }).click();
     await this.page.getByRole('menuitem', { name: 'Board' }).click();
     await this.page.waitForURL(/\/views\/\d+/);
-    await expect(this.page.getByRole('heading', { level: 2 }).first()).toBeVisible();
+    await this.waitForViewReady();
     await this.renameView(viewName);
   }
 
@@ -40,18 +46,18 @@ export class SavedViews {
   async switchToView(viewName: string): Promise<void> {
     await this.page.getByRole('tab', { name: viewName }).click();
     await this.page.waitForURL(/\/views\/\d+/);
-    await expect(this.page.getByRole('heading', { level: 2 }).first()).toBeVisible();
+    await this.waitForViewReady();
   }
 
   async refreshView(): Promise<void> {
     await this.page.reload();
-    await expect(this.page.getByRole('heading', { level: 2 }).first()).toBeVisible();
+    await this.waitForViewReady();
   }
 
   async deleteView(viewName: string): Promise<void> {
     await this.page.getByRole('tab', { name: viewName }).click();
     await this.page.waitForURL(/\/views\/\d+/);
-    await expect(this.page.getByRole('heading', { level: 2 }).first()).toBeVisible();
+    await this.waitForViewReady();
 
     await this.page.getByRole('button', { name: /View options for/ }).click();
     await this.page.getByRole('menuitem', { name: 'Delete view' }).click();

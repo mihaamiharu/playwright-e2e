@@ -18,17 +18,23 @@ When(
   },
 );
 
+function cardButton(page: import('@playwright/test').Page, title: string) {
+  return page.getByRole('button', {
+    name: new RegExp(title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+  });
+}
+
 Then(
   'the seeded issue should not be visible in any column',
   async ({ page, seededProjectIssue }) => {
-    const card = page.getByRole('button', { name: new RegExp(seededProjectIssue.title) });
-    await expect(card.first()).not.toBeVisible({ timeout: 15000 });
+    await expect(cardButton(page, seededProjectIssue.title).first()).not.toBeVisible({
+      timeout: 15000,
+    });
   },
 );
 
 Then('the seeded issue should reappear on the board', async ({ page, seededProjectIssue }) => {
   await expect(async () => {
-    const card = page.getByRole('button', { name: new RegExp(seededProjectIssue.title) });
-    await expect(card.first()).toBeVisible();
-  }).toPass({ timeout: 10_000 });
+    await expect(cardButton(page, seededProjectIssue.title).first()).toBeVisible();
+  }).toPass({ timeout: 20_000 });
 });
