@@ -103,6 +103,8 @@ function sanitizeZip(zipPath: string): boolean {
       execSync(`cd "${tmp}" && zip -r "${abs}" .`, { stdio: 'ignore' });
     }
     return modified;
+  } catch {
+    return false;
   } finally {
     rmSync(tmp, { recursive: true, force: true });
   }
