@@ -29,9 +29,10 @@ export class ProjectBoardPage {
       .catch(() => false);
     if (isBoard) return;
 
-    // Use URL parameter to switch to board layout directly
-    const baseUrl = this.page.url().split('?')[0];
-    await this.page.goto(`${baseUrl}?layout=board`);
+    // Click View → Board buttons (more reliable than URL parameter)
+    await this.page.getByRole('button', { name: /View$/ }).click();
+    await this.page.getByRole('button', { name: /Board/ }).click();
+    await this.page.waitForURL(/layout=board/);
     await expect(this.page.locator('[data-board-column]').first()).toBeVisible({ timeout: 20_000 });
   }
 

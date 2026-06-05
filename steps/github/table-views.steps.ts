@@ -162,7 +162,6 @@ When(
   async ({ page, projectFilterBar, tableViewPage }, labelName) => {
     await projectFilterBar.open();
     await projectFilterBar.selectType('Label');
-    await page.waitForURL(/filterQuery=label/);
 
     await projectFilterBar.selectOption(labelName, 'Label');
     await projectFilterBar.save();
