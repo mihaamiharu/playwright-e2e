@@ -182,6 +182,45 @@ jobs:
         if: always()
         run: cp allure-categories.json reports/allure/results/categories.json 2>/dev/null || true
 
+      - name: Write Step Summary
+        if: always()
+        run: |
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          ALLURE_URL="https://mihaamiharu.github.io/playwright-e2e/"
+
+          if [ -d "reports/allure/results" ] && [ "$(ls -A reports/allure/results/*-result.json 2>/dev/null)" ]; then
+            STATS=$(find reports/allure/results -name '*-result.json' -exec cat {} + 2>/dev/null | jq -s 'group_by(.status) | map({key: .[0].status, value: length}) | from_entries')
+            PASSED=$(echo "$STATS" | jq -r '.passed // 0')
+            FAILED=$(echo "$STATS" | jq -r '.failed // 0')
+            BROKEN=$(echo "$STATS" | jq -r '.broken // 0')
+            SKIPPED=$(echo "$STATS" | jq -r '.skipped // 0')
+            TOTAL=$((PASSED + FAILED + BROKEN + SKIPPED))
+          else
+            PASSED=0; FAILED=0; BROKEN=0; SKIPPED=0; TOTAL=0
+          fi
+
+          {
+            echo "## 🧪 E2E Test Results"
+            echo ""
+            echo "| Status | Count |"
+            echo "|--------|------:|"
+            echo "| ✅ Passed  | $PASSED |"
+            echo "| ❌ Failed  | $FAILED |"
+            echo "| 💥 Broken  | $BROKEN |"
+            echo "| ⬜ Skipped | $SKIPPED |"
+            if [ "$TOTAL" -gt 0 ]; then
+              echo "| **Total** | **$TOTAL** |"
+            fi
+            echo ""
+            echo "### Reports"
+            echo "- 📊 [Allure Report (history + trends)]($ALLURE_URL)"
+            echo "- 🎭 [Playwright HTML Report]($RUN_URL#artifacts)"
+            if [ "$FAILED" -gt 0 ] || [ "$BROKEN" -gt 0 ]; then
+              echo ""
+              echo "> 💡 Traces and screenshots are attached to each failed test in the Allure report."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Debug Allure History
         if: always()
         run: |
