@@ -44,28 +44,22 @@ Then('I should see {string} in the issue body', async ({ issuePage }, expectedTe
   await issuePage.expectBodyText(expectedText);
 });
 
-When(
-  'I close issue {string} via API',
-  async ({ githubAPI, scenarioContext }, key: string) => {
-    const { number } = scenarioContext.get<SeededIssue>(key);
-    await githubAPI.updateIssue(env.github.testRepo, number, {
-      state: 'closed',
-    });
-  },
-);
+When('I close issue {string} via API', async ({ githubAPI, scenarioContext }, key: string) => {
+  const { number } = scenarioContext.get<SeededIssue>(key);
+  await githubAPI.updateIssue(env.github.testRepo, number, {
+    state: 'closed',
+  });
+});
 
-When(
-  'I reopen issue {string} via API',
-  async ({ githubAPI, scenarioContext }, key: string) => {
-    const { number } = scenarioContext.get<SeededIssue>(key);
-    const issue = await githubAPI.updateIssue(env.github.testRepo, number, {
-      state: 'open',
-    });
-    if (issue.state !== 'open') {
-      throw new Error(`Expected issue #${number} to be open after reopen, got: ${issue.state}`);
-    }
-  },
-);
+When('I reopen issue {string} via API', async ({ githubAPI, scenarioContext }, key: string) => {
+  const { number } = scenarioContext.get<SeededIssue>(key);
+  const issue = await githubAPI.updateIssue(env.github.testRepo, number, {
+    state: 'open',
+  });
+  if (issue.state !== 'open') {
+    throw new Error(`Expected issue #${number} to be open after reopen, got: ${issue.state}`);
+  }
+});
 
 Then(
   'I should see a {string} status badge on issue {string}',

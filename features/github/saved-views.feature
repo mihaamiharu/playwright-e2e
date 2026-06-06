@@ -5,9 +5,6 @@ Feature: Saved Views
   I want to create, switch, and persist saved views with filters
   So that I can quickly access different perspectives on project data
 
-  Background:
-    Given a seeded project issue exists on the kanban board
-
   @P2 @views
   Scenario: VIEW-01 — Create saved view with filter and verify persistence after reload
     When I navigate to the kanban view

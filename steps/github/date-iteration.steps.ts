@@ -7,7 +7,12 @@ const { When } = createBdd(test);
 
 When(
   'the {string} field should be {string} on issue {string} via API',
-  async ({ projectsAPI, scenarioContext }, fieldName: string, expectedValue: string, key: string) => {
+  async (
+    { projectsAPI, scenarioContext },
+    fieldName: string,
+    expectedValue: string,
+    key: string,
+  ) => {
     const issue = scenarioContext.get<SeededIssue>(key);
     const actualValue = await projectsAPI.getItemFieldValue(issue.projectItemId, fieldName);
     expect(actualValue).toBe(expectedValue);

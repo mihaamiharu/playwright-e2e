@@ -79,13 +79,20 @@ Given(
   ) => {
     const title = `${uniqueTestTitle(issueId)} [${scenarioId}]`;
 
-    const issue = await seedAdditionalIssue(githubAPI, projectsAPI, sandbox, dataManager, scenarioContext, {
-      title,
-      labels: [labelName],
-      body: `Filter test issue ${issueId}`,
-      status: statusName,
-      key: issueId,
-    });
+    const issue = await seedAdditionalIssue(
+      githubAPI,
+      projectsAPI,
+      sandbox,
+      dataManager,
+      scenarioContext,
+      {
+        title,
+        labels: [labelName],
+        body: `Filter test issue ${issueId}`,
+        status: statusName,
+        key: issueId,
+      },
+    );
 
     const optionId = sandbox.statusOptions.get(statusName);
     if (!optionId) {
@@ -111,13 +118,20 @@ Given(
   ) => {
     const title = `${uniqueTestTitle(issueId)} [${scenarioId}]`;
 
-    const issue = await seedAdditionalIssue(githubAPI, projectsAPI, sandbox, dataManager, scenarioContext, {
-      title,
-      labels: [],
-      body: `Filter test issue ${issueId}`,
-      status: statusName,
-      key: issueId,
-    });
+    const issue = await seedAdditionalIssue(
+      githubAPI,
+      projectsAPI,
+      sandbox,
+      dataManager,
+      scenarioContext,
+      {
+        title,
+        labels: [],
+        body: `Filter test issue ${issueId}`,
+        status: statusName,
+        key: issueId,
+      },
+    );
 
     const optionId = sandbox.statusOptions.get(statusName);
     if (!optionId) {

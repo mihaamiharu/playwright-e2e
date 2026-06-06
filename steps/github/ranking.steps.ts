@@ -25,7 +25,7 @@ Given(
 
 Then(
   'both issues {string} and {string} should appear in the {string} column',
-  async ({ boardView, scenarioContext }, key1, key2, columnName) => {
+  async ({ boardView, scenarioContext }, key1, key2, _columnName) => {
     const issue1 = scenarioContext.get<SeededIssue>(key1);
     const issue2 = scenarioContext.get<SeededIssue>(key2);
     await boardView.expectCardVisible(issue1.title);

@@ -29,12 +29,9 @@ Given(
   },
 );
 
-When(
-  'I update the comment to {string} via the API',
-  async ({ githubAPI }, newBody: string) => {
-    await githubAPI.updateComment(env.github.testRepo, commentId, newBody);
-  },
-);
+When('I update the comment to {string} via the API', async ({ githubAPI }, newBody: string) => {
+  await githubAPI.updateComment(env.github.testRepo, commentId, newBody);
+});
 
 Then('I should see {string} in the comments', async ({ issuePage }, text: string) => {
   await issuePage.expectCommentVisible(text);

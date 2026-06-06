@@ -11,7 +11,10 @@ When('I add the label {string} via the UI', async ({ labelsPanel }, label: strin
 });
 
 When('I add the following labels via the UI:', async ({ labelsPanel }, data: DataTable) => {
-  for (const label of data.raw().slice(1).map((row) => row[0])) {
+  for (const label of data
+    .raw()
+    .slice(1)
+    .map((row) => row[0])) {
     await labelsPanel.addLabel(label);
   }
 });
@@ -32,11 +35,17 @@ Then('I should see the {string} label on the issue', async ({ labelsPanel }, lab
   await labelsPanel.expectLabelVisible(label);
 });
 
-Then('the following labels should be visible on the issue:', async ({ labelsPanel }, data: DataTable) => {
-  for (const label of data.raw().slice(1).map((row) => row[0])) {
-    await labelsPanel.expectLabelVisible(label);
-  }
-});
+Then(
+  'the following labels should be visible on the issue:',
+  async ({ labelsPanel }, data: DataTable) => {
+    for (const label of data
+      .raw()
+      .slice(1)
+      .map((row) => row[0])) {
+      await labelsPanel.expectLabelVisible(label);
+    }
+  },
+);
 
 Then('I should not see the {string} label on the issue', async ({ labelsPanel }, label: string) => {
   await labelsPanel.expectLabelNotVisible(label);

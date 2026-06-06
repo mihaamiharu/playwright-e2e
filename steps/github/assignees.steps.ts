@@ -16,15 +16,12 @@ When(
   },
 );
 
-When(
-  'I unassign issue {string} via the API',
-  async ({ githubAPI, scenarioContext }, key) => {
-    const issue = scenarioContext.get<SeededIssue>(key);
-    await githubAPI.updateIssue(env.github.testRepo, issue.number, {
-      assignees: [],
-    });
-  },
-);
+When('I unassign issue {string} via the API', async ({ githubAPI, scenarioContext }, key) => {
+  const issue = scenarioContext.get<SeededIssue>(key);
+  await githubAPI.updateIssue(env.github.testRepo, issue.number, {
+    assignees: [],
+  });
+});
 
 Then('I should see myself as the assignee on the issue', async ({ assigneePanel }) => {
   await assigneePanel.expectAssignee(env.github.username);

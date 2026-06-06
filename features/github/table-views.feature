@@ -6,13 +6,13 @@ Feature: Table & Views
   So that I can sort, filter, and see all metadata at a glance
 
   Background:
-    Given a seeded project issue exists on the kanban board
+    Given issue "test" is seeded on the kanban board
 
   @P1 @table
   Scenario: TBL-01 — Switch to table view and verify columns render
     When I navigate to the table view
     Then I should see the table with columns "Title", "Status", and "Assignees"
-    And the seeded issue should appear as a row in the table
+    And issue "test" should appear as a row in the table
 
   @P1 @table
   Scenario: TBL-02 — Sort table by a column and verify order changes

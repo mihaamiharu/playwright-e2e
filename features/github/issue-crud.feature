@@ -7,29 +7,29 @@ Feature: Issue CRUD
 
   @P0 @smoke @issues
   Scenario: ISS-01 — Create issue via API and verify it appears on the board
-    Given a seeded project issue exists on the kanban board
-    When I navigate to the issue page
-    Then I should see the issue heading
-    And I should see the issue number in the header
+    Given issue "test" is seeded on the kanban board
+    When I navigate to the page of issue "test"
+    Then I should see the heading of issue "test"
+    And I should see the number of issue "test"
 
   @P1 @issues
   Scenario: ISS-02 — Update issue description and verify in detail view
-    Given a seeded project issue exists on the kanban board
-    When I update the issue description to "Updated by E2E test: new description"
-    And I navigate to the issue page
+    Given issue "test" is seeded on the kanban board
+    When I update issue "test" description to "Updated by E2E test: new description"
+    And I navigate to the page of issue "test"
     Then I should see "Updated by E2E test: new description" in the issue body
 
   @P1 @issues
   Scenario: ISS-03 — Close issue and verify status badge changes to "Closed"
-    Given a seeded project issue exists on the kanban board
-    When I close the issue via API
-    And I navigate to the issue page
-    Then I should see a "Closed" status badge
+    Given issue "test" is seeded on the kanban board
+    When I close issue "test" via API
+    And I navigate to the page of issue "test"
+    Then I should see a "Closed" status badge on issue "test"
 
   @P1 @issues
   Scenario: ISS-04 — Reopen closed issue and verify status restored to "Open"
-    Given a seeded project issue exists on the kanban board
-    When I close the issue via API
-    And I reopen the issue via API
-    And I navigate to the issue page
-    Then I should see a "Open" status badge
+    Given issue "test" is seeded on the kanban board
+    When I close issue "test" via API
+    And I reopen issue "test" via API
+    And I navigate to the page of issue "test"
+    Then I should see a "Open" status badge on issue "test"

@@ -6,18 +6,18 @@ Feature: Date & Iteration Fields
   So that I can track deadlines and sprint assignments
 
   Background:
-    Given a seeded project issue exists on the kanban board
+    Given issue "test" is seeded on the kanban board
 
   @P2 @date
   Scenario: TDATE-01 — Set date field and verify it renders in table view
-    When I set the "Target date" field to "2026-12-31" on the seeded issue via the API
-    And the "Target date" field value should be "2026-12-31" on the seeded issue via the API
+    When I set the "Target date" field to "2026-12-31" on issue "test" via the API
+    And the "Target date" field should be "2026-12-31" on issue "test" via API
     And I navigate to the table view
-    Then the seeded issue should appear as a row in the table
+    Then issue "test" should appear as a row in the table
 
   @P2 @iteration
   Scenario: ITER-01 — Set iteration field and verify it appears on the board card
-    When I set the "Iteration" field to "Sprint 1" on the seeded issue via the API
-    And the "Iteration" field value should be "Sprint 1" on the seeded issue via the API
+    When I set the "Iteration" field to "Sprint 1" on issue "test" via the API
+    And the "Iteration" field should be "Sprint 1" on issue "test" via API
     And I navigate to the kanban view
-    Then the seeded issue should be visible on the board
+    Then issue "test" should be visible on the board

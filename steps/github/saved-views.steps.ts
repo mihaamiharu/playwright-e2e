@@ -35,12 +35,9 @@ Then('the created view tab should be visible', async ({ savedViews }) => {
   await savedViews.assertViewTabSelected(currentViewName);
 });
 
-Then(
-  'the current view tab should be named {string}',
-  async ({ savedViews }, viewName: string) => {
-    await savedViews.assertViewTabSelected(viewName);
-  },
-);
+Then('the current view tab should be named {string}', async ({ savedViews }, viewName: string) => {
+  await savedViews.assertViewTabSelected(viewName);
+});
 
 When('I reload the page', async ({ savedViews }) => {
   await savedViews.refreshView();

@@ -5,12 +5,10 @@ Feature: Bulk Operations
   I want to update multiple issues at once
   So that I can efficiently manage sprint planning
 
-  Background:
-    Given a seeded project issue exists on the kanban board
-
   @P1 @bulk
   Scenario: BULK-01 — Seed multiple issues → bulk update status via API → verify all changed
-    Given a second seeded project issue exists on the kanban board
-    When I bulk move both seeded issues to "In progress" via the API
+    Given issue "first" is seeded on the kanban board
+    And issue "second" is seeded on the kanban board
+    When I bulk move issues "first" and "second" to "In progress" via the API
     And I navigate to the kanban view
-    Then both seeded issues should appear in the "In progress" column
+    Then issues "first" and "second" should appear in the "In progress" column

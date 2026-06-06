@@ -9,7 +9,10 @@ const { Given, When } = createBdd(test);
 
 Given(
   'issue {string} is seeded on the kanban board',
-  async ({ githubAPI, projectsAPI, sandbox, dataManager, scenarioContext, scenarioId }, key: string) => {
+  async (
+    { githubAPI, projectsAPI, sandbox, dataManager, scenarioContext, scenarioId },
+    key: string,
+  ) => {
     await seedProjectIssue(githubAPI, projectsAPI, sandbox, dataManager, scenarioContext, {
       scenarioId,
       key,

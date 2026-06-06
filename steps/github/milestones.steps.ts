@@ -12,19 +12,16 @@ let milestoneNumber = 0;
 let milestoneTitle = '';
 let secondMilestoneIssueNumber = 0;
 
-When(
-  'I create a milestone with a due date via the API',
-  async ({ githubAPI, dataManager }) => {
-    const milestone = await githubAPI.createMilestone(env.github.testRepo, buildMilestoneParams());
+When('I create a milestone with a due date via the API', async ({ githubAPI, dataManager }) => {
+  const milestone = await githubAPI.createMilestone(env.github.testRepo, buildMilestoneParams());
 
-    milestoneNumber = milestone.number;
-    milestoneTitle = milestone.title;
+  milestoneNumber = milestone.number;
+  milestoneTitle = milestone.title;
 
-    dataManager.enqueue(`delete milestone #${milestone.number}`, async () => {
-      await githubAPI.deleteMilestone(env.github.testRepo, milestone.number);
-    });
-  },
-);
+  dataManager.enqueue(`delete milestone #${milestone.number}`, async () => {
+    await githubAPI.deleteMilestone(env.github.testRepo, milestone.number);
+  });
+});
 
 When(
   'I link issue {string} to the milestone via the API',
@@ -36,20 +33,24 @@ When(
   },
 );
 
-Then(
-  'I should see the milestone name in the issue sidebar',
-  async ({ milestonePanel }) => {
-    await milestonePanel.expectMilestone(milestoneTitle);
-  },
-);
+Then('I should see the milestone name in the issue sidebar', async ({ milestonePanel }) => {
+  await milestonePanel.expectMilestone(milestoneTitle);
+});
 
 When(
   'I seed a second issue on the board linked to the milestone',
   async ({ githubAPI, projectsAPI, sandbox, dataManager, scenarioContext }) => {
-    const issue = await seedAdditionalIssue(githubAPI, projectsAPI, sandbox, dataManager, scenarioContext, {
-      body: `Second issue for milestone progress test`,
-      milestone: milestoneNumber,
-    });
+    const issue = await seedAdditionalIssue(
+      githubAPI,
+      projectsAPI,
+      sandbox,
+      dataManager,
+      scenarioContext,
+      {
+        body: `Second issue for milestone progress test`,
+        milestone: milestoneNumber,
+      },
+    );
 
     secondMilestoneIssueNumber = issue.number;
   },
@@ -78,23 +79,15 @@ Then('I should see the milestone progress bar showing partial completion', async
 });
 
 When('I close the second issue via the API', async ({ githubAPI }) => {
-  await githubAPI.updateIssue(
-    env.github.testRepo,
-    secondMilestoneIssueNumber,
-    {
-      state: 'closed',
-    },
-  );
+  await githubAPI.updateIssue(env.github.testRepo, secondMilestoneIssueNumber, {
+    state: 'closed',
+  });
 });
 
 When('I close the milestone via the API', async ({ githubAPI }) => {
-  await githubAPI.updateMilestone(
-    env.github.testRepo,
-    milestoneNumber,
-    {
-      state: 'closed',
-    },
-  );
+  await githubAPI.updateMilestone(env.github.testRepo, milestoneNumber, {
+    state: 'closed',
+  });
 });
 
 Then('the milestone should show completed status and full progress', async ({ page }) => {

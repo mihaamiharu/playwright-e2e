@@ -44,12 +44,7 @@ When(
     const issue = scenarioContext.get<SeededIssue>(key);
     const { field, fieldValue } = await resolveFieldValue(projectsAPI, sandbox, fieldName, value);
 
-    await projectsAPI.setFieldValue(
-      sandbox.projectId,
-      issue.projectItemId,
-      field.id,
-      fieldValue,
-    );
+    await projectsAPI.setFieldValue(sandbox.projectId, issue.projectItemId, field.id, fieldValue);
   },
 );
 
@@ -77,11 +72,18 @@ Given(
         throw new Error(`Column "${fieldName}" not found in data table`);
       }
 
-      const issue = await seedAdditionalIssue(githubAPI, projectsAPI, sandbox, dataManager, scenarioContext, {
-        title,
-        body: `Custom field filter test issue ${row.key}`,
-        key: row.key,
-      });
+      const issue = await seedAdditionalIssue(
+        githubAPI,
+        projectsAPI,
+        sandbox,
+        dataManager,
+        scenarioContext,
+        {
+          title,
+          body: `Custom field filter test issue ${row.key}`,
+          key: row.key,
+        },
+      );
 
       const { field, fieldValue } = await resolveFieldValue(projectsAPI, sandbox, fieldName, value);
       await projectsAPI.setFieldValue(sandbox.projectId, issue.projectItemId, field.id, fieldValue);

@@ -41,7 +41,11 @@ When('I navigate to the kanban board', async ({ projectBoardPage }) => {
 
 Then(
   'issue {string} should appear in the {string} column',
-  async ({ projectBoardPage, projectsAPI, sandbox, scenarioContext }, key: string, columnName: string) => {
+  async (
+    { projectBoardPage, projectsAPI, sandbox, scenarioContext },
+    key: string,
+    columnName: string,
+  ) => {
     const issue = scenarioContext.get<SeededIssue>(key);
 
     await expect(async () => {
@@ -59,7 +63,12 @@ Then(
 
 When(
   'I drag issue {string} from {string} to {string}',
-  async ({ projectBoardPage, scenarioContext }, key: string, _fromColumn: string, toColumn: string) => {
+  async (
+    { projectBoardPage, scenarioContext },
+    key: string,
+    _fromColumn: string,
+    toColumn: string,
+  ) => {
     const issue = scenarioContext.get<SeededIssue>(key);
     await projectBoardPage.dragCardToColumn(issue.title, toColumn);
   },
