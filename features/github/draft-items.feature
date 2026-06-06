@@ -6,7 +6,7 @@ Feature: Draft Items
   So that I can quickly capture ideas and track them as work items
 
   Background:
-    Given a seeded project issue exists on the kanban board
+    Given issue "test" is seeded on the kanban board
 
   @P2 @drafts
   Scenario: DRFT-01 — Create draft item on board and verify it appears without issue number

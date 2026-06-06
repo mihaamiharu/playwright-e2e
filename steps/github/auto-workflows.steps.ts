@@ -7,22 +7,22 @@ import type { SeededIssue } from '../../src/utils/testing/issue-seeder';
 const { When, Then } = createBdd(test);
 
 When(
-  'I close the seeded issue for the workflow via the API',
-  async ({ githubAPI, scenarioContext }) => {
-    const seededIssue = scenarioContext.get<SeededIssue>('seededIssue');
-    await githubAPI.updateIssue(env.github.testRepo, seededIssue.number, {
+  'I close issue {string} for the workflow via API',
+  async ({ githubAPI, scenarioContext }, key: string) => {
+    const issue = scenarioContext.get<SeededIssue>(key);
+    await githubAPI.updateIssue(env.github.testRepo, issue.number, {
       state: 'closed',
     });
   },
 );
 
 Then(
-  'the seeded issue should be moved to {string} by the auto-workflow',
-  async ({ projectsAPI, sandbox, scenarioContext }, expectedStatus: string) => {
-    const seededIssue = scenarioContext.get<SeededIssue>('seededIssue');
+  'issue {string} should be moved to {string} by auto-workflow',
+  async ({ projectsAPI, sandbox, scenarioContext }, key: string, expectedStatus: string) => {
+    const issue = scenarioContext.get<SeededIssue>(key);
     await expect(async () => {
       const items = await projectsAPI.getItems(sandbox.projectId);
-      const item = items.find((i) => i.id === seededIssue.projectItemId);
+      const item = items.find((i) => i.id === issue.projectItemId);
       expect(item?.status).toBe(expectedStatus);
     }).toPass({ timeout: 30000 });
   },

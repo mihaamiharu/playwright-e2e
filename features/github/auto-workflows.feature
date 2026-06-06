@@ -6,9 +6,9 @@ Feature: Auto-Workflows
   So that project status stays in sync with issue state
 
   Background:
-    Given a seeded project issue exists on the kanban board
+    Given issue "test" is seeded on the kanban board
 
   @P2 @workflows
   Scenario: WFLOW-01 — Close issue via API and verify auto-workflow moves it to Done
-    When I close the seeded issue for the workflow via the API
-    Then the seeded issue should be moved to "Done" by the auto-workflow
+    When I close issue "test" for the workflow via API
+    Then issue "test" should be moved to "Done" by auto-workflow

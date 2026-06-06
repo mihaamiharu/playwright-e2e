@@ -2,50 +2,19 @@ import { createBdd } from 'playwright-bdd';
 import { expect } from '@playwright/test';
 import { test } from '../../src/fixtures';
 import type { SeededIssue } from '../../src/utils/testing/issue-seeder';
-import { seedAdditionalIssue } from '../../src/utils/testing/issue-seeder';
-import { uniqueTestTitle } from '../../src/utils/testing/factories';
 
-const { Given, When, Then } = createBdd(test);
-
-Given(
-  'a second project issue exists with a unique search keyword in the title',
-  async ({ githubAPI, projectsAPI, sandbox, dataManager, scenarioContext }) => {
-    const keyword = uniqueTestTitle('SRCH');
-    scenarioContext.set('searchKeyword', keyword);
-    scenarioContext.set('keywordIssueTitle', keyword);
-
-    await seedAdditionalIssue(githubAPI, projectsAPI, sandbox, dataManager, {
-      title: keyword,
-      body: 'Search test issue',
-    });
-  },
-);
+const { When } = createBdd(test);
 
 When(
-  'I search the project by title for the unique keyword',
-  async ({ page, projectFilterBar, scenarioContext }) => {
-    const keyword = scenarioContext.get<string>('searchKeyword');
+  'I search the project by title for issue {string}',
+  async ({ page, projectFilterBar, scenarioContext }, key) => {
+    const issue = scenarioContext.get<SeededIssue>(key);
 
     await projectFilterBar.open();
-    await projectFilterBar.typeSearch(keyword);
+    await projectFilterBar.typeSearch(issue.title);
     await projectFilterBar.save();
 
-    await page.waitForURL(new RegExp(keyword));
+    await page.waitForURL(/filterQuery=/);
     await expect(page.getByRole('heading', { level: 2 }).first()).toBeVisible();
-  },
-);
-
-Then(
-  'the issue with the keyword should be visible on the board',
-  async ({ boardView, scenarioContext }) => {
-    await boardView.expectCardVisible(scenarioContext.get<string>('keywordIssueTitle'));
-  },
-);
-
-Then(
-  'the seeded issue without the keyword should not be visible',
-  async ({ boardView, scenarioContext }) => {
-    const seededIssue = scenarioContext.get<SeededIssue>('seededIssue');
-    await boardView.expectCardNotVisible(seededIssue.title);
   },
 );

@@ -7,26 +7,28 @@ import { uniqueTestTitle } from '../../src/utils/testing/factories';
 const { Given, Then } = createBdd(test);
 
 Given(
-  'a second seeded project issue exists on the kanban board with title prefix {string}',
+  'issue {string} is seeded on the kanban board with title prefix {string}',
   async (
     { githubAPI, projectsAPI, sandbox, dataManager, scenarioContext, scenarioId },
+    key: string,
     prefix: string,
   ) => {
     const title = `${uniqueTestTitle(prefix)} [${scenarioId}]`;
-    scenarioContext.set('secondRankIssueTitle', title);
 
-    await seedAdditionalIssue(githubAPI, projectsAPI, sandbox, dataManager, {
+    await seedAdditionalIssue(githubAPI, projectsAPI, sandbox, dataManager, scenarioContext, {
       title,
       body: 'Ranking test issue',
+      key,
     });
   },
 );
 
 Then(
-  'both the {string} and seeded issues should appear in the {string} column',
-  async ({ boardView, scenarioContext }) => {
-    const seededIssue = scenarioContext.get<SeededIssue>('seededIssue');
-    await boardView.expectCardVisible(seededIssue.title);
-    await boardView.expectCardVisible(scenarioContext.get<string>('secondRankIssueTitle'));
+  'both issues {string} and {string} should appear in the {string} column',
+  async ({ boardView, scenarioContext }, key1, key2, _columnName) => {
+    const issue1 = scenarioContext.get<SeededIssue>(key1);
+    const issue2 = scenarioContext.get<SeededIssue>(key2);
+    await boardView.expectCardVisible(issue1.title);
+    await boardView.expectCardVisible(issue2.title);
   },
 );

@@ -6,20 +6,21 @@ Feature: Custom Fields
   So that I can track metadata like priority and estimate
 
   Background:
-    Given a seeded project issue exists on the kanban board
+    Given issue "test" is seeded on the kanban board
 
   @P1 @fields
   Scenario: FLD-01 — Set custom field value via API and verify in table view
-    When I set the "Priority" field to "P0" on the seeded issue via the API
+    When I set the "Priority" field to "P0" on issue "test" via the API
     And I navigate to the table view
-    Then the seeded issue should show "P0" in the "Priority" column
+    Then issue "test" should show "P0" in the "Priority" column
 
   @P2 @fields
   Scenario: FLD-02 — Filter table by custom field value
-    Given a seeded project issue exists on the kanban board
-    And issue "A" exists with "Priority" set to "P0" in the sandbox project
-    And issue "B" exists with "Priority" set to "P1" in the sandbox project
+    Given the following issues exist with "Priority" values in the sandbox project:
+      | key | Priority |
+      | A   | P0       |
+      | B   | P1       |
     When I navigate to the table view
     And I filter the table by "Priority" "P0"
-    Then custom issue "A" should be visible in the table
-    And custom issue "B" should not be visible in the table
+    Then issue "A" should be visible in the table
+    And issue "B" should not be visible in the table

@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { env } from '../../../config/env.config';
 
 /**
  * Saved Views — create, rename, filter, and switch between project views.
@@ -20,12 +21,15 @@ export class SavedViews {
     });
   }
 
-  async createBoardView(viewName: string): Promise<void> {
+  async createBoardView(viewName: string): Promise<number> {
     await this.page.getByRole('tab', { name: 'New view' }).click();
     await this.page.getByRole('menuitem', { name: 'Board' }).click();
     await this.page.waitForURL(/\/views\/\d+/);
+    const urlMatch = this.page.url().match(/\/views\/(\d+)/);
+    const viewNumber = parseInt(urlMatch![1], 10);
     await this.waitForViewReady();
     await this.renameView(viewName);
+    return viewNumber;
   }
 
   async renameView(viewName: string): Promise<void> {
@@ -66,6 +70,27 @@ export class SavedViews {
     await expect(dialog).toBeVisible();
     await dialog.getByRole('button', { name: 'Delete' }).click();
     await expect(dialog).not.toBeVisible();
+  }
+
+  async deleteViewByNumber(viewNumber: number): Promise<void> {
+    await this.page.goto(
+      `https://github.com/users/${env.github.testRepoOwner}/projects/${env.github.sandboxProjectNumber}/views/${viewNumber}`,
+      { waitUntil: 'domcontentloaded', timeout: 15000 },
+    );
+    await this.waitForViewReady();
+
+    const viewOptionsBtn = this.page.getByRole('button', { name: /View options for/ });
+    await viewOptionsBtn.waitFor({ state: 'attached', timeout: 10000 });
+    await viewOptionsBtn.evaluate((el) => (el as HTMLElement).click());
+
+    await this.page.getByRole('menuitem', { name: 'Delete view' }).click();
+
+    const dialog = this.page.getByRole('alertdialog', { name: 'Delete view?' });
+    const confirmBtn = dialog.getByRole('button', { name: 'Delete' });
+    await confirmBtn.waitFor({ state: 'visible', timeout: 5000 });
+    await confirmBtn.click();
+
+    await expect(dialog).not.toBeVisible({ timeout: 10000 });
   }
 
   async assertViewTabSelected(viewName: string): Promise<void> {

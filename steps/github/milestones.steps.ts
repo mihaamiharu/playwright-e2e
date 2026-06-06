@@ -8,61 +8,55 @@ import { seedAdditionalIssue } from '../../src/utils/testing/issue-seeder';
 
 const { When, Then } = createBdd(test);
 
-When('I close the seeded issue via the API', async ({ githubAPI, scenarioContext }) => {
-  const seededIssue = scenarioContext.get<SeededIssue>('seededIssue');
-  await githubAPI.updateIssue(env.github.testRepo, seededIssue.number, {
-    state: 'closed',
+let milestoneNumber = 0;
+let milestoneTitle = '';
+let secondMilestoneIssueNumber = 0;
+
+When('I create a milestone with a due date via the API', async ({ githubAPI, dataManager }) => {
+  const milestone = await githubAPI.createMilestone(env.github.testRepo, buildMilestoneParams());
+
+  milestoneNumber = milestone.number;
+  milestoneTitle = milestone.title;
+
+  dataManager.enqueue(`delete milestone #${milestone.number}`, async () => {
+    await githubAPI.deleteMilestone(env.github.testRepo, milestone.number);
   });
 });
 
 When(
-  'I create a milestone with a due date via the API',
-  async ({ githubAPI, dataManager, scenarioContext }) => {
-    const milestone = await githubAPI.createMilestone(env.github.testRepo, buildMilestoneParams());
-
-    scenarioContext.set('milestoneNumber', milestone.number);
-    scenarioContext.set('milestoneTitle', milestone.title);
-
-    dataManager.enqueue(`delete milestone #${milestone.number}`, async () => {
-      await githubAPI.deleteMilestone(env.github.testRepo, milestone.number);
+  'I link issue {string} to the milestone via the API',
+  async ({ githubAPI, scenarioContext }, key) => {
+    const issue = scenarioContext.get<SeededIssue>(key);
+    await githubAPI.updateIssue(env.github.testRepo, issue.number, {
+      milestone: milestoneNumber,
     });
   },
 );
 
-When(
-  'I link the seeded issue to the milestone via the API',
-  async ({ githubAPI, scenarioContext }) => {
-    const seededIssue = scenarioContext.get<SeededIssue>('seededIssue');
-    await githubAPI.updateIssue(env.github.testRepo, seededIssue.number, {
-      milestone: scenarioContext.get<number>('milestoneNumber'),
-    });
-  },
-);
-
-Then(
-  'I should see the milestone name in the issue sidebar',
-  async ({ milestonePanel, scenarioContext }) => {
-    await milestonePanel.expectMilestone(scenarioContext.get<string>('milestoneTitle'));
-  },
-);
+Then('I should see the milestone name in the issue sidebar', async ({ milestonePanel }) => {
+  await milestonePanel.expectMilestone(milestoneTitle);
+});
 
 When(
   'I seed a second issue on the board linked to the milestone',
   async ({ githubAPI, projectsAPI, sandbox, dataManager, scenarioContext }) => {
-    const milestoneNumber = scenarioContext.get<number>('milestoneNumber');
+    const issue = await seedAdditionalIssue(
+      githubAPI,
+      projectsAPI,
+      sandbox,
+      dataManager,
+      scenarioContext,
+      {
+        body: `Second issue for milestone progress test`,
+        milestone: milestoneNumber,
+      },
+    );
 
-    const issue = await seedAdditionalIssue(githubAPI, projectsAPI, sandbox, dataManager, {
-      body: `Second issue for milestone progress test`,
-      milestone: milestoneNumber,
-    });
-
-    scenarioContext.set('secondMilestoneIssueNumber', issue.number);
+    secondMilestoneIssueNumber = issue.number;
   },
 );
 
-When('I navigate to the milestone page', async ({ page, scenarioContext }) => {
-  const milestoneNumber = scenarioContext.get<number>('milestoneNumber');
-  const milestoneTitle = scenarioContext.get<string>('milestoneTitle');
+When('I navigate to the milestone page', async ({ page }) => {
   await page.goto(`/${env.github.testRepo}/milestone/${milestoneNumber}`);
   await expect(page.getByRole('heading', { name: milestoneTitle, level: 2 })).toBeVisible();
 });
@@ -84,24 +78,16 @@ Then('I should see the milestone progress bar showing partial completion', async
   }).toPass({ timeout: 15_000 });
 });
 
-When('I close the second issue via the API', async ({ githubAPI, scenarioContext }) => {
-  await githubAPI.updateIssue(
-    env.github.testRepo,
-    scenarioContext.get<number>('secondMilestoneIssueNumber'),
-    {
-      state: 'closed',
-    },
-  );
+When('I close the second issue via the API', async ({ githubAPI }) => {
+  await githubAPI.updateIssue(env.github.testRepo, secondMilestoneIssueNumber, {
+    state: 'closed',
+  });
 });
 
-When('I close the milestone via the API', async ({ githubAPI, scenarioContext }) => {
-  await githubAPI.updateMilestone(
-    env.github.testRepo,
-    scenarioContext.get<number>('milestoneNumber'),
-    {
-      state: 'closed',
-    },
-  );
+When('I close the milestone via the API', async ({ githubAPI }) => {
+  await githubAPI.updateMilestone(env.github.testRepo, milestoneNumber, {
+    state: 'closed',
+  });
 });
 
 Then('the milestone should show completed status and full progress', async ({ page }) => {

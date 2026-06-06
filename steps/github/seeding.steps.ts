@@ -8,10 +8,14 @@ import type { SeededIssue } from '../../src/utils/testing/issue-seeder';
 const { Given, When } = createBdd(test);
 
 Given(
-  'a seeded project issue exists on the kanban board',
-  async ({ githubAPI, projectsAPI, sandbox, dataManager, scenarioContext, scenarioId }) => {
+  'issue {string} is seeded on the kanban board',
+  async (
+    { githubAPI, projectsAPI, sandbox, dataManager, scenarioContext, scenarioId },
+    key: string,
+  ) => {
     await seedProjectIssue(githubAPI, projectsAPI, sandbox, dataManager, scenarioContext, {
       scenarioId,
+      key,
     });
   },
 );
