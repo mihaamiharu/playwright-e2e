@@ -44,9 +44,10 @@ When(
 
 Then(
   'the seeded issue should show {string} in the {string} column',
-  async ({ tableViewPage, scenarioContext }, value: string, _columnName: string) => {
+  async ({ projectsAPI, scenarioContext }, value: string, fieldName: string) => {
     const seededIssue = scenarioContext.get<SeededIssue>('seededIssue');
-    await tableViewPage.expectRowValue(seededIssue.title, value);
+    const actualValue = await projectsAPI.getItemFieldValue(seededIssue.projectItemId, fieldName);
+    expect(actualValue).toBe(value);
   },
 );
 

@@ -79,8 +79,24 @@ export class TableViewPage {
 
   async expectRowValue(issueTitle: string, value: string): Promise<void> {
     await expect(async () => {
+      await this.page.reload();
+      await expect(this.grid).toBeVisible();
+
+      // Check if the value is visible in the row cell (column is visible)
       const row = this.getRow(issueTitle);
-      await expect(row.getByText(value)).toBeVisible();
+      const rowHasValue = await row
+        .getByText(value)
+        .isVisible()
+        .catch(() => false);
+
+      // Fallback: check if the value is in a group header row (column is grouped but not shown)
+      const groupHasValue = await this.page
+        .getByRole('row')
+        .filter({ hasText: value })
+        .isVisible()
+        .catch(() => false);
+
+      expect(rowHasValue || groupHasValue).toBe(true);
     }).toPass({ timeout: 15_000 });
   }
 

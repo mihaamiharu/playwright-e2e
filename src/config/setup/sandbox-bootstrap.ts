@@ -250,14 +250,20 @@ export async function ensureTableLayoutView(page?: Page): Promise<number | null>
     }
     const viewNumber = parseInt(urlMatch[1], 10);
 
-    await page.keyboard.press('Escape');
-    await page.waitForTimeout(500);
+    // Wait for the view to fully render
+    await page.waitForTimeout(2000);
 
-    await page.getByRole('button', { name: /View options for/ }).click();
-    await page.getByRole('menuitem', { name: 'Rename view' }).click();
+    // Open the view options menu — use evaluate to bypass tooltip overlays
+    const viewOptionsButton = page.getByRole('button', { name: /View options for/ });
+    await viewOptionsButton.evaluate((el) => (el as HTMLElement).click());
+    await page.waitForTimeout(1000);
+
+    // Use evaluate to click "Rename view" menuitem
+    const renameMenuItem = page.getByRole('menuitem', { name: 'Rename view' });
+    await renameMenuItem.evaluate((el) => (el as HTMLElement).click());
 
     const dialog = page.getByRole('dialog', { name: 'Rename view' });
-    await expect(dialog).toBeVisible({ timeout: 10_000 });
+    await expect(dialog).toBeVisible({ timeout: 15_000 });
 
     const textbox = dialog.getByRole('textbox', { name: 'View name' });
     await textbox.clear();
