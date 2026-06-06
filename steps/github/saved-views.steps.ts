@@ -2,7 +2,6 @@ import { createBdd } from 'playwright-bdd';
 import { test } from '../../src/fixtures';
 
 let currentViewName = '';
-let currentViewNumber = 0;
 
 const { When, Then } = createBdd(test);
 
@@ -10,10 +9,10 @@ When(
   'I create a new board view named {string}',
   async ({ savedViews, dataManager }, baseName: string) => {
     currentViewName = `${baseName} ${crypto.randomUUID().slice(0, 8)}`;
-    currentViewNumber = await savedViews.createBoardView(currentViewName);
+    await savedViews.createBoardView(currentViewName);
 
     dataManager.enqueue(`delete view "${currentViewName}"`, async () => {
-      await savedViews.deleteViewByNumber(currentViewNumber);
+      await savedViews.deleteView(currentViewName);
     });
   },
 );
