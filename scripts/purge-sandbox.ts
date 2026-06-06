@@ -155,7 +155,10 @@ async function main() {
     for (let i = 0; i < deleteChunks.length; i++) {
       const batch = deleteChunks[i];
       const aliases = batch
-        .map((item, idx) => `d${idx}: deleteProjectV2Item(input: { projectId: $projectId, itemId: $itemId${idx} }) { deletedItemId }`)
+        .map(
+          (item, idx) =>
+            `d${idx}: deleteProjectV2Item(input: { projectId: $projectId, itemId: $itemId${idx} }) { deletedItemId }`,
+        )
         .join('\n        ');
       const variables: Record<string, unknown> = { projectId };
       batch.forEach((item, idx) => {
@@ -169,11 +172,21 @@ async function main() {
           }`,
           variables,
         );
-        successfullyRemoved.push(...batch.map((item) => ({ type: item.type, number: item.content?.number, title: item.content?.title })));
+        successfullyRemoved.push(
+          ...batch.map((item) => ({
+            type: item.type,
+            number: item.content?.number,
+            title: item.content?.title,
+          })),
+        );
         removed += batch.length;
-        console.log(`  [batch ${i + 1}/${deleteChunks.length}] deleted ${batch.length} items from project`);
+        console.log(
+          `  [batch ${i + 1}/${deleteChunks.length}] deleted ${batch.length} items from project`,
+        );
       } catch (err) {
-        console.error(`  [batch ${i + 1}/${deleteChunks.length}] ✗ batch delete failed: ${(err as Error).message}`);
+        console.error(
+          `  [batch ${i + 1}/${deleteChunks.length}] ✗ batch delete failed: ${(err as Error).message}`,
+        );
       }
 
       if (i < deleteChunks.length - 1) {
@@ -181,7 +194,9 @@ async function main() {
       }
     }
 
-    const issuesToClose = successfullyRemoved.filter((item) => item.type === 'ISSUE' && item.number);
+    const issuesToClose = successfullyRemoved.filter(
+      (item) => item.type === 'ISSUE' && item.number,
+    );
     if (issuesToClose.length > 0) {
       const closeChunks = chunk(issuesToClose, BATCH_SIZE);
       for (let i = 0; i < closeChunks.length; i++) {
@@ -200,11 +215,15 @@ async function main() {
 
         results.forEach((result, idx) => {
           if (result.status === 'rejected') {
-            console.error(`    ✗ close #${batch[idx].number} failed: ${(result.reason as Error).message}`);
+            console.error(
+              `    ✗ close #${batch[idx].number} failed: ${(result.reason as Error).message}`,
+            );
           }
         });
 
-        console.log(`  [batch ${i + 1}/${closeChunks.length}] closed ${batchClosed}/${batch.length} issues`);
+        console.log(
+          `  [batch ${i + 1}/${closeChunks.length}] closed ${batchClosed}/${batch.length} issues`,
+        );
 
         if (i < closeChunks.length - 1) {
           await new Promise((r) => setTimeout(r, 500));

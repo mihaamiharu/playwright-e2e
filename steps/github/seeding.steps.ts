@@ -7,18 +7,14 @@ import type { SeededIssue } from '../../src/utils/testing/issue-seeder';
 
 const { Given, When } = createBdd(test);
 
-Given('a seeded project issue exists on the kanban board', async ({
-  githubAPI,
-  projectsAPI,
-  sandbox,
-  dataManager,
-  scenarioContext,
-  scenarioId,
-}) => {
-  await seedProjectIssue(githubAPI, projectsAPI, sandbox, dataManager, scenarioContext, {
-    scenarioId,
-  });
-});
+Given(
+  'a seeded project issue exists on the kanban board',
+  async ({ githubAPI, projectsAPI, sandbox, dataManager, scenarioContext, scenarioId }) => {
+    await seedProjectIssue(githubAPI, projectsAPI, sandbox, dataManager, scenarioContext, {
+      scenarioId,
+    });
+  },
+);
 
 Given('the persistent test issue is loaded', async ({ scenarioContext }) => {
   const persistentIssue = getPersistentIssue();

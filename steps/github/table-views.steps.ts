@@ -101,7 +101,12 @@ Given(
         `Status "${statusName}" not found. Available: ${[...sandbox.statusOptions.keys()].join(', ')}`,
       );
     }
-    await projectsAPI.moveItemToStatus(sandbox.projectId, issue.projectItemId, sandbox.statusFieldId, optionId);
+    await projectsAPI.moveItemToStatus(
+      sandbox.projectId,
+      issue.projectItemId,
+      sandbox.statusFieldId,
+      optionId,
+    );
   },
 );
 
@@ -129,7 +134,12 @@ Given(
         `Status "${statusName}" not found. Available: ${[...sandbox.statusOptions.keys()].join(', ')}`,
       );
     }
-    await projectsAPI.moveItemToStatus(sandbox.projectId, issue.projectItemId, sandbox.statusFieldId, optionId);
+    await projectsAPI.moveItemToStatus(
+      sandbox.projectId,
+      issue.projectItemId,
+      sandbox.statusFieldId,
+      optionId,
+    );
   },
 );
 

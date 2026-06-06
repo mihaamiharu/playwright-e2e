@@ -40,10 +40,10 @@ npm run bddgen                  # .feature → .spec.ts only, no run
 
 Tests are split into two projects to avoid shared state conflicts:
 
-| Project   | Tests                    | Parallelism | Workers   |
-| --------- | ------------------------ | ----------- | --------- |
+| Project    | Tests                       | Parallelism | Workers    |
+| ---------- | --------------------------- | ----------- | ---------- |
 | `parallel` | Everything except `@serial` | `true`      | 4 / 2 (CI) |
-| `serial`   | Only `@serial` tagged    | `false`     | 1         |
+| `serial`   | Only `@serial` tagged       | `false`     | 1          |
 
 **Why `@serial`?** All tests share one sandbox project. The view layout (board vs table) is server-side state on `views/1`. Tests that switch layout (`table-views.feature`, `saved-views.feature`) are tagged `@serial` to prevent race conditions with board-view tests.
 

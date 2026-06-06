@@ -27,15 +27,12 @@ function cardButton(page: import('@playwright/test').Page, title: string) {
   });
 }
 
-Then(
-  'the seeded issue should not be visible in any column',
-  async ({ page, scenarioContext }) => {
-    const seededIssue = scenarioContext.get<SeededIssue>('seededIssue');
-    await expect(cardButton(page, seededIssue.title).first()).not.toBeVisible({
-      timeout: 15000,
-    });
-  },
-);
+Then('the seeded issue should not be visible in any column', async ({ page, scenarioContext }) => {
+  const seededIssue = scenarioContext.get<SeededIssue>('seededIssue');
+  await expect(cardButton(page, seededIssue.title).first()).not.toBeVisible({
+    timeout: 15000,
+  });
+});
 
 Then('the seeded issue should reappear on the board', async ({ page, scenarioContext }) => {
   const seededIssue = scenarioContext.get<SeededIssue>('seededIssue');

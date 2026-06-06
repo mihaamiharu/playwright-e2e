@@ -62,13 +62,10 @@ When(
   },
 );
 
-Then(
-  'the seeded issue should be visible on the board',
-  async ({ boardView, scenarioContext }) => {
-    const seededIssue = scenarioContext.get<SeededIssue>('seededIssue');
-    await boardView.expectCardVisible(seededIssue.title);
-  },
-);
+Then('the seeded issue should be visible on the board', async ({ boardView, scenarioContext }) => {
+  const seededIssue = scenarioContext.get<SeededIssue>('seededIssue');
+  await boardView.expectCardVisible(seededIssue.title);
+});
 
 Then(
   'the second unlabeled issue should not be visible on the board',

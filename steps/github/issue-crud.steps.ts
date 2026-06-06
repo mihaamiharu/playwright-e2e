@@ -48,9 +48,7 @@ When('I reopen the issue via API', async ({ githubAPI, scenarioContext }) => {
     state: 'open',
   });
   if (issue.state !== 'open') {
-    throw new Error(
-      `Expected issue #${number} to be open after reopen, got: ${issue.state}`,
-    );
+    throw new Error(`Expected issue #${number} to be open after reopen, got: ${issue.state}`);
   }
 });
 

@@ -161,7 +161,9 @@ export async function ensurePersistentIssue(): Promise<void> {
         fs.readFileSync(PERSISTENT_ISSUE_PATH, 'utf-8'),
       );
 
-      const issue = await rest<{ state: string; title: string }>(`/repos/${repo}/issues/${existing.number}`);
+      const issue = await rest<{ state: string; title: string }>(
+        `/repos/${repo}/issues/${existing.number}`,
+      );
       if (issue.state === 'open' && issue.title.includes(PERSISTENT_ISSUE_MARKER)) {
         console.log(`  ✅ Persistent issue #${existing.number} exists and is open`);
         return;

@@ -5,18 +5,11 @@ import type { SeededIssue } from '../../src/utils/testing/issue-seeder';
 
 const { Given, When, Then } = createBdd(test);
 
-When(
-  'I add a comment {string} via the API',
-  async ({ githubAPI, scenarioContext }, body) => {
-    const seededIssue = scenarioContext.get<SeededIssue>('seededIssue');
-    const comment = await githubAPI.addComment(
-      env.github.testRepo,
-      seededIssue.number,
-      body,
-    );
-    scenarioContext.set('commentId', comment.id);
-  },
-);
+When('I add a comment {string} via the API', async ({ githubAPI, scenarioContext }, body) => {
+  const seededIssue = scenarioContext.get<SeededIssue>('seededIssue');
+  const comment = await githubAPI.addComment(env.github.testRepo, seededIssue.number, body);
+  scenarioContext.set('commentId', comment.id);
+});
 
 Then('I should see the comment {string} on the issue', async ({ issuePage }, body) => {
   await issuePage.expectCommentVisible(body);
@@ -26,11 +19,7 @@ Given(
   'a comment exists on the issue with text {string}',
   async ({ githubAPI, scenarioContext }, body) => {
     const seededIssue = scenarioContext.get<SeededIssue>('seededIssue');
-    const comment = await githubAPI.addComment(
-      env.github.testRepo,
-      seededIssue.number,
-      body,
-    );
+    const comment = await githubAPI.addComment(env.github.testRepo, seededIssue.number, body);
     scenarioContext.set('commentId', comment.id);
   },
 );

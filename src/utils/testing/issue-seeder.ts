@@ -45,7 +45,8 @@ export async function seedProjectIssue(
     params.title = `${params.title} [${options.scenarioId}]`;
   }
 
-  params.body = params.body || `🤖 Seeded by Playwright E2E test. Auto-cleaned. Run: ${params.title}`;
+  params.body =
+    params.body || `🤖 Seeded by Playwright E2E test. Auto-cleaned. Run: ${params.title}`;
 
   const issue = await githubAPI.createIssue(env.github.testRepo, params);
   console.log(`[seeder] Created issue #${issue.number}: "${params.title}"`);
@@ -94,7 +95,8 @@ export async function seedAdditionalIssue(
     params.title = `${params.title} [${options.scenarioId}]`;
   }
 
-  params.body = params.body || `🤖 Seeded by Playwright E2E test. Auto-cleaned. Run: ${params.title}`;
+  params.body =
+    params.body || `🤖 Seeded by Playwright E2E test. Auto-cleaned. Run: ${params.title}`;
 
   const issue = await githubAPI.createIssue(env.github.testRepo, params);
   console.log(`[seeder] Created additional issue #${issue.number}: "${params.title}"`);
