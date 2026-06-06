@@ -2,7 +2,7 @@ import { chromium, type FullConfig } from '@playwright/test';
 import dotenv from 'dotenv';
 import * as fs from 'fs';
 import { fetchVerificationCode } from './setup/imap-poller';
-import { ensureSandboxFields } from './setup/sandbox-bootstrap';
+import { ensureSandboxFields, ensurePersistentIssue } from './setup/sandbox-bootstrap';
 import { validateEnv } from './env.config';
 
 dotenv.config();
@@ -141,6 +141,7 @@ async function globalSetup(_config: FullConfig) {
     console.log(`✅ GitHub auth saved to ${AUTH_FILE}`);
 
     await ensureSandboxFields();
+    await ensurePersistentIssue();
   } finally {
     await browser.close();
   }
