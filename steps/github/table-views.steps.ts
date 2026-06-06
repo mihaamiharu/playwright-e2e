@@ -11,10 +11,6 @@ When('I navigate to the table view', async ({ tableViewPage, scenarioId }) => {
   await tableViewPage.navigate(`"${scenarioId}"`);
 });
 
-When('I switch to the table layout view', async ({ tableViewPage }) => {
-  await tableViewPage.ensureTableLayout();
-});
-
 Then(
   'I should see the table with columns {string}, {string}, and {string}',
   async ({ tableViewPage }, col1, col2, col3) => {

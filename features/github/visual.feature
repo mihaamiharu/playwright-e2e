@@ -20,6 +20,5 @@ Feature: Visual Regression
 
   @P2 @visual
   Scenario: VIS-03 — Table layout view matches baseline
-    When I navigate to the kanban view without filter
-    And I switch to the table layout view
+    When I navigate to the table view without filter
     Then the table view grid should match the baseline

@@ -38,6 +38,10 @@ When('I navigate to the kanban view without filter', async ({ projectBoardPage }
   await projectBoardPage.navigate();
 });
 
+When('I navigate to the table view without filter', async ({ tableViewPage }) => {
+  await tableViewPage.navigate();
+});
+
 When('I navigate to the persistent issue page', async ({ issuePage, scenarioContext }) => {
   const seededIssue = scenarioContext.get<SeededIssue>('seededIssue');
   await issuePage.navigateTo(env.github.testRepo, seededIssue.number);

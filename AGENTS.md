@@ -45,9 +45,22 @@ Tests are split into two projects to avoid shared state conflicts:
 | `parallel` | Everything except `@serial` | `true`      | 4 / 2 (CI) |
 | `serial`   | Only `@serial` tagged       | `false`     | 1          |
 
-**Why `@serial`?** All tests share one sandbox project. The view layout (board vs table) is server-side state on `views/1`. Tests that switch layout (`table-views.feature`, `saved-views.feature`) are tagged `@serial` to prevent race conditions with board-view tests.
+**Why `@serial`?** All tests share one sandbox project. Tests that depend on GraphQL eventual consistency under load or have timing-sensitive assertions are tagged `@serial` to prevent race conditions.
 
-**Tagging convention:** Add `@serial` to any feature that mutates shared UI state (view layout) or depends on GraphQL eventual consistency under load. Features tagged `@serial`: `table-views`, `saved-views`, `board-workflow`, `bulk-operations`, `auto-workflows`, `visual`, `draft-items`, `labels`. Most features don't need this tag.
+**Tagging convention:** Add `@serial` to any feature that depends on GraphQL eventual consistency under load or has timing-sensitive assertions. Features tagged `@serial`: `table-views`, `saved-views`, `board-workflow`, `bulk-operations`, `auto-workflows`, `visual`, `draft-items`, `labels`, `custom-fields`, `search`, `milestones`. Most features don't need this tag.
+
+### View isolation
+
+Tests use separate GitHub Project views to prevent state contamination:
+
+| View      | Layout | Used by                                                                       |
+| --------- | ------ | ----------------------------------------------------------------------------- |
+| `views/1` | Board  | board-workflow, bulk-operations, labels, search, draft-items, visual (VIS-01) |
+| `views/2` | Table  | table-views, custom-fields, visual (VIS-03)                                   |
+
+The "Table Layout" view (`views/2`) is created automatically during bootstrap if it doesn't exist. View numbers are discovered at bootstrap time and stored in `auth/sandbox-state.json` (gitignored). The `sandbox` fixture exposes `boardViewNumber` and `tableViewNumber` for page objects to use.
+
+This eliminates the need for manual layout switching in tests and prevents filter/sort state from contaminating subsequent tests.
 
 ## Project structure
 

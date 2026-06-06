@@ -20,6 +20,5 @@ Feature: Accessibility Checks (WCAG)
 
   @P2 @a11y
   Scenario: A11Y-03 — Table layout view has no critical WCAG violations
-    When I navigate to the kanban view without filter
-    And I switch to the table layout view
+    When I navigate to the table view without filter
     Then the page has no critical WCAG violations

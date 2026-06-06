@@ -1,14 +1,21 @@
+import { expect, type Page } from '@playwright/test';
 import * as fs from 'fs';
 
 const GRAPHQL_ENDPOINT = 'https://api.github.com/graphql';
-const PERSISTENT_ISSUE_PATH = 'auth/persistent-issue.json';
+const SANDBOX_STATE_PATH = 'auth/sandbox-state.json';
 const PERSISTENT_ISSUE_MARKER = '[persistent-test-issue]';
+const TABLE_VIEW_NAME = 'Table Layout';
 
 interface PersistentIssueData {
   number: number;
   title: string;
   nodeId: string;
   projectItemId: string;
+}
+
+interface SandboxState {
+  persistentIssue: PersistentIssueData | null;
+  tableViewNumber: number | null;
 }
 
 async function graphql<T>(query: string, variables: Record<string, unknown> = {}): Promise<T> {
@@ -44,6 +51,43 @@ async function rest<T>(path: string, options: RequestInit = {}): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+function readSandboxState(): SandboxState {
+  if (!fs.existsSync(SANDBOX_STATE_PATH)) {
+    return { persistentIssue: null, tableViewNumber: null };
+  }
+  try {
+    return JSON.parse(fs.readFileSync(SANDBOX_STATE_PATH, 'utf-8'));
+  } catch {
+    return { persistentIssue: null, tableViewNumber: null };
+  }
+}
+
+function writeSandboxState(state: SandboxState): void {
+  fs.mkdirSync('auth', { recursive: true });
+  fs.writeFileSync(SANDBOX_STATE_PATH, JSON.stringify(state, null, 2));
+}
+
+async function getProjectId(): Promise<string | null> {
+  const owner = process.env.GH_TEST_REPO_OWNER;
+  const projectNumber = parseInt(process.env.GH_PROJECT_SANDBOX_NUMBER || '1', 10);
+
+  if (!owner) return null;
+
+  const projData = await graphql<{ user: { projectV2: { id: string } | null } }>(
+    `
+      query ($owner: String!, $projectNumber: Int!) {
+        user(login: $owner) {
+          projectV2(number: $projectNumber) {
+            id
+          }
+        }
+      }
+    `,
+    { owner, projectNumber },
+  );
+  return projData.user?.projectV2?.id ?? null;
+}
+
 export async function ensureSandboxFields(): Promise<void> {
   const token = process.env.GH_API_TOKEN;
   const owner = process.env.GH_TEST_REPO_OWNER;
@@ -57,19 +101,7 @@ export async function ensureSandboxFields(): Promise<void> {
   console.log(`\n🔧 Verifying sandbox project fields...`);
 
   try {
-    const projData = await graphql<{ user: { projectV2: { id: string } | null } }>(
-      `
-        query ($owner: String!, $projectNumber: Int!) {
-          user(login: $owner) {
-            projectV2(number: $projectNumber) {
-              id
-            }
-          }
-        }
-      `,
-      { owner, projectNumber },
-    );
-    const projectId = projData.user?.projectV2?.id;
+    const projectId = await getProjectId();
     if (!projectId) {
       console.warn(`  ⚠️  Sandbox project #${projectNumber} not found for "${owner}"`);
       return;
@@ -142,11 +174,109 @@ export async function ensureSandboxFields(): Promise<void> {
   }
 }
 
+export async function ensureTableLayoutView(page?: Page): Promise<number | null> {
+  const token = process.env.GH_API_TOKEN;
+
+  if (!token) {
+    console.log('  ⏭️  Table view check skipped — GH_API_TOKEN not set');
+    return null;
+  }
+
+  console.log(`\n🔧 Verifying table layout view...`);
+
+  try {
+    const projectId = await getProjectId();
+    if (!projectId) {
+      console.warn('  ⚠️  Cannot verify table view — project not found');
+      return null;
+    }
+
+    const viewsData = await graphql<{
+      node: { views: { nodes: Array<{ id: string; name: string; number: number }> } };
+    }>(
+      `
+        query ($projectId: ID!) {
+          node(id: $projectId) {
+            ... on ProjectV2 {
+              views(first: 20) {
+                nodes {
+                  id
+                  name
+                  number
+                }
+              }
+            }
+          }
+        }
+      `,
+      { projectId },
+    );
+
+    const tableView = viewsData.node.views.nodes.find((v) => v.name === TABLE_VIEW_NAME);
+
+    if (tableView) {
+      console.log(`  ✅ "${TABLE_VIEW_NAME}" view exists (views/${tableView.number})`);
+      return tableView.number;
+    }
+
+    if (!page) {
+      console.warn('  ⚠️  No browser page available — cannot create "Table Layout" view via UI');
+      console.warn('  ⏭️  Tests will fall back to views/1 (no view isolation)');
+      return null;
+    }
+
+    console.log(`  ➕ Creating "${TABLE_VIEW_NAME}" view via UI...`);
+
+    const owner = process.env.GH_TEST_REPO_OWNER;
+    const projectNumber = process.env.GH_PROJECT_SANDBOX_NUMBER;
+    if (!owner || !projectNumber) {
+      console.warn('  ⚠️  Missing owner or project number — cannot create view');
+      return null;
+    }
+
+    await page.goto(`https://github.com/users/${owner}/projects/${projectNumber}?layout=table`, {
+      waitUntil: 'domcontentloaded',
+    });
+    await page.waitForURL(/\/(projects|users).*\d/);
+
+    await page.getByRole('tab', { name: 'New view' }).click();
+    await page.getByRole('menuitem', { name: 'Table' }).click();
+    await page.waitForURL(/\/views\/\d+/);
+
+    const urlMatch = page.url().match(/\/views\/(\d+)/);
+    if (!urlMatch) {
+      console.warn('  ⚠️  Could not determine new view number from URL');
+      return null;
+    }
+    const viewNumber = parseInt(urlMatch[1], 10);
+
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(500);
+
+    await page.getByRole('button', { name: /View options for/ }).click();
+    await page.getByRole('menuitem', { name: 'Rename view' }).click();
+
+    const dialog = page.getByRole('dialog', { name: 'Rename view' });
+    await expect(dialog).toBeVisible({ timeout: 10_000 });
+
+    const textbox = dialog.getByRole('textbox', { name: 'View name' });
+    await textbox.clear();
+    await textbox.fill(TABLE_VIEW_NAME);
+    await dialog.getByRole('button', { name: 'Save' }).click();
+    await expect(dialog).not.toBeVisible({ timeout: 10_000 });
+
+    console.log(`  ✅ "${TABLE_VIEW_NAME}" view created (views/${viewNumber})`);
+    return viewNumber;
+  } catch (err) {
+    console.warn(`  ⚠️  Table view setup failed (non-fatal): ${err}`);
+    return null;
+  }
+}
+
 export async function ensurePersistentIssue(): Promise<void> {
   const token = process.env.GH_API_TOKEN;
   const owner = process.env.GH_TEST_REPO_OWNER;
   const repo = process.env.GH_TEST_REPO;
-  const projectNumber = parseInt(process.env.GH_PROJECT_SANDBOX_NUMBER || '1', 10);
 
   if (!token || !owner || !repo) {
     console.log('  ⏭️  Persistent issue skipped — missing env vars');
@@ -155,35 +285,23 @@ export async function ensurePersistentIssue(): Promise<void> {
 
   console.log(`\n🔧 Verifying persistent test issue...`);
 
-  try {
-    if (fs.existsSync(PERSISTENT_ISSUE_PATH)) {
-      const existing: PersistentIssueData = JSON.parse(
-        fs.readFileSync(PERSISTENT_ISSUE_PATH, 'utf-8'),
-      );
+  const state = readSandboxState();
 
+  try {
+    if (state.persistentIssue) {
       const issue = await rest<{ state: string; title: string }>(
-        `/repos/${repo}/issues/${existing.number}`,
+        `/repos/${repo}/issues/${state.persistentIssue.number}`,
       );
       if (issue.state === 'open' && issue.title.includes(PERSISTENT_ISSUE_MARKER)) {
-        console.log(`  ✅ Persistent issue #${existing.number} exists and is open`);
+        console.log(`  ✅ Persistent issue #${state.persistentIssue.number} exists and is open`);
         return;
       }
-      console.log(`  ⚠️  Persistent issue #${existing.number} is closed or missing — recreating`);
+      console.log(
+        `  ⚠️  Persistent issue #${state.persistentIssue.number} is closed or missing — recreating`,
+      );
     }
 
-    const projData = await graphql<{ user: { projectV2: { id: string } | null } }>(
-      `
-        query ($owner: String!, $projectNumber: Int!) {
-          user(login: $owner) {
-            projectV2(number: $projectNumber) {
-              id
-            }
-          }
-        }
-      `,
-      { owner, projectNumber },
-    );
-    const projectId = projData.user?.projectV2?.id;
+    const projectId = await getProjectId();
     if (!projectId) {
       console.warn(`  ⚠️  Cannot create persistent issue — project not found`);
       return;
@@ -283,28 +401,30 @@ export async function ensurePersistentIssue(): Promise<void> {
       );
     }
 
-    const data: PersistentIssueData = {
+    state.persistentIssue = {
       number: issue.number,
       title: issue.title,
       nodeId: issue.node_id,
       projectItemId,
     };
 
-    fs.mkdirSync('auth', { recursive: true });
-    fs.writeFileSync(PERSISTENT_ISSUE_PATH, JSON.stringify(data, null, 2));
-    console.log(`  ✅ Persistent issue saved to ${PERSISTENT_ISSUE_PATH}`);
+    writeSandboxState(state);
+    console.log(`  ✅ Persistent issue saved to ${SANDBOX_STATE_PATH}`);
   } catch (err) {
     console.warn(`  ⚠️  Persistent issue setup failed (non-fatal): ${err}`);
   }
 }
 
 export function getPersistentIssue(): PersistentIssueData | null {
-  if (!fs.existsSync(PERSISTENT_ISSUE_PATH)) {
-    return null;
-  }
-  try {
-    return JSON.parse(fs.readFileSync(PERSISTENT_ISSUE_PATH, 'utf-8'));
-  } catch {
-    return null;
-  }
+  return readSandboxState().persistentIssue;
+}
+
+export function getTableViewNumber(): number | null {
+  return readSandboxState().tableViewNumber;
+}
+
+export function saveTableViewNumber(viewNumber: number): void {
+  const state = readSandboxState();
+  state.tableViewNumber = viewNumber;
+  writeSandboxState(state);
 }
