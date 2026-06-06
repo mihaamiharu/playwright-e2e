@@ -12,8 +12,9 @@ export class ProjectBoardPage {
     public readonly page: Page,
     repoOwner: string,
     projectNumber: string,
+    viewNumber: number = 1,
   ) {
-    this.viewPath = `/users/${repoOwner}/projects/${projectNumber}/views/1`;
+    this.viewPath = `/users/${repoOwner}/projects/${projectNumber}/views/${viewNumber}`;
   }
 
   /**

@@ -1,4 +1,4 @@
-@github @project @milestones @P1
+@github @project @milestones @P1 @serial
 Feature: Milestones
 
   As a project maintainer

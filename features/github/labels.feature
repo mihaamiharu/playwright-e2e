@@ -1,4 +1,4 @@
-@github @project @labels @P1
+@github @project @labels @P1 @serial
 Feature: Labels & Metadata
 
   As a project maintainer

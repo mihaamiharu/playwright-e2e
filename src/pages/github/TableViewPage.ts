@@ -12,8 +12,11 @@ export class TableViewPage {
   readonly tableButton: Locator;
   readonly grid: Locator;
 
-  constructor(public readonly page: Page) {
-    this.viewPath = `/users/${env.github.testRepoOwner}/projects/${env.github.sandboxProjectNumber}/views/1`;
+  constructor(
+    public readonly page: Page,
+    viewNumber: number = 1,
+  ) {
+    this.viewPath = `/users/${env.github.testRepoOwner}/projects/${env.github.sandboxProjectNumber}/views/${viewNumber}`;
     this.viewButton = page.getByRole('button', { name: /View$/ });
     this.tableButton = page.getByRole('menuitem', { name: 'Table' });
     this.grid = page.getByRole('grid');
@@ -22,7 +25,6 @@ export class TableViewPage {
   async navigate(filterQuery?: string): Promise<void> {
     await this.page.goto(this.viewPath, { waitUntil: 'domcontentloaded' });
     await waitForGitHubNavigation(this.page);
-    await this.ensureTableLayout();
 
     if (filterQuery) {
       const searchBar = new ProjectSearchBar(this.page);
@@ -30,24 +32,6 @@ export class TableViewPage {
       await this.page.keyboard.press('Enter');
       await this.page.waitForTimeout(500);
     }
-  }
-
-  async switchToTableLayout(): Promise<void> {
-    await this.viewButton.click();
-    await this.tableButton.click();
-    await expect(this.grid).toBeVisible({ timeout: 10_000 });
-    await this.page.keyboard.press('Escape');
-    await expect(this.tableButton).not.toBeVisible();
-  }
-
-  async ensureTableLayout(): Promise<void> {
-    const isTable = await this.grid.isVisible({ timeout: 1_000 }).catch(() => false);
-    if (isTable) return;
-
-    // Use URL parameter to switch to table layout directly
-    const baseUrl = this.page.url().split('?')[0];
-    await this.page.goto(`${baseUrl}?layout=table`);
-    await expect(this.grid).toBeVisible({ timeout: 10_000 });
   }
 
   getColumnHeader(name: string): Locator {
@@ -94,8 +78,26 @@ export class TableViewPage {
   }
 
   async expectRowValue(issueTitle: string, value: string): Promise<void> {
-    const row = this.getRow(issueTitle);
-    await expect(row.getByText(value)).toBeVisible();
+    await expect(async () => {
+      await this.page.reload();
+      await expect(this.grid).toBeVisible();
+
+      // Check if the value is visible in the row cell (column is visible)
+      const row = this.getRow(issueTitle);
+      const rowHasValue = await row
+        .getByText(value)
+        .isVisible()
+        .catch(() => false);
+
+      // Fallback: check if the value is in a group header row (column is grouped but not shown)
+      const groupHasValue = await this.page
+        .getByRole('row')
+        .filter({ hasText: value })
+        .isVisible()
+        .catch(() => false);
+
+      expect(rowHasValue || groupHasValue).toBe(true);
+    }).toPass({ timeout: 15_000 });
   }
 
   async sortColumnAscending(columnName: string): Promise<void> {

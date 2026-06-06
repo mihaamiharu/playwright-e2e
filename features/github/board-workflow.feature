@@ -1,4 +1,4 @@
-@github @project @board
+@github @project @board @serial
 Feature: Board Workflow (Kanban)
 
   Background:

@@ -1,8 +1,8 @@
 import { createBdd } from 'playwright-bdd';
 import { expect } from '@playwright/test';
 import { test } from '../../src/fixtures';
-import { env } from '../../src/config/env.config';
-import { uniqueTestTitle, buildIssueParams } from '../../src/utils/testing/factories';
+import { uniqueTestTitle } from '../../src/utils/testing/factories';
+import { seedAdditionalIssue } from '../../src/utils/testing/issue-seeder';
 
 const { When, Then } = createBdd(test);
 
@@ -27,8 +27,6 @@ Then(
     const draftTitle = scenarioContext.get<string>('draftTitle');
     const ghToken = process.env.GH_API_TOKEN || '';
 
-    // The Priority board view doesn't render draft items as buttons.
-    // Verify via GraphQL API using Playwright's page-level request context.
     const query = `query($projectId:ID!){node(id:$projectId){...on ProjectV2{items(first:50){nodes{id type content{...on DraftIssue{title}...on Issue{number title}}}}}}}`;
 
     interface DraftNode {
@@ -58,21 +56,12 @@ When(
   async ({ githubAPI, projectsAPI, sandbox, dataManager, scenarioContext, scenarioId }) => {
     const issueTitle = `${uniqueTestTitle('draft-convert', 'Converted issue')} [${scenarioId}]`;
 
-    const issue = await githubAPI.createIssue(
-      env.github.testRepo,
-      buildIssueParams({ title: issueTitle, body: 'Converted from draft' }),
-    );
-
-    dataManager.enqueue(`close issue #${issue.number}`, async () => {
-      await githubAPI.closeIssue(env.github.testRepo, issue.number);
+    await seedAdditionalIssue(githubAPI, projectsAPI, sandbox, dataManager, {
+      title: issueTitle,
+      body: 'Converted from draft',
     });
 
-    const itemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
     scenarioContext.set('issueTitle', issueTitle);
-
-    dataManager.enqueue(`remove issue #${issue.number} from project`, async () => {
-      await projectsAPI.removeItemFromProject(sandbox.projectId, itemId);
-    });
   },
 );
 

@@ -2,12 +2,15 @@ import { createBdd } from 'playwright-bdd';
 import { expect } from '@playwright/test';
 import { test } from '../../src/fixtures';
 import { env } from '../../src/config/env.config';
-import { buildIssueParams, buildMilestoneParams } from '../../src/utils/testing/factories';
+import { buildMilestoneParams } from '../../src/utils/testing/factories';
+import type { SeededIssue } from '../../src/utils/testing/issue-seeder';
+import { seedAdditionalIssue } from '../../src/utils/testing/issue-seeder';
 
 const { When, Then } = createBdd(test);
 
-When('I close the seeded issue via the API', async ({ githubAPI, seededProjectIssue }) => {
-  await githubAPI.updateIssue(env.github.testRepo, seededProjectIssue.number, {
+When('I close the seeded issue via the API', async ({ githubAPI, scenarioContext }) => {
+  const seededIssue = scenarioContext.get<SeededIssue>('seededIssue');
+  await githubAPI.updateIssue(env.github.testRepo, seededIssue.number, {
     state: 'closed',
   });
 });
@@ -28,8 +31,9 @@ When(
 
 When(
   'I link the seeded issue to the milestone via the API',
-  async ({ githubAPI, seededProjectIssue, scenarioContext }) => {
-    await githubAPI.updateIssue(env.github.testRepo, seededProjectIssue.number, {
+  async ({ githubAPI, scenarioContext }) => {
+    const seededIssue = scenarioContext.get<SeededIssue>('seededIssue');
+    await githubAPI.updateIssue(env.github.testRepo, seededIssue.number, {
       milestone: scenarioContext.get<number>('milestoneNumber'),
     });
   },
@@ -47,24 +51,12 @@ When(
   async ({ githubAPI, projectsAPI, sandbox, dataManager, scenarioContext }) => {
     const milestoneNumber = scenarioContext.get<number>('milestoneNumber');
 
-    const issue = await githubAPI.createIssue(
-      env.github.testRepo,
-      buildIssueParams({
-        body: `Second issue for milestone progress test`,
-        milestone: milestoneNumber,
-      }),
-    );
+    const issue = await seedAdditionalIssue(githubAPI, projectsAPI, sandbox, dataManager, {
+      body: `Second issue for milestone progress test`,
+      milestone: milestoneNumber,
+    });
 
     scenarioContext.set('secondMilestoneIssueNumber', issue.number);
-
-    dataManager.enqueue(`close issue #${issue.number}`, async () => {
-      await githubAPI.closeIssue(env.github.testRepo, issue.number);
-    });
-
-    const projectItemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
-    dataManager.enqueue(`remove issue #${issue.number} from project`, async () => {
-      await projectsAPI.removeItemFromProject(sandbox.projectId, projectItemId);
-    });
   },
 );
 
@@ -91,8 +83,6 @@ Then('I should see the milestone progress bar showing partial completion', async
     expect(progressValue).toBeLessThan(progressMax);
   }).toPass({ timeout: 15_000 });
 });
-
-// ── MIL-03 ──────────────────────────────────────────────────
 
 When('I close the second issue via the API', async ({ githubAPI, scenarioContext }) => {
   await githubAPI.updateIssue(

@@ -1,8 +1,9 @@
 import { createBdd } from 'playwright-bdd';
 import { expect } from '@playwright/test';
 import { test } from '../../src/fixtures';
-import { env } from '../../src/config/env.config';
-import { uniqueTestTitle, buildIssueParams } from '../../src/utils/testing/factories';
+import type { SeededIssue } from '../../src/utils/testing/issue-seeder';
+import { seedAdditionalIssue } from '../../src/utils/testing/issue-seeder';
+import { uniqueTestTitle } from '../../src/utils/testing/factories';
 
 const { Given, When, Then } = createBdd(test);
 
@@ -13,17 +14,9 @@ Given(
     scenarioContext.set('searchKeyword', keyword);
     scenarioContext.set('keywordIssueTitle', keyword);
 
-    const issue = await githubAPI.createIssue(
-      env.github.testRepo,
-      buildIssueParams({ title: keyword, body: 'Search test issue' }),
-    );
-    dataManager.enqueue(`close issue #${issue.number}`, async () => {
-      await githubAPI.closeIssue(env.github.testRepo, issue.number);
-    });
-    const projectItemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
-
-    dataManager.enqueue(`remove issue #${issue.number} from project`, async () => {
-      await projectsAPI.removeItemFromProject(sandbox.projectId, projectItemId);
+    await seedAdditionalIssue(githubAPI, projectsAPI, sandbox, dataManager, {
+      title: keyword,
+      body: 'Search test issue',
     });
   },
 );
@@ -51,7 +44,8 @@ Then(
 
 Then(
   'the seeded issue without the keyword should not be visible',
-  async ({ boardView, seededProjectIssue }) => {
-    await boardView.expectCardNotVisible(seededProjectIssue.title);
+  async ({ boardView, scenarioContext }) => {
+    const seededIssue = scenarioContext.get<SeededIssue>('seededIssue');
+    await boardView.expectCardNotVisible(seededIssue.title);
   },
 );

@@ -6,7 +6,7 @@ const { When, Then } = createBdd(test);
 When(
   'I create a new board view named {string}',
   async ({ savedViews, scenarioContext, dataManager }, baseName: string) => {
-    const currentViewName = `${baseName} ${Date.now()}`;
+    const currentViewName = `${baseName} ${crypto.randomUUID().slice(0, 8)}`;
     scenarioContext.set('currentViewName', currentViewName);
     await savedViews.createBoardView(currentViewName);
 

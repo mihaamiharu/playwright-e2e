@@ -5,11 +5,13 @@
 All tests are BDD (Gherkin `.feature` files via playwright-bdd). The sole config is `playwright.bdd.config.ts`.
 
 ```
-npm test                        # bddgen + run all BDD tests
+npm test                        # bddgen + run all BDD tests (parallel + serial)
 npm test -- --headed            # headed
 npm test -- --grep @smoke       # run tests matching tag
 npm test -- --grep @P0          # priority-tagged only
 npm run test:smoke              # shortcut for @smoke
+npm run test:parallel           # parallel project only (excludes @serial)
+npm run test:serial             # serial project only (@serial tagged)
 npm run test:ui                 # Playwright UI mode
 npm run lint / lint:fix         # ESLint on src/ steps/
 npm run format / format:check   # Prettier
@@ -27,12 +29,38 @@ npm run bddgen                  # .feature → .spec.ts only, no run
 - No `storageState` at config level — login tests run unauthenticated, issue-crud accesses public repo pages
 - Generates from `features/` into `.features-gen/` (gitignored)
 - Steps: `['steps/**/*.ts', 'src/fixtures/index.ts']`
-- `fullyParallel: false` — tests run serially (data lifecycle depends on sequential order)
+- `fullyParallel: true` — tests run in parallel by default
 - `retries: process.env.CI ? 1 : 0` — up to 1 intra-run retry in CI, zero locally
-- `workers: process.env.CI ? 2 : undefined`
-- `timeout: 20_000` — 20s per test
+- `workers: process.env.CI ? 2 : 4` — 4 workers locally, 2 in CI
+- `timeout: 60_000` — 60s per test
 - `forbidOnly: !!process.env.CI` — `.only` is blocked in CI to prevent accidentally skipping tests
 - `outputDir: 'reports/artifacts'` — Playwright writes `.last-run.json` here (used by `--last-failed`)
+
+### Two projects (parallel + serial)
+
+Tests are split into two projects to avoid shared state conflicts:
+
+| Project    | Tests                       | Parallelism | Workers    |
+| ---------- | --------------------------- | ----------- | ---------- |
+| `parallel` | Everything except `@serial` | `true`      | 4 / 2 (CI) |
+| `serial`   | Only `@serial` tagged       | `false`     | 1          |
+
+**Why `@serial`?** All tests share one sandbox project. Tests that depend on GraphQL eventual consistency under load or have timing-sensitive assertions are tagged `@serial` to prevent race conditions.
+
+**Tagging convention:** Add `@serial` to any feature that depends on GraphQL eventual consistency under load or has timing-sensitive assertions. Features tagged `@serial`: `table-views`, `saved-views`, `board-workflow`, `bulk-operations`, `auto-workflows`, `visual`, `draft-items`, `labels`, `custom-fields`, `search`, `milestones`. Most features don't need this tag.
+
+### View isolation
+
+Tests use separate GitHub Project views to prevent state contamination:
+
+| View      | Layout | Used by                                                                       |
+| --------- | ------ | ----------------------------------------------------------------------------- |
+| `views/1` | Board  | board-workflow, bulk-operations, labels, search, draft-items, visual (VIS-01) |
+| `views/2` | Table  | table-views, custom-fields, visual (VIS-03)                                   |
+
+The "Table Layout" view (`views/2`) is created automatically during bootstrap if it doesn't exist. View numbers are discovered at bootstrap time and stored in `auth/sandbox-state.json` (gitignored). The `sandbox` fixture exposes `boardViewNumber` and `tableViewNumber` for page objects to use.
+
+This eliminates the need for manual layout switching in tests and prevents filter/sort state from contaminating subsequent tests.
 
 ## Project structure
 
@@ -125,7 +153,8 @@ When you click "Re-run failed jobs" in GitHub on `e2e-full.yml`:
 ## Gotchas
 
 - TypeScript 5.x with strict mode enabled
-- `closeIssue()` swallows errors (cleanup); `createIssue()` throws
+- `closeIssue()` throws on error; `removeLabel()` and `deleteMilestone()` swallow errors (cleanup)
 - `imap` is an unusual devDependency — only used by global-setup for device verification codes
 - `test.use()` at module level breaks BDD codegen — use it inside `Before` hooks or fixture definitions only
 - `NODE_OPTIONS: --use-system-ca` is **required in CI** — HTTPS requests to GitHub fail without it
+- Add `@serial` tag to features that mutate shared UI state (view layout) — see config section above
