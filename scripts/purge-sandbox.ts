@@ -54,6 +54,14 @@ function isE2eItem(title: string): boolean {
   return /^e2e-/.test(title) || /^[AB]-e2e-/.test(title);
 }
 
+function chunk<T>(arr: T[], size: number): T[][] {
+  const result: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) {
+    result.push(arr.slice(i, i + size));
+  }
+  return result;
+}
+
 async function main() {
   const ageLabel = AGE_DAYS > 0 ? `older than ${AGE_DAYS} days` : 'all e2e-* items';
   console.log(
@@ -133,41 +141,76 @@ async function main() {
 
   let removed = 0;
   let closed = 0;
+  const BATCH_SIZE = 10;
 
-  for (const item of toPurge) {
-    const info = item.type === 'ISSUE' ? `issue #${item.content!.number}` : 'draft (no issue)';
-    console.log(`  "${item.content?.title}" (${info})`);
-
-    if (DRY_RUN) continue;
-
-    try {
-      await gql(
-        `mutation($projectId: ID!, $itemId: ID!) {
-          deleteProjectV2Item(input: { projectId: $projectId, itemId: $itemId }) {
-            deletedItemId
-          }
-        }`,
-        { projectId, itemId: item.id },
-      );
-      removed++;
-    } catch (err) {
-      console.error(`    ✗ remove failed: ${(err as Error).message}`);
-      continue;
+  if (DRY_RUN) {
+    for (const item of toPurge) {
+      const info = item.type === 'ISSUE' ? `issue #${item.content!.number}` : 'draft (no issue)';
+      console.log(`  "${item.content?.title}" (${info})`);
     }
+  } else {
+    const deleteChunks = chunk(toPurge, BATCH_SIZE);
+    const successfullyRemoved: Array<{ type: string; number?: number; title?: string }> = [];
 
-    if (item.type === 'ISSUE' && item.content?.number) {
+    for (let i = 0; i < deleteChunks.length; i++) {
+      const batch = deleteChunks[i];
+      const aliases = batch
+        .map((item, idx) => `d${idx}: deleteProjectV2Item(input: { projectId: $projectId, itemId: $itemId${idx} }) { deletedItemId }`)
+        .join('\n        ');
+      const variables: Record<string, unknown> = { projectId };
+      batch.forEach((item, idx) => {
+        variables[`itemId${idx}`] = item.id;
+      });
+
       try {
-        await rest(`/repos/${TEST_REPO}/issues/${item.content.number}`, {
-          method: 'PATCH',
-          body: JSON.stringify({ state: 'closed' }),
-        });
-        closed++;
+        await gql(
+          `mutation($projectId: ID!, ${batch.map((_, idx) => `$itemId${idx}: ID!`).join(', ')}) {
+            ${aliases}
+          }`,
+          variables,
+        );
+        successfullyRemoved.push(...batch.map((item) => ({ type: item.type, number: item.content?.number, title: item.content?.title })));
+        removed += batch.length;
+        console.log(`  [batch ${i + 1}/${deleteChunks.length}] deleted ${batch.length} items from project`);
       } catch (err) {
-        console.error(`    ✗ close failed: ${(err as Error).message}`);
+        console.error(`  [batch ${i + 1}/${deleteChunks.length}] ✗ batch delete failed: ${(err as Error).message}`);
+      }
+
+      if (i < deleteChunks.length - 1) {
+        await new Promise((r) => setTimeout(r, 500));
       }
     }
 
-    await new Promise((r) => setTimeout(r, 500));
+    const issuesToClose = successfullyRemoved.filter((item) => item.type === 'ISSUE' && item.number);
+    if (issuesToClose.length > 0) {
+      const closeChunks = chunk(issuesToClose, BATCH_SIZE);
+      for (let i = 0; i < closeChunks.length; i++) {
+        const batch = closeChunks[i];
+        const results = await Promise.allSettled(
+          batch.map((item) =>
+            rest(`/repos/${TEST_REPO}/issues/${item.number}`, {
+              method: 'PATCH',
+              body: JSON.stringify({ state: 'closed' }),
+            }),
+          ),
+        );
+
+        const batchClosed = results.filter((r) => r.status === 'fulfilled').length;
+        closed += batchClosed;
+
+        results.forEach((result, idx) => {
+          if (result.status === 'rejected') {
+            console.error(`    ✗ close #${batch[idx].number} failed: ${(result.reason as Error).message}`);
+          }
+        });
+
+        console.log(`  [batch ${i + 1}/${closeChunks.length}] closed ${batchClosed}/${batch.length} issues`);
+
+        if (i < closeChunks.length - 1) {
+          await new Promise((r) => setTimeout(r, 500));
+        }
+      }
+    }
   }
 
   if (DRY_RUN) {
