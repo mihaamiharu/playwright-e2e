@@ -3,6 +3,7 @@
 [![Playwright](https://img.shields.io/badge/playwright-v1.59-blue)](https://playwright.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org/)
 [![BDD](https://img.shields.io/badge/BDD-playwright--bdd-green)](https://github.com/vitalets/playwright-bdd)
+[![E2E Tests](https://github.com/mihaamiharu/playwright-e2e/actions/workflows/e2e-full.yml/badge.svg)](https://github.com/mihaamiharu/playwright-e2e/actions/workflows/e2e-full.yml)
 [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
 > **A production-grade Playwright E2E testing repository demonstrating QA best practices by testing real public websites — the kind of complexity demo apps hide from you.**
@@ -77,6 +78,8 @@ npm run report
 
 # Generate + view Allure report
 npm run report:allure
+
+📊 [Latest CI Test Report](https://mihaamiharu.github.io/playwright-e2e/) — hosted Allure report with history and trends
 
 # Type check + lint + format
 npm run typecheck
