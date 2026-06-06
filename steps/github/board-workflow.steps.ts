@@ -6,9 +6,9 @@ import type { SeededIssue } from '../../src/utils/testing/issue-seeder';
 const { When, Then } = createBdd(test);
 
 When(
-  'I move the issue to {string} via the project API',
-  async ({ sandbox, scenarioContext, projectsAPI, page }, statusName: string) => {
-    const seededIssue = scenarioContext.get<SeededIssue>('seededIssue');
+  'I move issue {string} to {string} via API',
+  async ({ sandbox, scenarioContext, projectsAPI, page }, key: string, statusName: string) => {
+    const issue = scenarioContext.get<SeededIssue>(key);
     const optionId = sandbox.statusOptions.get(statusName);
     if (!optionId) {
       const available = [...sandbox.statusOptions.keys()].join(', ');
@@ -16,14 +16,14 @@ When(
     }
     await projectsAPI.moveItemToStatus(
       sandbox.projectId,
-      seededIssue.projectItemId,
+      issue.projectItemId,
       sandbox.statusFieldId,
       optionId,
     );
 
     await expect(async () => {
       const items = await projectsAPI.getItems(sandbox.projectId);
-      const item = items.find((i) => i.id === seededIssue.projectItemId);
+      const item = items.find((i) => i.id === issue.projectItemId);
       expect(item?.status).toBe(statusName);
     }).toPass({ timeout: 20_000 });
 
@@ -40,9 +40,9 @@ When('I navigate to the kanban board', async ({ projectBoardPage }) => {
 });
 
 Then(
-  'the issue should appear in the {string} column',
-  async ({ projectBoardPage, projectsAPI, sandbox, scenarioContext }, columnName: string) => {
-    const seededIssue = scenarioContext.get<SeededIssue>('seededIssue');
+  'issue {string} should appear in the {string} column',
+  async ({ projectBoardPage, projectsAPI, sandbox, scenarioContext }, key: string, columnName: string) => {
+    const issue = scenarioContext.get<SeededIssue>(key);
 
     await expect(async () => {
       await expect(
@@ -50,29 +50,29 @@ Then(
       ).toBeVisible();
 
       const items = await projectsAPI.getItems(sandbox.projectId);
-      const item = items.find((i) => i.id === seededIssue.projectItemId);
-      if (!item) throw new Error(`Issue item ${seededIssue.projectItemId} not found`);
+      const item = items.find((i) => i.id === issue.projectItemId);
+      if (!item) throw new Error(`Issue item ${issue.projectItemId} not found`);
       expect(item.status).toBe(columnName);
     }).toPass({ timeout: 20_000 });
   },
 );
 
 When(
-  'I drag the issue from {string} to {string}',
-  async ({ projectBoardPage, scenarioContext }, _fromColumn: string, toColumn: string) => {
-    const seededIssue = scenarioContext.get<SeededIssue>('seededIssue');
-    await projectBoardPage.dragCardToColumn(seededIssue.title, toColumn);
+  'I drag issue {string} from {string} to {string}',
+  async ({ projectBoardPage, scenarioContext }, key: string, _fromColumn: string, toColumn: string) => {
+    const issue = scenarioContext.get<SeededIssue>(key);
+    await projectBoardPage.dragCardToColumn(issue.title, toColumn);
   },
 );
 
 Then(
-  'the issue status should be {string} via the API',
-  async ({ projectsAPI, sandbox, scenarioContext }, expectedStatus: string) => {
-    const seededIssue = scenarioContext.get<SeededIssue>('seededIssue');
+  'issue {string} status should be {string} via API',
+  async ({ projectsAPI, sandbox, scenarioContext }, key: string, expectedStatus: string) => {
+    const issue = scenarioContext.get<SeededIssue>(key);
     const items = await projectsAPI.getItems(sandbox.projectId);
-    const item = items.find((i) => i.id === seededIssue.projectItemId);
+    const item = items.find((i) => i.id === issue.projectItemId);
     if (!item) {
-      throw new Error(`Issue item ${seededIssue.projectItemId} not found in project`);
+      throw new Error(`Issue item ${issue.projectItemId} not found in project`);
     }
     expect(item.status).toBe(expectedStatus);
   },

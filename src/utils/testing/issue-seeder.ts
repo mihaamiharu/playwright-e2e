@@ -23,6 +23,7 @@ export interface SeedOptions {
   milestone?: number;
   status?: string;
   scenarioId?: string;
+  key?: string;
 }
 
 export async function seedProjectIssue(
@@ -71,7 +72,7 @@ export async function seedProjectIssue(
   );
 
   const seededIssue: SeededIssue = { ...issue, projectItemId };
-  scenarioContext.set('seededIssue', seededIssue);
+  scenarioContext.set(options.key ?? 'seededIssue', seededIssue);
 
   return seededIssue;
 }
@@ -81,6 +82,7 @@ export async function seedAdditionalIssue(
   projectsAPI: GitHubProjectsAPI,
   sandbox: SandboxConfig,
   dataManager: DataManager,
+  scenarioContext: ScenarioContext,
   options: SeedOptions = {},
 ): Promise<SeededIssue> {
   const params = buildIssueParams({
@@ -122,5 +124,10 @@ export async function seedAdditionalIssue(
     projectsAPI.removeItemFromProject(sandbox.projectId, projectItemId),
   );
 
-  return { ...issue, projectItemId };
+  const seededIssue: SeededIssue = { ...issue, projectItemId };
+  if (options.key) {
+    scenarioContext.set(options.key, seededIssue);
+  }
+
+  return seededIssue;
 }

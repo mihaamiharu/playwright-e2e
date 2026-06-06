@@ -19,10 +19,10 @@ Then(
 );
 
 Then(
-  'the seeded issue should appear as a row in the table',
-  async ({ tableViewPage, scenarioContext }) => {
-    const seededIssue = scenarioContext.get<SeededIssue>('seededIssue');
-    await tableViewPage.expectRowVisible(seededIssue.title);
+  'issue {string} should appear as a row in the table',
+  async ({ tableViewPage, scenarioContext }, key) => {
+    const issue = scenarioContext.get<SeededIssue>(key);
+    await tableViewPage.expectRowVisible(issue.title);
   },
 );
 
@@ -35,15 +35,13 @@ Given(
   ) => {
     const sortTitleA = `${uniqueTestTitle(prefixA)} [${scenarioId}]`;
     const sortTitleZ = `${uniqueTestTitle(prefixZ)} [${scenarioId}]`;
-    scenarioContext.set('sortTitleA', sortTitleA);
-    scenarioContext.set('sortTitleZ', sortTitleZ);
 
-    await seedAdditionalIssue(githubAPI, projectsAPI, sandbox, dataManager, {
+    await seedAdditionalIssue(githubAPI, projectsAPI, sandbox, dataManager, scenarioContext, {
       title: sortTitleA,
       body: 'Sort test issue',
     });
 
-    await seedAdditionalIssue(githubAPI, projectsAPI, sandbox, dataManager, {
+    await seedAdditionalIssue(githubAPI, projectsAPI, sandbox, dataManager, scenarioContext, {
       title: sortTitleZ,
       body: 'Sort test issue',
     });
@@ -81,14 +79,12 @@ Given(
   ) => {
     const title = `${uniqueTestTitle(issueId)} [${scenarioId}]`;
 
-    if (issueId === 'A') scenarioContext.set('issueATitle', title);
-    else scenarioContext.set('issueBTitle', title);
-
-    const issue = await seedAdditionalIssue(githubAPI, projectsAPI, sandbox, dataManager, {
+    const issue = await seedAdditionalIssue(githubAPI, projectsAPI, sandbox, dataManager, scenarioContext, {
       title,
       labels: [labelName],
       body: `Filter test issue ${issueId}`,
       status: statusName,
+      key: issueId,
     });
 
     const optionId = sandbox.statusOptions.get(statusName);
@@ -115,13 +111,12 @@ Given(
   ) => {
     const title = `${uniqueTestTitle(issueId)} [${scenarioId}]`;
 
-    scenarioContext.set('issueBTitle', title);
-
-    const issue = await seedAdditionalIssue(githubAPI, projectsAPI, sandbox, dataManager, {
+    const issue = await seedAdditionalIssue(githubAPI, projectsAPI, sandbox, dataManager, scenarioContext, {
       title,
       labels: [],
       body: `Filter test issue ${issueId}`,
       status: statusName,
+      key: issueId,
     });
 
     const optionId = sandbox.statusOptions.get(statusName);
@@ -158,21 +153,15 @@ When(
 Then(
   'issue {string} should be visible in the table',
   async ({ tableViewPage, scenarioContext }, issueId) => {
-    const title =
-      issueId === 'A'
-        ? scenarioContext.get<string>('issueATitle')
-        : scenarioContext.get<string>('issueBTitle');
-    await tableViewPage.expectRowVisible(title);
+    const issue = scenarioContext.get<SeededIssue>(issueId);
+    await tableViewPage.expectRowVisible(issue.title);
   },
 );
 
 Then(
   'issue {string} should not be visible in the table',
   async ({ tableViewPage, scenarioContext }, issueId) => {
-    const title =
-      issueId === 'A'
-        ? scenarioContext.get<string>('issueATitle')
-        : scenarioContext.get<string>('issueBTitle');
-    await tableViewPage.expectRowNotVisible(title);
+    const issue = scenarioContext.get<SeededIssue>(issueId);
+    await tableViewPage.expectRowNotVisible(issue.title);
   },
 );

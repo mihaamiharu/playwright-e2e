@@ -11,12 +11,4 @@ export class ScenarioContext {
     }
     return this.store.get(key) as T;
   }
-
-  tryGet<T>(key: string): T | undefined {
-    return this.store.get(key) as T | undefined;
-  }
-
-  has(key: string): boolean {
-    return this.store.has(key);
-  }
 }

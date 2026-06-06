@@ -1,13 +1,14 @@
 import { createBdd } from 'playwright-bdd';
 import { test } from '../../src/fixtures';
 
+let currentViewName = '';
+
 const { When, Then } = createBdd(test);
 
 When(
   'I create a new board view named {string}',
-  async ({ savedViews, scenarioContext, dataManager }, baseName: string) => {
-    const currentViewName = `${baseName} ${crypto.randomUUID().slice(0, 8)}`;
-    scenarioContext.set('currentViewName', currentViewName);
+  async ({ savedViews, dataManager }, baseName: string) => {
+    currentViewName = `${baseName} ${crypto.randomUUID().slice(0, 8)}`;
     await savedViews.createBoardView(currentViewName);
 
     dataManager.enqueue(`delete view "${currentViewName}"`, async () => {
@@ -30,13 +31,16 @@ Then(
   },
 );
 
-Then('the created view tab should be visible', async ({ savedViews, scenarioContext }) => {
-  await savedViews.assertViewTabSelected(scenarioContext.get<string>('currentViewName'));
+Then('the created view tab should be visible', async ({ savedViews }) => {
+  await savedViews.assertViewTabSelected(currentViewName);
 });
 
-Then('the current view tab should be named {string}', async ({ savedViews }, viewName: string) => {
-  await savedViews.assertViewTabSelected(viewName);
-});
+Then(
+  'the current view tab should be named {string}',
+  async ({ savedViews }, viewName: string) => {
+    await savedViews.assertViewTabSelected(viewName);
+  },
+);
 
 When('I reload the page', async ({ savedViews }) => {
   await savedViews.refreshView();
