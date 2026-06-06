@@ -1,4 +1,4 @@
-@github @project @saved-views @P2
+@github @project @saved-views @P2 @serial
 Feature: Saved Views
 
   As a project contributor

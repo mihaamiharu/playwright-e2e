@@ -1,4 +1,4 @@
-@github @project @bulk-operations @P1
+@github @project @bulk-operations @P1 @serial
 Feature: Bulk Operations
 
   As a project manager

@@ -1,4 +1,4 @@
-@github @project @table-views @P1
+@github @project @table-views @P1 @serial
 Feature: Table & Views
 
   As a project manager

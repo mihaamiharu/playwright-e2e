@@ -18,10 +18,10 @@ const testDir = defineBddConfig({
 
 export default defineConfig({
   testDir,
-  fullyParallel: false,
+  fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  workers: process.env.CI ? 2 : 1,
+  workers: process.env.CI ? 2 : 4,
   timeout: 60_000,
   expect: {
     timeout: 10_000,
@@ -59,8 +59,16 @@ export default defineConfig({
   },
   projects: [
     {
-      name: 'chromium',
+      name: 'parallel',
       use: { ...devices['Desktop Chrome'] },
+      grepInvert: /@serial/,
+    },
+    {
+      name: 'serial',
+      use: { ...devices['Desktop Chrome'] },
+      grep: /@serial/,
+      fullyParallel: false,
+      workers: 1,
     },
   ],
   globalSetup: './src/config/global-setup.ts',

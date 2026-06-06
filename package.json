@@ -8,6 +8,8 @@
     "test:headed": "npx bddgen -c playwright.bdd.config.ts && npx playwright test --config=playwright.bdd.config.ts --headed",
     "test:ui": "npx playwright test --ui --config=playwright.bdd.config.ts",
     "test:smoke": "npx bddgen -c playwright.bdd.config.ts && npx playwright test --config=playwright.bdd.config.ts --grep @smoke",
+    "test:parallel": "npx bddgen -c playwright.bdd.config.ts && npx playwright test --config=playwright.bdd.config.ts --project=parallel",
+    "test:serial": "npx bddgen -c playwright.bdd.config.ts && npx playwright test --config=playwright.bdd.config.ts --project=serial",
     "report": "npx playwright show-report reports/playwright",
     "report:allure": "mkdir -p reports/allure/results && cp allure-categories.json reports/allure/results/categories.json 2>/dev/null || true && npx allure generate reports/allure/results --clean -o reports/allure/report && npx allure open reports/allure/report",
     "lint": "eslint 'src/**/*.ts' 'steps/**/*.ts'",

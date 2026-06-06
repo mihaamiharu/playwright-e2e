@@ -1,4 +1,4 @@
-@github @project @custom-fields
+@github @project @custom-fields @serial
 Feature: Custom Fields
 
   As a project contributor

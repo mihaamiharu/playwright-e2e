@@ -1,4 +1,4 @@
-@github @project @search @P1
+@github @project @search @P1 @serial
 Feature: In-Project Search
 
   As a project contributor

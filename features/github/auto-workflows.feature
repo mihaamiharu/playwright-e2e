@@ -1,4 +1,4 @@
-@github @project @auto-workflows @P2
+@github @project @auto-workflows @P2 @serial
 Feature: Auto-Workflows
 
   As a project maintainer

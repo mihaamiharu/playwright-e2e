@@ -1,4 +1,4 @@
-@github @project @draft-items @P2
+@github @project @draft-items @P2 @serial
 Feature: Draft Items
 
   As a project contributor
