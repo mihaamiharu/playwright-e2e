@@ -198,7 +198,7 @@ export async function ensureTableLayoutView(page?: Page): Promise<number | null>
         query ($projectId: ID!) {
           node(id: $projectId) {
             ... on ProjectV2 {
-              views(first: 20) {
+              views(first: 50) {
                 nodes {
                   id
                   name
