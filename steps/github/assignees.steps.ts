@@ -2,18 +2,22 @@ import { createBdd } from 'playwright-bdd';
 import { expect } from '@playwright/test';
 import { test } from '../../src/fixtures';
 import { env } from '../../src/config/env.config';
-import { uniqueTestTitle, buildIssueParams } from '../../src/utils/testing/factories';
+import type { SeededIssue } from '../../src/utils/testing/issue-seeder';
+import { seedAdditionalIssue } from '../../src/utils/testing/issue-seeder';
+import { uniqueTestTitle } from '../../src/utils/testing/factories';
 
 const { When, Then } = createBdd(test);
 
-When('I assign the issue to myself via the API', async ({ githubAPI, seededProjectIssue }) => {
-  await githubAPI.updateIssue(env.github.testRepo, seededProjectIssue.number, {
+When('I assign the issue to myself via the API', async ({ githubAPI, scenarioContext }) => {
+  const seededIssue = scenarioContext.get<SeededIssue>('seededIssue');
+  await githubAPI.updateIssue(env.github.testRepo, seededIssue.number, {
     assignees: [env.github.username],
   });
 });
 
-When('I unassign the issue via the API', async ({ githubAPI, seededProjectIssue }) => {
-  await githubAPI.updateIssue(env.github.testRepo, seededProjectIssue.number, {
+When('I unassign the issue via the API', async ({ githubAPI, scenarioContext }) => {
+  const seededIssue = scenarioContext.get<SeededIssue>('seededIssue');
+  await githubAPI.updateIssue(env.github.testRepo, seededIssue.number, {
     assignees: [],
   });
 });
@@ -31,21 +35,9 @@ When(
   async ({ githubAPI, projectsAPI, sandbox, dataManager, scenarioContext }) => {
     const title = uniqueTestTitle('unassigned');
 
-    const issue = await githubAPI.createIssue(
-      env.github.testRepo,
-      buildIssueParams({
-        title,
-        body: `Second unassigned issue for assignee filter test. Run: ${title}`,
-      }),
-    );
-
-    dataManager.enqueue(`close issue #${issue.number}`, async () => {
-      await githubAPI.closeIssue(env.github.testRepo, issue.number);
-    });
-
-    const projectItemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
-    dataManager.enqueue(`remove issue #${issue.number} from project`, async () => {
-      await projectsAPI.removeItemFromProject(sandbox.projectId, projectItemId);
+    await seedAdditionalIssue(githubAPI, projectsAPI, sandbox, dataManager, {
+      title,
+      body: `Second unassigned issue for assignee filter test. Run: ${title}`,
     });
 
     scenarioContext.set('secondUnassignedIssueTitle', title);

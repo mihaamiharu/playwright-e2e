@@ -1,5 +1,4 @@
 import { mergeTests, test as pwTest } from '@playwright/test';
-import type { GitHubIssue } from '../utils/api/github-rest';
 import { test as githubTest } from './github.fixture';
 import { test as dataTest } from './project-data.fixture';
 import { test as apiTest, requireSandbox } from './project-api.fixture';
@@ -7,7 +6,7 @@ import { test as pagesTest } from './pages.fixture';
 import { attachAllureLabels } from '../utils/reporting/allure-labels';
 import { env } from '../config/env.config';
 import { ensureAuthCookies } from '../utils/auth/cookies';
-import { buildIssueParams } from '../utils/testing/factories';
+import { DataManager } from '../utils/testing/data-manager';
 
 const logPrefix = (testInfo: { title: string }) => `[${testInfo.title}]`;
 
@@ -18,7 +17,7 @@ export const test = mergeTests(githubTest, dataTest, apiTest, pagesTest).extend<
     statusOptions: Map<string, string>;
   };
   scenarioId: string;
-  seededProjectIssue: GitHubIssue & { projectItemId: string };
+  dataManager: DataManager;
   _allureLabels: void;
 }>({
   // eslint-disable-next-line no-empty-pattern
@@ -47,48 +46,14 @@ export const test = mergeTests(githubTest, dataTest, apiTest, pagesTest).extend<
     await use({ projectId, statusFieldId, statusOptions });
   },
 
-  seededProjectIssue: async (
-    { githubAPI, projectsAPI, sandbox, dataManager, scenarioId },
-    use,
-    testInfo,
-  ) => {
-    requireSandbox();
-
-    const result = await pwTest.step('Fixture: seed project issue', async () => {
-      const params = buildIssueParams();
-      params.title = `${params.title} [${scenarioId}]`; // Append scenarioId for filtering
-      const issue = await githubAPI.createIssue(env.github.testRepo, {
-        ...params,
-        body: `🤖 Seeded by Playwright E2E test. Auto-cleaned. Run: ${params.title}`,
-      });
-      console.log(
-        `${logPrefix(testInfo)} [seeder] Created issue #${issue.number}: "${params.title}"`,
-      );
-
-      dataManager.enqueue(`close issue #${issue.number}`, () =>
-        githubAPI.closeIssue(env.github.testRepo, issue.number),
-      );
-
-      const projectItemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
-      console.log(
-        `${logPrefix(testInfo)} [seeder] Added issue #${issue.number} to project ${sandbox.projectId}`,
-      );
-
-      const backlogOptionId = sandbox.statusOptions.get('Backlog');
-      if (backlogOptionId) {
-        await projectsAPI.setFieldValue(sandbox.projectId, projectItemId, sandbox.statusFieldId, {
-          singleSelectOptionId: backlogOptionId,
-        });
-      }
-
-      dataManager.enqueue(`remove issue #${issue.number} from project`, () =>
-        projectsAPI.removeItemFromProject(sandbox.projectId, projectItemId),
-      );
-
-      return { ...issue, projectItemId };
+  dataManager: async ({ githubAPI: _githubAPI, projectsAPI: _projectsAPI }, use, testInfo) => {
+    const dm = new DataManager();
+    await use(dm);
+    const result = await pwTest.step('DataManager: LIFO cleanup', () => dm.cleanupAll());
+    await testInfo.attach('cleanup-log', {
+      body: result.logs,
+      contentType: 'text/plain',
     });
-
-    await use(result);
   },
 
   _allureLabels: [

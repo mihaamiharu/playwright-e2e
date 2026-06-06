@@ -1,8 +1,9 @@
 import { createBdd } from 'playwright-bdd';
 import { expect } from '@playwright/test';
 import { test } from '../../src/fixtures';
-import { env } from '../../src/config/env.config';
-import { uniqueTestTitle, buildIssueParams } from '../../src/utils/testing/factories';
+import type { SeededIssue } from '../../src/utils/testing/issue-seeder';
+import { seedAdditionalIssue } from '../../src/utils/testing/issue-seeder';
+import { uniqueTestTitle } from '../../src/utils/testing/factories';
 
 const { Given, When, Then } = createBdd(test);
 
@@ -23,8 +24,9 @@ Then(
 
 Then(
   'the seeded issue should appear as a row in the table',
-  async ({ tableViewPage, seededProjectIssue }) => {
-    await tableViewPage.expectRowVisible(seededProjectIssue.title);
+  async ({ tableViewPage, scenarioContext }) => {
+    const seededIssue = scenarioContext.get<SeededIssue>('seededIssue');
+    await tableViewPage.expectRowVisible(seededIssue.title);
   },
 );
 
@@ -40,28 +42,14 @@ Given(
     scenarioContext.set('sortTitleA', sortTitleA);
     scenarioContext.set('sortTitleZ', sortTitleZ);
 
-    const issueA = await githubAPI.createIssue(
-      env.github.testRepo,
-      buildIssueParams({ title: sortTitleA, body: 'Sort test issue' }),
-    );
-    dataManager.enqueue(`close issue #${issueA.number}`, async () => {
-      await githubAPI.closeIssue(env.github.testRepo, issueA.number);
-    });
-    const itemIdA = await projectsAPI.addIssueToProject(sandbox.projectId, issueA.node_id);
-    dataManager.enqueue(`remove issue #${issueA.number} from project`, async () => {
-      await projectsAPI.removeItemFromProject(sandbox.projectId, itemIdA);
+    await seedAdditionalIssue(githubAPI, projectsAPI, sandbox, dataManager, {
+      title: sortTitleA,
+      body: 'Sort test issue',
     });
 
-    const issueZ = await githubAPI.createIssue(
-      env.github.testRepo,
-      buildIssueParams({ title: sortTitleZ, body: 'Sort test issue' }),
-    );
-    dataManager.enqueue(`close issue #${issueZ.number}`, async () => {
-      await githubAPI.closeIssue(env.github.testRepo, issueZ.number);
-    });
-    const itemIdZ = await projectsAPI.addIssueToProject(sandbox.projectId, issueZ.node_id);
-    dataManager.enqueue(`remove issue #${issueZ.number} from project`, async () => {
-      await projectsAPI.removeItemFromProject(sandbox.projectId, itemIdZ);
+    await seedAdditionalIssue(githubAPI, projectsAPI, sandbox, dataManager, {
+      title: sortTitleZ,
+      body: 'Sort test issue',
     });
   },
 );
@@ -100,14 +88,12 @@ Given(
     if (issueId === 'A') scenarioContext.set('issueATitle', title);
     else scenarioContext.set('issueBTitle', title);
 
-    const issue = await githubAPI.createIssue(
-      env.github.testRepo,
-      buildIssueParams({ title, labels: [labelName], body: `Filter test issue ${issueId}` }),
-    );
-    dataManager.enqueue(`close issue #${issue.number}`, async () => {
-      await githubAPI.closeIssue(env.github.testRepo, issue.number);
+    const issue = await seedAdditionalIssue(githubAPI, projectsAPI, sandbox, dataManager, {
+      title,
+      labels: [labelName],
+      body: `Filter test issue ${issueId}`,
+      status: statusName,
     });
-    const itemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
 
     const optionId = sandbox.statusOptions.get(statusName);
     if (!optionId) {
@@ -115,11 +101,7 @@ Given(
         `Status "${statusName}" not found. Available: ${[...sandbox.statusOptions.keys()].join(', ')}`,
       );
     }
-    await projectsAPI.moveItemToStatus(sandbox.projectId, itemId, sandbox.statusFieldId, optionId);
-
-    dataManager.enqueue(`remove issue #${issue.number} from project`, async () => {
-      await projectsAPI.removeItemFromProject(sandbox.projectId, itemId);
-    });
+    await projectsAPI.moveItemToStatus(sandbox.projectId, issue.projectItemId, sandbox.statusFieldId, optionId);
   },
 );
 
@@ -134,14 +116,12 @@ Given(
 
     scenarioContext.set('issueBTitle', title);
 
-    const issue = await githubAPI.createIssue(
-      env.github.testRepo,
-      buildIssueParams({ title, labels: [], body: `Filter test issue ${issueId}` }),
-    );
-    dataManager.enqueue(`close issue #${issue.number}`, async () => {
-      await githubAPI.closeIssue(env.github.testRepo, issue.number);
+    const issue = await seedAdditionalIssue(githubAPI, projectsAPI, sandbox, dataManager, {
+      title,
+      labels: [],
+      body: `Filter test issue ${issueId}`,
+      status: statusName,
     });
-    const itemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
 
     const optionId = sandbox.statusOptions.get(statusName);
     if (!optionId) {
@@ -149,11 +129,7 @@ Given(
         `Status "${statusName}" not found. Available: ${[...sandbox.statusOptions.keys()].join(', ')}`,
       );
     }
-    await projectsAPI.moveItemToStatus(sandbox.projectId, itemId, sandbox.statusFieldId, optionId);
-
-    dataManager.enqueue(`remove issue #${issue.number} from project`, async () => {
-      await projectsAPI.removeItemFromProject(sandbox.projectId, itemId);
-    });
+    await projectsAPI.moveItemToStatus(sandbox.projectId, issue.projectItemId, sandbox.statusFieldId, optionId);
   },
 );
 

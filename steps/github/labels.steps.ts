@@ -2,7 +2,9 @@ import { createBdd } from 'playwright-bdd';
 import { expect } from '@playwright/test';
 import { test } from '../../src/fixtures';
 import { env } from '../../src/config/env.config';
-import { uniqueTestTitle, buildIssueParams } from '../../src/utils/testing/factories';
+import type { SeededIssue } from '../../src/utils/testing/issue-seeder';
+import { seedAdditionalIssue } from '../../src/utils/testing/issue-seeder';
+import { uniqueTestTitle } from '../../src/utils/testing/factories';
 
 const { When, Then } = createBdd(test);
 
@@ -12,8 +14,9 @@ When('I add the label {string} via the UI', async ({ labelsPanel }, label: strin
 
 When(
   'I add the label {string} via the API',
-  async ({ githubAPI, seededProjectIssue }, label: string) => {
-    await githubAPI.addLabels(env.github.testRepo, seededProjectIssue.number, [label]);
+  async ({ githubAPI, scenarioContext }, label: string) => {
+    const seededIssue = scenarioContext.get<SeededIssue>('seededIssue');
+    await githubAPI.addLabels(env.github.testRepo, seededIssue.number, [label]);
   },
 );
 
@@ -34,18 +37,9 @@ When(
   async ({ githubAPI, projectsAPI, sandbox, dataManager, scenarioContext }) => {
     const title = uniqueTestTitle('unlabeled');
 
-    const issue = await githubAPI.createIssue(
-      env.github.testRepo,
-      buildIssueParams({ title, body: `Second issue for label filter test. Run: ${title}` }),
-    );
-
-    dataManager.enqueue(`close issue #${issue.number}`, async () => {
-      await githubAPI.closeIssue(env.github.testRepo, issue.number);
-    });
-
-    const projectItemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
-    dataManager.enqueue(`remove issue #${issue.number} from project`, async () => {
-      await projectsAPI.removeItemFromProject(sandbox.projectId, projectItemId);
+    await seedAdditionalIssue(githubAPI, projectsAPI, sandbox, dataManager, {
+      title,
+      body: `Second issue for label filter test. Run: ${title}`,
     });
 
     scenarioContext.set('secondUnlabeledIssueTitle', title);
@@ -54,8 +48,9 @@ When(
 
 When(
   'I filter the board by the label {string}',
-  async ({ page, projectFilterBar, boardView, seededProjectIssue }, label: string) => {
-    await boardView.expectCardVisible(seededProjectIssue.title);
+  async ({ page, projectFilterBar, boardView, scenarioContext }, label: string) => {
+    const seededIssue = scenarioContext.get<SeededIssue>('seededIssue');
+    await boardView.expectCardVisible(seededIssue.title);
 
     await projectFilterBar.open();
     await projectFilterBar.selectType('Label');
@@ -69,8 +64,9 @@ When(
 
 Then(
   'the seeded issue should be visible on the board',
-  async ({ boardView, seededProjectIssue }) => {
-    await boardView.expectCardVisible(seededProjectIssue.title);
+  async ({ boardView, scenarioContext }) => {
+    const seededIssue = scenarioContext.get<SeededIssue>('seededIssue');
+    await boardView.expectCardVisible(seededIssue.title);
   },
 );
 

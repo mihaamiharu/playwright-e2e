@@ -1,15 +1,17 @@
 import { createBdd } from 'playwright-bdd';
 import { test } from '../../src/fixtures';
 import { env } from '../../src/config/env.config';
+import type { SeededIssue } from '../../src/utils/testing/issue-seeder';
 
 const { Given, When, Then } = createBdd(test);
 
 When(
   'I add a comment {string} via the API',
-  async ({ githubAPI, seededProjectIssue, scenarioContext }, body) => {
+  async ({ githubAPI, scenarioContext }, body) => {
+    const seededIssue = scenarioContext.get<SeededIssue>('seededIssue');
     const comment = await githubAPI.addComment(
       env.github.testRepo,
-      seededProjectIssue.number,
+      seededIssue.number,
       body,
     );
     scenarioContext.set('commentId', comment.id);
@@ -22,10 +24,11 @@ Then('I should see the comment {string} on the issue', async ({ issuePage }, bod
 
 Given(
   'a comment exists on the issue with text {string}',
-  async ({ githubAPI, seededProjectIssue, scenarioContext }, body) => {
+  async ({ githubAPI, scenarioContext }, body) => {
+    const seededIssue = scenarioContext.get<SeededIssue>('seededIssue');
     const comment = await githubAPI.addComment(
       env.github.testRepo,
-      seededProjectIssue.number,
+      seededIssue.number,
       body,
     );
     scenarioContext.set('commentId', comment.id);

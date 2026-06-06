@@ -1,16 +1,16 @@
 import { createBdd } from 'playwright-bdd';
 import { expect } from '@playwright/test';
 import { test } from '../../src/fixtures';
-import { env } from '../../src/config/env.config';
-import { uniqueTestTitle, buildIssueParams } from '../../src/utils/testing/factories';
+import type { SeededIssue } from '../../src/utils/testing/issue-seeder';
+import { seedAdditionalIssue } from '../../src/utils/testing/issue-seeder';
+import { uniqueTestTitle } from '../../src/utils/testing/factories';
 
 const { Given, When, Then } = createBdd(test);
 
-// ── FLD-01 ──────────────────────────────────────────────────
-
 When(
   'I set the {string} field to {string} on the seeded issue via the API',
-  async ({ projectsAPI, sandbox, seededProjectIssue }, fieldName: string, value: string) => {
+  async ({ projectsAPI, sandbox, scenarioContext }, fieldName: string, value: string) => {
+    const seededIssue = scenarioContext.get<SeededIssue>('seededIssue');
     const fields = await projectsAPI.getFields(sandbox.projectId);
     const field = fields.find((f) => f.name === fieldName);
     if (!field) throw new Error(`Field "${fieldName}" not found`);
@@ -18,7 +18,6 @@ When(
     let fieldValue: import('../../src/utils/api/github-graphql').ItemFieldValue;
 
     if (field.options) {
-      // SingleSelect
       const option = field.options.find((o) => o.name === value);
       if (!option) throw new Error(`Option "${value}" not found for field "${fieldName}"`);
       fieldValue = { singleSelectOptionId: option.id };
@@ -30,14 +29,13 @@ When(
       if (!iteration) throw new Error(`Iteration "${value}" not found in field "${fieldName}"`);
       fieldValue = { iterationId: iteration.id };
     } else {
-      // Text / Number — detect numeric
       const num = Number(value);
       fieldValue = Number.isNaN(num) ? { text: value } : { number: num };
     }
 
     await projectsAPI.setFieldValue(
       sandbox.projectId,
-      seededProjectIssue.projectItemId,
+      seededIssue.projectItemId,
       field.id,
       fieldValue,
     );
@@ -46,34 +44,29 @@ When(
 
 Then(
   'the seeded issue should show {string} in the {string} column',
-  async ({ tableViewPage, seededProjectIssue }, value: string, _columnName: string) => {
-    await tableViewPage.expectRowValue(seededProjectIssue.title, value);
+  async ({ tableViewPage, scenarioContext }, value: string, _columnName: string) => {
+    const seededIssue = scenarioContext.get<SeededIssue>('seededIssue');
+    await tableViewPage.expectRowValue(seededIssue.title, value);
   },
 );
-
-// ── FLD-02 ──────────────────────────────────────────────────
 
 Given(
   'issue {string} exists with {string} set to {string} in the sandbox project',
   async (
-    { githubAPI, projectsAPI, sandbox, dataManager, scenarioContext },
+    { githubAPI, projectsAPI, sandbox, dataManager, scenarioContext, scenarioId },
     issueId: string,
     fieldName: string,
     value: string,
   ) => {
-    const title = uniqueTestTitle(issueId);
+    const title = `${uniqueTestTitle(issueId)} [${scenarioId}]`;
 
     if (issueId === 'A') scenarioContext.set('issueATitle', title);
     else scenarioContext.set('issueBTitle', title);
 
-    const issue = await githubAPI.createIssue(
-      env.github.testRepo,
-      buildIssueParams({ title, body: `Custom field filter test issue ${issueId}` }),
-    );
-    dataManager.enqueue(`close issue #${issue.number}`, async () => {
-      await githubAPI.closeIssue(env.github.testRepo, issue.number);
+    const issue = await seedAdditionalIssue(githubAPI, projectsAPI, sandbox, dataManager, {
+      title,
+      body: `Custom field filter test issue ${issueId}`,
     });
-    const itemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
 
     const fields = await projectsAPI.getFields(sandbox.projectId);
     const field = fields.find((f) => f.name === fieldName);
@@ -97,11 +90,7 @@ Given(
       fieldValue = Number.isNaN(num) ? { text: value } : { number: num };
     }
 
-    await projectsAPI.setFieldValue(sandbox.projectId, itemId, field.id, fieldValue);
-
-    dataManager.enqueue(`remove issue #${issue.number} from project`, async () => {
-      await projectsAPI.removeItemFromProject(sandbox.projectId, itemId);
-    });
+    await projectsAPI.setFieldValue(sandbox.projectId, issue.projectItemId, field.id, fieldValue);
   },
 );
 

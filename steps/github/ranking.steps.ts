@@ -1,7 +1,8 @@
 import { createBdd } from 'playwright-bdd';
 import { test } from '../../src/fixtures';
-import { env } from '../../src/config/env.config';
-import { uniqueTestTitle, buildIssueParams } from '../../src/utils/testing/factories';
+import type { SeededIssue } from '../../src/utils/testing/issue-seeder';
+import { seedAdditionalIssue } from '../../src/utils/testing/issue-seeder';
+import { uniqueTestTitle } from '../../src/utils/testing/factories';
 
 const { Given, Then } = createBdd(test);
 
@@ -14,25 +15,18 @@ Given(
     const title = `${uniqueTestTitle(prefix)} [${scenarioId}]`;
     scenarioContext.set('secondRankIssueTitle', title);
 
-    const issue = await githubAPI.createIssue(
-      env.github.testRepo,
-      buildIssueParams({ title, body: 'Ranking test issue' }),
-    );
-    dataManager.enqueue(`close issue #${issue.number}`, async () => {
-      await githubAPI.closeIssue(env.github.testRepo, issue.number);
-    });
-    const itemId = await projectsAPI.addIssueToProject(sandbox.projectId, issue.node_id);
-
-    dataManager.enqueue(`remove issue #${issue.number} from project`, async () => {
-      await projectsAPI.removeItemFromProject(sandbox.projectId, itemId);
+    await seedAdditionalIssue(githubAPI, projectsAPI, sandbox, dataManager, {
+      title,
+      body: 'Ranking test issue',
     });
   },
 );
 
 Then(
   'both the {string} and seeded issues should appear in the {string} column',
-  async ({ boardView, seededProjectIssue, scenarioContext }) => {
-    await boardView.expectCardVisible(seededProjectIssue.title);
+  async ({ boardView, scenarioContext }) => {
+    const seededIssue = scenarioContext.get<SeededIssue>('seededIssue');
+    await boardView.expectCardVisible(seededIssue.title);
     await boardView.expectCardVisible(scenarioContext.get<string>('secondRankIssueTitle'));
   },
 );
