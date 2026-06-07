@@ -1,0 +1,10 @@
+[MIL-01 — Create milestone with due date and verify in issue sidebar] [sandbox] Resolved project "kanban-board" (PVT_kwHOAuZFts4BXfFn), statuses: Backlog, Ready, In progress, In review, Done, views: board=1 table=130
+[seeder] Created issue #7107: "e2e-ISSUE-1780809912535-1e9fed [990bc869]"
+[seeder] Added issue #7107 to project PVT_kwHOAuZFts4BXfFn
+  [page] IssuePage.navigateTo "mihaamiharu/playwright-e2e", 7107
+  [page] MilestonePanel.expectMilestone "e2e-MIL-1780809913159-7e7cc3"
+[cleanup] 3 task(s): 1) close issue #7107 → 2) remove issue #7107 from project → 3) delete milestone #296
+[cleanup] delete milestone #296...
+[cleanup] remove issue #7107 from project...
+[cleanup] close issue #7107...
+[cleanup] Done (0.9s)

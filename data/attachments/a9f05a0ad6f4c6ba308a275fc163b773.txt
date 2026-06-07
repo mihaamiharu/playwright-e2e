@@ -1,0 +1,10 @@
+[CMT-02 — Edit comment via API and verify updated text appears] [sandbox] Resolved project "kanban-board" (PVT_kwHOAuZFts4BXfFn), statuses: Backlog, Ready, In progress, In review, Done, views: board=1 table=130
+[seeder] Created issue #7078: "e2e-ISSUE-1780809490460-800342 [cccd6fb7]"
+[seeder] Added issue #7078 to project PVT_kwHOAuZFts4BXfFn
+  [page] IssuePage.navigateTo "mihaamiharu/playwright-e2e", 7078
+  [page] IssuePage.expectCommentVisible "Updated comment text"
+  [page] IssuePage.expectCommentNotVisible "Original comment text"
+[cleanup] 2 task(s): 1) close issue #7078 → 2) remove issue #7078 from project
+[cleanup] remove issue #7078 from project...
+[cleanup] close issue #7078...
+[cleanup] Done (0.5s)

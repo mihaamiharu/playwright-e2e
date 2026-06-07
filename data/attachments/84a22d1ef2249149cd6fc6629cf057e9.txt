@@ -1,0 +1,10 @@
+[ISS-01 — Create issue via API and verify it appears on the board] [sandbox] Resolved project "kanban-board" (PVT_kwHOAuZFts4BXfFn), statuses: Backlog, Ready, In progress, In review, Done, views: board=1 table=130
+[seeder] Created issue #7081: "e2e-ISSUE-1780809513284-8f51d8 [c7019c3c]"
+[seeder] Added issue #7081 to project PVT_kwHOAuZFts4BXfFn
+  [page] IssuePage.navigateTo "mihaamiharu/playwright-e2e", 7081
+  [page] IssuePage.expectHeading "e2e-ISSUE-1780809513284-8f51d8 [c7019c3c]"
+  [page] IssuePage.expectIssueNumber 7081
+[cleanup] 2 task(s): 1) close issue #7081 → 2) remove issue #7081 from project
+[cleanup] remove issue #7081 from project...
+[cleanup] close issue #7081...
+[cleanup] Done (0.6s)

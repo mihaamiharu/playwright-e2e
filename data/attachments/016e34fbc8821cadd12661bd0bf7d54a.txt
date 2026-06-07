@@ -1,0 +1,8 @@
+[VIEW-01 — Create saved view with filter and verify persistence after reload] [sandbox] Resolved project "kanban-board" (PVT_kwHOAuZFts4BXfFn), statuses: Backlog, Ready, In progress, In review, Done, views: board=1 table=130
+  [page] ProjectBoardPage.navigate "\"5853f928\""
+  [page] SavedViews.createBoardView "E2E Test View 02997716"
+  [page] SavedViews.applyStatusFilter "Backlog"
+  [page] SavedViews.refreshView
+  [page] SavedViews.assertStatusFilterApplied "Backlog"
+  [page] SavedViews.assertViewTabSelected "E2E Test View 02997716"
+  [page] SavedViews.deleteView "E2E Test View 02997716"

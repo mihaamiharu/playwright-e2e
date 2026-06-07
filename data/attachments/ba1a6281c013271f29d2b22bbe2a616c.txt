@@ -1,0 +1,8 @@
+[ARC-02 — Restore archived item and verify it reappears on the board] [sandbox] Resolved project "kanban-board" (PVT_kwHOAuZFts4BXfFn), statuses: Backlog, Ready, In progress, In review, Done, views: board=1 table=130
+[seeder] Created issue #7071: "e2e-ISSUE-1780809454049-1ed07e [9799e996]"
+[seeder] Added issue #7071 to project PVT_kwHOAuZFts4BXfFn
+  [page] ProjectBoardPage.navigate "\"9799e996\""
+[cleanup] 2 task(s): 1) close issue #7071 → 2) remove issue #7071 from project
+[cleanup] remove issue #7071 from project...
+[cleanup] close issue #7071...
+[cleanup] Done (0.7s)

@@ -1,0 +1,9 @@
+[ISS-03 — Close issue and verify status badge changes to "Closed"] [sandbox] Resolved project "kanban-board" (PVT_kwHOAuZFts4BXfFn), statuses: Backlog, Ready, In progress, In review, Done, views: board=1 table=130
+[seeder] Created issue #7083: "e2e-ISSUE-1780809526690-9de20e [e7053d56]"
+[seeder] Added issue #7083 to project PVT_kwHOAuZFts4BXfFn
+  [page] IssuePage.navigateTo "mihaamiharu/playwright-e2e", 7083
+  [page] IssuePage.expectState "Closed"
+[cleanup] 2 task(s): 1) close issue #7083 → 2) remove issue #7083 from project
+[cleanup] remove issue #7083 from project...
+[cleanup] close issue #7083...
+[cleanup] Done (0.5s)

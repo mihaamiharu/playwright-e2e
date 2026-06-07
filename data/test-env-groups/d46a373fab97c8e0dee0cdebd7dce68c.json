@@ -1,0 +1,1 @@
+{"id":"d46a373fab97c8e0dee0cdebd7dce68c","fullName":"features/github/bulk-operations.feature.spec.js:6:7","name":"BULK-01 — Seed multiple issues → bulk update status via API → verify all changed","status":"passed","testResultsByEnv":{"default":"50d1bedaa9cbadec690822724e1d974f"}}

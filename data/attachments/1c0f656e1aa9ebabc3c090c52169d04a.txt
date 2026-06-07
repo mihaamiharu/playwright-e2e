@@ -1,0 +1,6 @@
+[VIEW-02 — Switch between saved views and verify correct view is displayed] [sandbox] Resolved project "kanban-board" (PVT_kwHOAuZFts4BXfFn), statuses: Backlog, Ready, In progress, In review, Done, views: board=1 table=130
+  [page] ProjectBoardPage.navigate "\"6beb3322\""
+  [page] SavedViews.switchToView "Priority board"
+  [page] SavedViews.assertViewTabSelected "Priority board"
+  [page] SavedViews.switchToView "Backlog"
+  [page] SavedViews.assertViewTabSelected "Backlog"

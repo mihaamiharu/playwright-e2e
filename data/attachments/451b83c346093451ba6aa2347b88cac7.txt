@@ -1,0 +1,9 @@
+[ASN-01 — Assign issue to user via API and verify on issue page] [sandbox] Resolved project "kanban-board" (PVT_kwHOAuZFts4BXfFn), statuses: Backlog, Ready, In progress, In review, Done, views: board=1 table=130
+[seeder] Created issue #7072: "e2e-ISSUE-1780809455117-1e08a2 [74cefa99]"
+[seeder] Added issue #7072 to project PVT_kwHOAuZFts4BXfFn
+  [page] IssuePage.navigateTo "mihaamiharu/playwright-e2e", 7072
+  [page] AssigneePanel.expectAssignee "ekkisyam23"
+[cleanup] 2 task(s): 1) close issue #7072 → 2) remove issue #7072 from project
+[cleanup] remove issue #7072 from project...
+[cleanup] close issue #7072...
+[cleanup] Done (0.6s)

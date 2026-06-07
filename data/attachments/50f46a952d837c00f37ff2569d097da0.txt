@@ -1,0 +1,9 @@
+[TDATE-01 — Set date field and verify it renders in table view] [sandbox] Resolved project "kanban-board" (PVT_kwHOAuZFts4BXfFn), statuses: Backlog, Ready, In progress, In review, Done, views: board=1 table=130
+[seeder] Created issue #7079: "e2e-ISSUE-1780809497477-750bbc [48af1b09]"
+[seeder] Added issue #7079 to project PVT_kwHOAuZFts4BXfFn
+  [page] TableViewPage.navigate "\"48af1b09\""
+  [page] TableViewPage.expectRowVisible "e2e-ISSUE-1780809497477-750bbc [48af1b09]"
+[cleanup] 2 task(s): 1) close issue #7079 → 2) remove issue #7079 from project
+[cleanup] remove issue #7079 from project...
+[cleanup] close issue #7079...
+[cleanup] Done (0.6s)

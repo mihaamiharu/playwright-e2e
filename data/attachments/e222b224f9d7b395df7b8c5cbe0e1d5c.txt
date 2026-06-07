@@ -1,0 +1,3 @@
+  [page] LoginPage.navigate
+  [page] LoginPage.login
+  [page] LoginPage.submit

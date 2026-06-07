@@ -1,0 +1,2 @@
+  [page] IssuePage.navigateTo "mihaamiharu/playwright-e2e", 7069
+[a11y] 0 violation(s), 30 pass(es), 3 incomplete

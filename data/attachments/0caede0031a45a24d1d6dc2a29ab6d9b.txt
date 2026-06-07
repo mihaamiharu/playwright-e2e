@@ -1,0 +1,9 @@
+[CMT-01 — Add comment via API and verify it appears in the timeline] [sandbox] Resolved project "kanban-board" (PVT_kwHOAuZFts4BXfFn), statuses: Backlog, Ready, In progress, In review, Done, views: board=1 table=130
+[seeder] Created issue #7077: "e2e-ISSUE-1780809483407-1ab565 [11ae0c6b]"
+[seeder] Added issue #7077 to project PVT_kwHOAuZFts4BXfFn
+  [page] IssuePage.navigateTo "mihaamiharu/playwright-e2e", 7077
+  [page] IssuePage.expectCommentVisible "CMT-01 test comment from E2E"
+[cleanup] 2 task(s): 1) close issue #7077 → 2) remove issue #7077 from project
+[cleanup] remove issue #7077 from project...
+[cleanup] close issue #7077...
+[cleanup] Done (0.6s)

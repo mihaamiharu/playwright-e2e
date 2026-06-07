@@ -1,0 +1,3 @@
+[A11Y-03 — Table layout view has no critical WCAG violations] [sandbox] Resolved project "kanban-board" (PVT_kwHOAuZFts4BXfFn), statuses: Backlog, Ready, In progress, In review, Done, views: board=1 table=130
+  [page] TableViewPage.navigate
+[a11y] 0 violation(s), 31 pass(es), 3 incomplete

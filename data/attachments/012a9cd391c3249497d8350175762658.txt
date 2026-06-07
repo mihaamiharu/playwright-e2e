@@ -1,0 +1,9 @@
+[DRFT-01 — Create draft item on board and verify it appears without issue number] [sandbox] Resolved project "kanban-board" (PVT_kwHOAuZFts4BXfFn), statuses: Backlog, Ready, In progress, In review, Done, views: board=1 table=130
+[seeder] Created issue #7097: "e2e-ISSUE-1780809693045-6d88d3 [f611f9d4]"
+[seeder] Added issue #7097 to project PVT_kwHOAuZFts4BXfFn
+  [page] ProjectBoardPage.navigate
+[cleanup] 3 task(s): 1) close issue #7097 → 2) remove issue #7097 from project → 3) remove draft e2e-draft-1780809693627-1d6788 Draft test item from project
+[cleanup] remove draft e2e-draft-1780809693627-1d6788 Draft test item from project...
+[cleanup] remove issue #7097 from project...
+[cleanup] close issue #7097...
+[cleanup] Done (0.9s)

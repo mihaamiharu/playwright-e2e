@@ -1,0 +1,10 @@
+[TBL-01 — Switch to table view and verify columns render] [sandbox] Resolved project "kanban-board" (PVT_kwHOAuZFts4BXfFn), statuses: Backlog, Ready, In progress, In review, Done, views: board=1 table=130
+[seeder] Created issue #7114: "e2e-ISSUE-1780809991838-c3b14f [074dc4ba]"
+[seeder] Added issue #7114 to project PVT_kwHOAuZFts4BXfFn
+  [page] TableViewPage.navigate "\"074dc4ba\""
+  [page] TableViewPage.expectColumnsVisible ["Title","Status","Assignees"]
+  [page] TableViewPage.expectRowVisible "e2e-ISSUE-1780809991838-c3b14f [074dc4ba]"
+[cleanup] 2 task(s): 1) close issue #7114 → 2) remove issue #7114 from project
+[cleanup] remove issue #7114 from project...
+[cleanup] close issue #7114...
+[cleanup] Done (0.6s)

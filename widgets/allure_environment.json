@@ -1,0 +1,1 @@
+[{"name":"Browser","values":["Chromium"]},{"name":"OS","values":["linux"]},{"name":"NodeVersion","values":["v24.16.0"]},{"name":"BaseURL","values":["https://github.com"]},{"name":"TestMode","values":["full"]},{"name":"CI","values":["true"]}]

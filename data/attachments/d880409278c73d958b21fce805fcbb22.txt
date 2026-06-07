@@ -1,0 +1,22 @@
+[LBL-04 — Filter board by label and verify only matching issues shown] [sandbox] Resolved project "kanban-board" (PVT_kwHOAuZFts4BXfFn), statuses: Backlog, Ready, In progress, In review, Done, views: board=1 table=130
+[seeder] Created issue #7104: "e2e-ISSUE-1780809893623-ab38bb [880837ea]"
+[seeder] Added issue #7104 to project PVT_kwHOAuZFts4BXfFn
+[seeder] Created issue #7105: "e2e-ISSUE-1780809894338-6f5995 [880837ea]"
+[seeder] Added issue #7105 to project PVT_kwHOAuZFts4BXfFn
+[seeder] Created issue #7106: "e2e-ISSUE-1780809895252-4571dd [880837ea]"
+[seeder] Added issue #7106 to project PVT_kwHOAuZFts4BXfFn
+  [page] ProjectBoardPage.navigate "\"880837ea\""
+  [page] ProjectSearchBar.open
+  [page] ProjectSearchBar.selectType "Label"
+  [page] ProjectSearchBar.selectOption "bug", "Label"
+  [page] ProjectSearchBar.save
+  [page] BoardView.expectCardVisible "e2e-ISSUE-1780809894338-6f5995 [880837ea]"
+  [page] BoardView.expectCardNotVisible "e2e-ISSUE-1780809895252-4571dd [880837ea]"
+[cleanup] 6 task(s): 1) close issue #7104 → 2) remove issue #7104 from project → 3) close issue #7105 → 4) remove issue #7105 from project → 5) close issue #7106 → 6) remove issue #7106 from project
+[cleanup] remove issue #7106 from project...
+[cleanup] close issue #7106...
+[cleanup] remove issue #7105 from project...
+[cleanup] close issue #7105...
+[cleanup] remove issue #7104 from project...
+[cleanup] close issue #7104...
+[cleanup] Done (1.8s)

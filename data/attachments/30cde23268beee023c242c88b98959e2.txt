@@ -1,0 +1,3 @@
+[A11Y-01 — Board kanban view has no critical WCAG violations] [sandbox] Resolved project "kanban-board" (PVT_kwHOAuZFts4BXfFn), statuses: Backlog, Ready, In progress, In review, Done, views: board=1 table=130
+  [page] ProjectBoardPage.navigate
+[a11y] 0 violation(s), 30 pass(es), 3 incomplete

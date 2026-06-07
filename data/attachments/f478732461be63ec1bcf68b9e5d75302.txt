@@ -1,0 +1,9 @@
+[ISS-04 — Reopen closed issue and verify status restored to "Open"] [sandbox] Resolved project "kanban-board" (PVT_kwHOAuZFts4BXfFn), statuses: Backlog, Ready, In progress, In review, Done, views: board=1 table=130
+[seeder] Created issue #7084: "e2e-ISSUE-1780809533590-aa00c0 [1483299c]"
+[seeder] Added issue #7084 to project PVT_kwHOAuZFts4BXfFn
+  [page] IssuePage.navigateTo "mihaamiharu/playwright-e2e", 7084
+  [page] IssuePage.expectState "Open"
+[cleanup] 2 task(s): 1) close issue #7084 → 2) remove issue #7084 from project
+[cleanup] remove issue #7084 from project...
+[cleanup] close issue #7084...
+[cleanup] Done (0.6s)
