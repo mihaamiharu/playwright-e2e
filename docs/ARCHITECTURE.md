@@ -143,7 +143,7 @@ on:
 ## Directory Structure Rationale
 
 ```
-playwright-e2e/
+github-projects-e2e/
 ├── docs/                  # Decision records, test plan — NOT code
 │   ├── TEST-PLAN.md       # What we test and why
 │   └── ARCHITECTURE.md    # This file

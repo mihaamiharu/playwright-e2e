@@ -22,7 +22,7 @@ export async function attachAllureLabels(
 ): Promise<void> {
   // Always attach owner and repo link
   await allure.owner('Ekki Syam');
-  await allure.link('https://github.com/mihaamiharu/playwright-e2e', 'Repository', 'custom');
+  await allure.link('https://github.com/mihaamiharu/github-projects-e2e', 'Repository', 'custom');
 
   if (tags && tags.length > 0) {
     for (const tag of tags) {

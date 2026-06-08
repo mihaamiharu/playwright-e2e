@@ -3,7 +3,7 @@
 [![Playwright](https://img.shields.io/badge/playwright-v1.59-blue)](https://playwright.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org/)
 [![BDD](https://img.shields.io/badge/BDD-playwright--bdd-green)](https://github.com/vitalets/playwright-bdd)
-[![E2E Tests](https://github.com/mihaamiharu/playwright-e2e/actions/workflows/e2e-full.yml/badge.svg)](https://github.com/mihaamiharu/playwright-e2e/actions/workflows/e2e-full.yml)
+[![E2E Tests](https://github.com/mihaamiharu/github-projects-e2e/actions/workflows/e2e-full.yml/badge.svg)](https://github.com/mihaamiharu/github-projects-e2e/actions/workflows/e2e-full.yml)
 [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
 > **A production-grade Playwright E2E testing repository demonstrating QA best practices by testing real public websites — the kind of complexity demo apps hide from you.**
@@ -43,8 +43,8 @@ We test **GitHub** exclusively — specifically GitHub project management workfl
 ## 🚀 Quick Start
 
 ```bash
-git clone https://github.com/mihaamiharu/playwright-e2e.git
-cd playwright-e2e
+git clone https://github.com/mihaamiharu/github-projects-e2e.git
+cd github-projects-e2e
 npm install
 npx playwright install --with-deps chromium
 npm test
@@ -79,7 +79,7 @@ npm run report
 # Generate + view Allure report
 npm run report:allure
 
-📊 [Latest CI Test Report](https://mihaamiharu.github.io/playwright-e2e/) — hosted Allure report with history and trends
+📊 [Latest CI Test Report](https://mihaamiharu.github.io/github-projects-e2e/) — hosted Allure report with history and trends
 
 # Type check + lint + format
 npm run typecheck
@@ -90,7 +90,7 @@ npm run format:check
 ## 📂 Project Structure
 
 ```
-playwright-e2e/
+github-projects-e2e/
 ├── docs/                    # TEST-PLAN.md, ARCHITECTURE.md — read these first
 ├── features/                # Gherkin .feature files
 │   └── github/

@@ -36,7 +36,7 @@ We loaded the auth state, navigated to a test issue, and opened the assignee pic
 ```bash
 playwright-cli open
 playwright-cli state-load auth/github.json
-playwright-cli goto https://github.com/mihaamiharu/playwright-e2e/issues/200
+playwright-cli goto https://github.com/mihaamiharu/github-projects-e2e/issues/200
 playwright-cli click "getByRole('button', { name: 'Edit Assignees' })"
 ```
 

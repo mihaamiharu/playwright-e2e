@@ -1,5 +1,5 @@
 {
-  "name": "playwright-e2e",
+  "name": "github-projects-e2e",
   "version": "0.1.0",
   "description": "Production-grade Playwright E2E testing against real public websites — demonstrating QA best practices.",
   "private": true,
