@@ -44,3 +44,6 @@ screenshots/
 .docs/
 .blog/
 
+# Launch materials (local only)
+launch-materials/
+
