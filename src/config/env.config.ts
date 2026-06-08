@@ -9,7 +9,7 @@ export const env = {
     password: process.env.GH_PASSWORD || '',
     /** Personal access token for REST + GraphQL API calls */
     token: process.env.GH_API_TOKEN || '',
-    /** Repo where test issues are created, e.g. 'mihaamiharu/playwright-e2e' */
+    /** Repo where test issues are created, e.g. 'mihaamiharu/github-projects-e2e' */
     testRepo: process.env.GH_TEST_REPO || '',
     /** Owner of the test repo (org or username) */
     testRepoOwner: process.env.GH_TEST_REPO_OWNER || '',

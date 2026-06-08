@@ -337,4 +337,4 @@ Authentication is the prerequisite. Now that we can reliably log in and stay log
 
 ---
 
-_Part 4 of the Playwright E2E series. [Browse the full repo →](https://github.com/mihaamiharu/playwright-e2e)_
+_Part 4 of the Playwright E2E series. [Browse the full repo →](https://github.com/mihaamiharu/github-projects-e2e)_

@@ -2,7 +2,7 @@
 
 > **A tutorial series for QA automation engineers who want to test like they mean it.**
 >
-> Part 1 of 8 — [Browse the full repo →](https://github.com/mihaamiharu/playwright-e2e)
+> Part 1 of 8 — [Browse the full repo →](https://github.com/mihaamiharu/github-projects-e2e)
 
 ---
 
@@ -117,7 +117,7 @@ header design and your dashboard test breaks, you now have a **real test
 maintenance scenario**. Not a hypothetical one from a blog post.
 
 Every time you fix a broken locator, you're practicing the exact skill QA
-engineers use every sprint. The repo's [TEST-PLAN.md](https://github.com/mihaamiharu/playwright-e2e/blob/main/docs/TEST-PLAN.md)
+engineers use every sprint. The repo's [TEST-PLAN.md](https://github.com/mihaamiharu/github-projects-e2e/blob/main/docs/TEST-PLAN.md)
 tracks all 38 planned scenarios with priority, test type, and status — so you
 always know what's passing, what's broken, and what's next.
 
@@ -128,7 +128,7 @@ always know what's passing, what's broken, and what's next.
 Rather than dump everything in a flat `/tests` folder, we organize by concern:
 
 ```
-playwright-e2e/
+github-projects-e2e/
 ├── features/              ← Gherkin specs (product-readable)
 │   └── github/login.feature
 ├── steps/                 ← Step definitions (glue code)
@@ -222,8 +222,8 @@ fixtures, tracing, sharding, and reporters all work without extra configuration.
 ## Get Started Now
 
 ```bash
-git clone https://github.com/mihaamiharu/playwright-e2e.git
-cd playwright-e2e
+git clone https://github.com/mihaamiharu/github-projects-e2e.git
+cd github-projects-e2e
 npm install
 npx playwright install --with-deps chromium
 npm test
@@ -234,6 +234,6 @@ lessons that transfer directly to your day job.
 
 ---
 
-_Part 1 of an 8-part series. [Follow the repo](https://github.com/mihaamiharu/playwright-e2e)
-for updates, or read the full [architecture document](https://github.com/mihaamiharu/playwright-e2e/blob/main/docs/ARCHITECTURE.md)
+_Part 1 of an 8-part series. [Follow the repo](https://github.com/mihaamiharu/github-projects-e2e)
+for updates, or read the full [architecture document](https://github.com/mihaamiharu/github-projects-e2e/blob/main/docs/ARCHITECTURE.md)
 for the design decisions behind every pattern._

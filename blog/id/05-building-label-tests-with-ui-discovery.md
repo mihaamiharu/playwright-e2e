@@ -36,7 +36,7 @@ Kita bikin temporary issue di test repo terus dikasih label `bug` lewat API, loa
 ```bash
 playwright-cli open
 playwright-cli state-load auth/github.json
-playwright-cli goto https://github.com/mihaamiharu/playwright-e2e/issues/122
+playwright-cli goto https://github.com/mihaamiharu/github-projects-e2e/issues/122
 playwright-cli snapshot
 ```
 

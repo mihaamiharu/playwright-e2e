@@ -2,7 +2,7 @@
 
 > **Seri tutorial buat QA automation engineer yang pengen ngetest beneran.**
 >
-> Part 1 dari 8 — [Lihat full repo →](https://github.com/mihaamiharu/playwright-e2e)
+> Part 1 dari 8 — [Lihat full repo →](https://github.com/mihaamiharu/github-projects-e2e)
 
 ---
 
@@ -101,7 +101,7 @@ Nerapin arsitektur ini dari awal bakal nyegah mimpi buruk "di lokal sukses, di C
 
 Demo app nggak pernah berubah. Website beneran deploy tiap hari. Waktu GitHub rilis desain header baru dan test dashboard lo gagal, lo beneran dapet **skenario maintenance test yang nyata**. Bukan skenario pura-pura dari postingan blog.
 
-Tiap kali lo benerin locator yang gagal, lo lagi ngelatih skill yang sama persis kayak yang dipake QA engineer tiap sprint. File [TEST-PLAN.md](https://github.com/mihaamiharu/playwright-e2e/blob/main/docs/TEST-PLAN.md) di repo ini nyatet semua 38 skenario yang direncanain lengkap sama prioritas, tipe test, dan statusnya — jadi lo bakal selalu tau mana yang pass, mana yang gagal, dan apa yang harus dikerjain selanjutnya.
+Tiap kali lo benerin locator yang gagal, lo lagi ngelatih skill yang sama persis kayak yang dipake QA engineer tiap sprint. File [TEST-PLAN.md](https://github.com/mihaamiharu/github-projects-e2e/blob/main/docs/TEST-PLAN.md) di repo ini nyatet semua 38 skenario yang direncanain lengkap sama prioritas, tipe test, dan statusnya — jadi lo bakal selalu tau mana yang pass, mana yang gagal, dan apa yang harus dikerjain selanjutnya.
 
 ---
 
@@ -110,7 +110,7 @@ Tiap kali lo benerin locator yang gagal, lo lagi ngelatih skill yang sama persis
 Daripada numpukin semuanya di satu folder `/tests`, kita ngatur berdasarkan concern (kegunaan):
 
 ```
-playwright-e2e/
+github-projects-e2e/
 ├── features/              ← Gherkin specs (bisa dibaca tim product)
 │   └── github/login.feature
 ├── steps/                 ← Step definitions (kode penghubung)
@@ -198,8 +198,8 @@ Kita pake **[playwright-bdd](https://github.com/vitalets/playwright-bdd)** darip
 ## Mulai Sekarang
 
 ```bash
-git clone https://github.com/mihaamiharu/playwright-e2e.git
-cd playwright-e2e
+git clone https://github.com/mihaamiharu/github-projects-e2e.git
+cd github-projects-e2e
 npm install
 npx playwright install --with-deps chromium
 npm test
@@ -209,4 +209,4 @@ Nggak butuh kredensial. Nggak ada demo app. Cuma website beneran, test beneran, 
 
 ---
 
-_Part 1 dari seri 8 bagian. [Follow repo-nya](https://github.com/mihaamiharu/playwright-e2e) biar dapet update, atau baca full [dokumen arsitekturnya](https://github.com/mihaamiharu/playwright-e2e/blob/main/docs/ARCHITECTURE.md) buat tau keputusan desain di balik semua pattern ini._
+_Part 1 dari seri 8 bagian. [Follow repo-nya](https://github.com/mihaamiharu/github-projects-e2e) biar dapet update, atau baca full [dokumen arsitekturnya](https://github.com/mihaamiharu/github-projects-e2e/blob/main/docs/ARCHITECTURE.md) buat tau keputusan desain di balik semua pattern ini._

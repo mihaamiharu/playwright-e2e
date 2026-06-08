@@ -337,4 +337,4 @@ Autentikasi ini cuma sekadar prasyarat. Sekarang setelah kita bisa login dengan 
 
 ---
 
-_Part 4 dari seri Playwright E2E. [Cek full repo-nya di sini →](https://github.com/mihaamiharu/playwright-e2e)_
+_Part 4 dari seri Playwright E2E. [Cek full repo-nya di sini →](https://github.com/mihaamiharu/github-projects-e2e)_

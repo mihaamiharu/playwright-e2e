@@ -186,7 +186,7 @@ jobs:
         if: always()
         run: |
           RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          ALLURE_URL="https://mihaamiharu.github.io/playwright-e2e/"
+          ALLURE_URL="https://mihaamiharu.github.io/github-projects-e2e/"
 
           if [ -d "reports/allure/results" ] && [ "$(ls -A reports/allure/results/*-result.json 2>/dev/null)" ]; then
             STATS=$(find reports/allure/results -name '*-result.json' -exec cat {} + 2>/dev/null | jq -s 'group_by(.status) | map({key: .[0].status, value: length}) | from_entries')
