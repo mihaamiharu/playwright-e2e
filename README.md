@@ -91,7 +91,6 @@ npm run format:check
 
 ```
 github-projects-e2e/
-├── docs/                    # TEST-PLAN.md, ARCHITECTURE.md — read these first
 ├── features/                # Gherkin .feature files
 │   └── github/
 │       ├── login.feature
@@ -137,50 +136,8 @@ github-projects-e2e/
 │       ├── setup/           # IMAP poller, sandbox bootstrap
 │       └── env.config.ts
 ├── auth/                    # Storage state — gitignored
-├── blog/                    # Blog posts, tutorials (EN + ID)
 └── .features-gen/           # BDD generated code — gitignored
 ```
-
-## 📖 Documentation
-
-- **[TEST-PLAN.md](./docs/TEST-PLAN.md)** — Full test strategy: 37 scenarios across Issue CRUD, Labels, Milestones, Kanban, Custom Fields, Bulk Operations, and Workflows. 24 currently automated.
-- **[ARCHITECTURE.md](./docs/ARCHITECTURE.md)** — Design decisions: why fixtures over BaseTest, why persistent sandbox, data lifecycle guarantees, dependency version policy
-
-## 📝 Blog Series
-
-This repository is part of a QA engineering blog series:
-
-1. **[Why Your Playwright Tests Need Real Websites (Not Demo Apps)](./blog/en/series/01-why-real-websites.md)** — The demo app trap, hashed CSS classes, and why production targets make better testers
-2. **[Architecture Tour](./blog/en/tutorials/architecture-tour.md)** — How this repo is built: fixtures, POMs, data lifecycle
-3. **[Fixtures Over BaseTest](./blog/en/tutorials/fixtures-over-basetest.md)** — Playwright's fixture system vs traditional OOP test patterns
-4. **[Authentication Without the 2FA Nightmare](./blog/en/series/04-authentication-without-2fa.md)** — Device verification, IMAP polling, and the two-credential pattern
-5. **[Building E2E Label Tests: From Gherkin to Green](./blog/en/series/05-building-label-tests-with-ui-discovery.md)** — Discovering GitHub's label picker UI with playwright-cli, auth refactor, and 4 bugs caught in implementation
-6. **[Assignees & Milestones: The Sidebar Pattern Pays Off](./blog/en/series/06-assignees-milestones.md)** — Reusing the dialog pattern across metadata fields, 5 scenarios in one session
-7. **[When the DOM Fights Back: 4 Real-World E2E Gotchas from GitHub Projects](./blog/en/series/07-real-world-e2e-gotchas.md)** — Substring matching, filter bar limitations, backdrop overlays, and parallel BDD pitfalls
-8. **[GraphQL Schema Archaeology: Finding the Right Mutation](./blog/en/series/08-graphql-schema-archaeology.md)** — Introspecting GitHub's GraphQL schema to discover undocumented mutations, nested input types, and union response handling
-9. **[From Single Click to Full Workflow: Scaling playwright-cli](./blog/en/series/09-scaling-playwright-cli-discovery.md)** — Multi-step UI flow discovery for saved views: creating views, applying filters, renaming, and verifying persistence
-10. **[CI/CD for the Paranoid QA](./blog/en/series/10-cicd-allure-caching-isolation.md)** — Sandbox isolation, Allure caching, rerun-failed-only, and the ephemeral auth trap
-11. **[So You Want to Screenshot GitHub](./blog/en/series/11-visual-a11y-real-sites.md)** — Visual regression and WCAG on a site you don't control
-
-**Tutorials:**
-
-- **[The Missing Piece in Playwright BDD: ScenarioContext](./blog/en/tutorials/scenario-context.md)** — Per-test key-value store for sharing state between BDD steps
-- **[YAML & CI/CD Concepts for QA Engineers](./blog/en/tutorials/yaml-and-ci-concepts.md)** — What you need before writing your first workflow
-- **[CI/CD for QA Engineers: A Decision Framework](./blog/en/tutorials/cicd-for-qa-engineers.md)** — Not a YAML tutorial — a decision framework
-
-### Indonesian (Bahasa Indonesia)
-
-Seluruh seri blog juga tersedia dalam bahasa Indonesia: [blog/id/](./blog/id/)
-
-1. **[Kenapa Lo Harus Test Pakai Website Beneran](./blog/id/01-why-real-websites.md)**
-2. **[Autentikasi Tanpa Mimpi Buruk 2FA](./blog/id/04-authentication-without-2fa.md)**
-3. **[Bikin E2E Test Buat Label: Dari Gherkin Sampai Hijau](./blog/id/05-building-label-tests-with-ui-discovery.md)**
-4. **[Assignees & Milestones: Pola Sidebar Beneran Berguna](./blog/id/06-assignees-milestones.md)**
-5. **[Waktu DOM Ngajak Ribut: 4 Masalah Asli E2E](./blog/id/07-real-world-e2e-gotchas.md)**
-6. **[Arkeologi Skema GraphQL](./blog/id/08-graphql-schema-archaeology.md)**
-7. **[Dari Sekali Klik ke Full Workflow](./blog/id/09-scaling-playwright-cli-discovery.md)**
-8. **[CI/CD Buat QA yang Paranoid](./blog/id/10-cicd-allure-caching-isolation.md)**
-9. **[Jadi Lo Pengen Nge-Screenshot GitHub](./blog/id/11-visual-a11y-real-sites.md)**
 
 ## 🛠️ Tech Stack
 

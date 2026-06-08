@@ -40,3 +40,7 @@ screenshots/
 # Tool metadata
 .antigravitycli/
 
+# Internal documentation and blog drafts (local only)
+.docs/
+.blog/
+
